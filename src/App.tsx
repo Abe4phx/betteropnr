@@ -7,6 +7,7 @@ import { TalkSparkProvider } from "@/contexts/TalkSparkContext";
 import { Navigation } from "@/components/Navigation";
 import Generator from "./pages/Generator";
 import Saved from "./pages/Saved";
+import BrandPreview from "./pages/BrandPreview";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Generator />} />
                 <Route path="/saved" element={<Saved />} />
+                <Route path="/brand-preview" element={<BrandPreview />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
