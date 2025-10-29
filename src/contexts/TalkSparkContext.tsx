@@ -12,6 +12,15 @@ export interface FollowUp {
   openerId: string;
 }
 
+export interface Favorite {
+  id: string;
+  text: string;
+  tone: string[];
+  createdAt: string;
+  type: 'opener' | 'followup';
+  likes: number;
+}
+
 interface TalkSparkContextType {
   profileText: string;
   setProfileText: (text: string) => void;
@@ -21,10 +30,11 @@ interface TalkSparkContextType {
   setGeneratedOpeners: (openers: Opener[]) => void;
   followUps: FollowUp[];
   setFollowUps: (followUps: FollowUp[]) => void;
-  favorites: Opener[];
-  addToFavorites: (opener: Opener) => void;
-  removeFromFavorites: (openerId: string) => void;
-  isFavorite: (openerId: string) => boolean;
+  favorites: Favorite[];
+  addToFavorites: (item: Opener | FollowUp, type: 'opener' | 'followup', tones: string[]) => void;
+  removeFromFavorites: (itemId: string) => void;
+  isFavorite: (itemId: string) => boolean;
+  rateFavorite: (itemId: string, rating: number) => void;
 }
 
 const TalkSparkContext = createContext<TalkSparkContextType | undefined>(undefined);
@@ -34,7 +44,7 @@ export const TalkSparkProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [selectedTones, setSelectedTones] = useState<string[]>([]);
   const [generatedOpeners, setGeneratedOpeners] = useState<Opener[]>([]);
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
-  const [favorites, setFavorites] = useState<Opener[]>([]);
+  const [favorites, setFavorites] = useState<Favorite[]>([]);
 
   // Load favorites from localStorage on mount
   useEffect(() => {
@@ -53,18 +63,32 @@ export const TalkSparkProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     localStorage.setItem('talkSpark-favorites', JSON.stringify(favorites));
   }, [favorites]);
 
-  const addToFavorites = (opener: Opener) => {
-    if (!favorites.find(f => f.id === opener.id)) {
-      setFavorites([...favorites, opener]);
+  const addToFavorites = (item: Opener | FollowUp, type: 'opener' | 'followup', tones: string[]) => {
+    if (!favorites.find(f => f.id === item.id)) {
+      const favorite: Favorite = {
+        id: item.id,
+        text: item.text,
+        tone: tones,
+        createdAt: new Date().toISOString(),
+        type,
+        likes: 0,
+      };
+      setFavorites([...favorites, favorite]);
     }
   };
 
-  const removeFromFavorites = (openerId: string) => {
-    setFavorites(favorites.filter(f => f.id !== openerId));
+  const removeFromFavorites = (itemId: string) => {
+    setFavorites(favorites.filter(f => f.id !== itemId));
   };
 
-  const isFavorite = (openerId: string) => {
-    return favorites.some(f => f.id === openerId);
+  const isFavorite = (itemId: string) => {
+    return favorites.some(f => f.id === itemId);
+  };
+
+  const rateFavorite = (itemId: string, rating: number) => {
+    setFavorites(favorites.map(f => 
+      f.id === itemId ? { ...f, likes: rating } : f
+    ));
   };
 
   return (
@@ -82,6 +106,7 @@ export const TalkSparkProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         addToFavorites,
         removeFromFavorites,
         isFavorite,
+        rateFavorite,
       }}
     >
       {children}

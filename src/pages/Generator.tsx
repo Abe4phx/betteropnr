@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useTalkSpark } from "@/contexts/TalkSparkContext";
 import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
+import { trackEvent } from "@/lib/analytics";
 
 const Generator = () => {
   const {
@@ -67,6 +68,10 @@ const Generator = () => {
       }));
 
       setGeneratedOpeners(openers);
+      trackEvent('generated_opener', { 
+        count: openers.length, 
+        tones: selectedTones.join(',') 
+      });
       toast.success('Openers generated!');
     } catch (error) {
       console.error('Error generating openers:', error);
@@ -113,6 +118,10 @@ const Generator = () => {
       }));
 
       setFollowUps([...followUps, ...newFollowUps]);
+      trackEvent('generated_followup', { 
+        count: newFollowUps.length,
+        openerId 
+      });
       toast.success('Follow-ups generated!');
     } catch (error) {
       console.error('Error generating follow-ups:', error);
