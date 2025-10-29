@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
-import { Sparkles, Heart } from "lucide-react";
+import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import Logo from "@/components/Logo";
 
 export const Navigation = () => {
   const location = useLocation();
@@ -9,13 +10,8 @@ export const Navigation = () => {
     <nav className="border-b bg-card shadow-sm">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-11 h-11 bg-gradient-to-br from-primary to-secondary rounded-2xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all">
-              <Sparkles className="w-6 h-6 text-white" />
-            </div>
-            <h1 className="text-2xl font-heading font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              TalkSpark
-            </h1>
+          <Link to="/" className="group">
+            <Logo />
           </Link>
 
           <Button
