@@ -12,6 +12,34 @@ interface GenerateRequest {
   priorMessage?: string;
 }
 
+// Template system for fallback generation
+const quirkyEitherOr = [
+  "Coffee or tea?",
+  "Mountains or beaches?",
+  "Dogs or cats?",
+  "Morning person or night owl?",
+  "Books or movies?",
+  "Pizza or tacos?",
+];
+
+const conversationTemplates = [
+  "You mentioned {interest}. What's the most {adjective} thing about it?",
+  "As a fellow {interest} enthusiast, I need to know: what got you started?",
+  "Quick question: {quirkyEitherOr}. What's your pick and why?",
+  "I noticed {interest} in your profile. What's your hot take on it?",
+  "So... {interest}. If you could only do it one way, how would you?",
+  "Real talk about {interest}: what's something most people get wrong?",
+  "Your {interest} background is intriguing. What's the best part nobody talks about?",
+  "Challenge: describe {interest} in three words. Go!",
+];
+
+const toneAdjectives: Record<string, string[]> = {
+  playful: ["fun", "unexpected", "quirky", "wild", "random"],
+  sincere: ["meaningful", "profound", "genuine", "heartfelt", "authentic"],
+  confident: ["impressive", "unique", "defining", "standout", "signature"],
+  funny: ["hilarious", "absurd", "chaotic", "ridiculous", "bizarre"],
+};
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -136,48 +164,46 @@ function fallbackGeneration(
 ): Response {
   console.log('Using fallback template generation');
   
-  const templates: Record<string, string[]> = {
-    playful: [
-      `What's the most spontaneous thing related to ${profileText} you've done?`,
-      `If you could turn ${profileText} into a game, what would it be?`,
-      `Tell me a fun story about ${profileText}!`,
-    ],
-    sincere: [
-      `What drew you to ${profileText} in the first place?`,
-      `How has ${profileText} impacted your life?`,
-      `What do you find most meaningful about ${profileText}?`,
-    ],
-    confident: [
-      `I'd love to hear about your experience with ${profileText}.`,
-      `What's your take on ${profileText}?`,
-      `You seem passionate about ${profileText} - what drives that?`,
-    ],
-    funny: [
-      `If ${profileText} was a superhero, what would be its power?`,
-      `What's the weirdest thing about ${profileText} that people don't talk about?`,
-      `Be honest - have you ever had a disaster involving ${profileText}?`,
-    ],
-  };
-
-  const followupTemplates = [
-    "That's fascinating! Can you tell me more?",
-    "What got you interested in that?",
-    "How long have you been into that?",
-    "That sounds amazing! What do you love most about it?",
-  ];
-
   if (mode === 'followup') {
+    const followUpTemplates = [
+      "That's fascinating! Can you tell me more about that?",
+      "What got you interested in that?",
+      "How long have you been into that?",
+      "That sounds amazing! What do you love most about it?",
+      "What's been your biggest surprise so far?",
+      "Any fun stories about that?",
+    ];
+    
     return new Response(
-      JSON.stringify({ results: followupTemplates.slice(0, 3) }),
+      JSON.stringify({ results: followUpTemplates.slice(0, 3) }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
 
+  // Extract interests from profile
+  const interests = profileText
+    .toLowerCase()
+    .split(/[,;.\n]/)
+    .map(s => s.trim())
+    .filter(s => s.length > 3 && s.length < 30);
+  
+  const primaryInterest = interests[0] || "your interests";
+  
   const results: string[] = [];
-  for (const tone of tones.slice(0, 4)) {
-    const toneTemplates = templates[tone] || templates.playful;
-    const template = toneTemplates[Math.floor(Math.random() * toneTemplates.length)];
-    results.push(template);
+  
+  for (let i = 0; i < Math.min(4, tones.length); i++) {
+    const tone = tones[i];
+    const template = conversationTemplates[Math.floor(Math.random() * conversationTemplates.length)];
+    const adjectives = toneAdjectives[tone] || toneAdjectives.playful;
+    const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
+    const eitherOr = quirkyEitherOr[Math.floor(Math.random() * quirkyEitherOr.length)];
+    
+    const result = template
+      .replace(/{interest}/g, primaryInterest)
+      .replace(/{adjective}/g, adjective)
+      .replace(/{quirkyEitherOr}/g, eitherOr);
+    
+    results.push(result);
   }
 
   return new Response(
