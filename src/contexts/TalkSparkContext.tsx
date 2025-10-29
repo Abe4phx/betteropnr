@@ -25,6 +25,8 @@ export interface Favorite {
 interface TalkSparkContextType {
   profileText: string;
   setProfileText: (text: string) => void;
+  userProfileText: string;
+  setUserProfileText: (text: string) => void;
   selectedTones: string[];
   setSelectedTones: (tones: string[]) => void;
   generatedOpeners: Opener[];
@@ -44,6 +46,7 @@ const TalkSparkContext = createContext<TalkSparkContextType | undefined>(undefin
 
 export const TalkSparkProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [profileText, setProfileText] = useState('');
+  const [userProfileText, setUserProfileText] = useState('');
   const [selectedTones, setSelectedTones] = useState<string[]>([]);
   const [generatedOpeners, setGeneratedOpeners] = useState<Opener[]>([]);
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
@@ -115,6 +118,8 @@ export const TalkSparkProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       value={{
         profileText,
         setProfileText,
+        userProfileText,
+        setUserProfileText,
         selectedTones,
         setSelectedTones,
         generatedOpeners,

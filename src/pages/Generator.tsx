@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { ProfileInput } from "@/components/ProfileInput";
+import { UserProfileInput } from "@/components/UserProfileInput";
 import { TonePicker } from "@/components/TonePicker";
 import { OpenerList } from "@/components/OpenerList";
 import { FollowUpList } from "@/components/FollowUpList";
@@ -15,6 +16,8 @@ const Generator = () => {
   const {
     profileText,
     setProfileText,
+    userProfileText,
+    setUserProfileText,
     selectedTones,
     setSelectedTones,
     generatedOpeners,
@@ -51,6 +54,7 @@ const Generator = () => {
           },
           body: JSON.stringify({
             profileText,
+            userProfileText,
             tones: selectedTones,
             mode: 'opener',
             variationStyle,
@@ -100,6 +104,7 @@ const Generator = () => {
           },
           body: JSON.stringify({
             profileText,
+            userProfileText,
             tones: selectedTones,
             mode: 'opener',
             variationStyle: style,
@@ -150,6 +155,7 @@ const Generator = () => {
           },
           body: JSON.stringify({
             profileText,
+            userProfileText,
             tones: [opener.tone.toLowerCase()],
             mode: 'followup',
             priorMessage: opener.text,
@@ -200,6 +206,7 @@ const Generator = () => {
         <ReminderBanner />
 
         <div className="space-y-6">
+          <UserProfileInput value={userProfileText} onChange={setUserProfileText} />
           <ProfileInput value={profileText} onChange={setProfileText} />
           <TonePicker selectedTones={selectedTones} onChange={setSelectedTones} />
 

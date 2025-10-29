@@ -25,6 +25,7 @@ function enforceMaxLength(text: string): string {
 
 interface GenerateRequest {
   profileText: string;
+  userProfileText?: string;
   tones: string[];
   mode: 'opener' | 'followup';
   priorMessage?: string;
@@ -66,9 +67,9 @@ serve(async (req) => {
   }
 
   try {
-    const { profileText, tones, mode, priorMessage, theirReply, variationStyle }: GenerateRequest = await req.json();
+    const { profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle }: GenerateRequest = await req.json();
     
-    console.log('Generate request:', { profileText, tones, mode, priorMessage, theirReply, variationStyle });
+    console.log('Generate request:', { profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle });
 
     // Validate inputs
     if (!profileText?.trim()) {
@@ -97,7 +98,7 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) {
       console.error('LOVABLE_API_KEY not configured');
       // Fall back to template generation
-      return fallbackGeneration(profileText, tones, mode, priorMessage, theirReply, variationStyle);
+      return fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle);
     }
 
     // Build variation-specific instructions
@@ -112,18 +113,27 @@ serve(async (req) => {
       variationInstruction = ' Make it significantly shorter and more concise (under 120 characters).';
     }
 
+    // Build context with both profiles
+    const profileContext = userProfileText?.trim() 
+      ? `Their interests: ${profileText}\nYour interests: ${userProfileText}`
+      : `Their interests: ${profileText}`;
+
+    const commonInterestHint = userProfileText?.trim()
+      ? ' When possible, find common ground between their interests and yours to create natural connections.'
+      : '';
+
     // Build the system prompt
     const systemPrompt = mode === 'opener'
-      ? `You are TalkSpark — a witty but respectful conversation starter. Use the person's stated interests. Be specific, ask one engaging question, and match the selected tones (${tones.join('/')}).${variationInstruction} Avoid generic greetings or pickup lines. CRITICAL: Keep under ${MAX_OPENER_LENGTH} characters. No inappropriate, explicit, or offensive content.`
+      ? `You are TalkSpark — a witty but respectful conversation starter. Use the person's stated interests. Be specific, ask one engaging question, and match the selected tones (${tones.join('/')}).${variationInstruction}${commonInterestHint} Avoid generic greetings or pickup lines. CRITICAL: Keep under ${MAX_OPENER_LENGTH} characters. No inappropriate, explicit, or offensive content.`
       : theirReply
-        ? `You are TalkSpark — generate follow-up messages that: 1) Acknowledge what they said, 2) Add a small personal tidbit or observation, 3) Ask a specific next question, 4) Optionally bridge to a low-pressure meetup (coffee/walk). Match tones (${tones.join('/')}).${variationInstruction} Keep under 200 characters.`
+        ? `You are TalkSpark — generate follow-up messages that: 1) Acknowledge what they said, 2) Add a small personal tidbit or observation, 3) Ask a specific next question, 4) Optionally bridge to a low-pressure meetup (coffee/walk). Match tones (${tones.join('/')}).${variationInstruction}${commonInterestHint} Keep under 200 characters.`
         : `You are TalkSpark — the chat has stalled. Generate light, fun re-engagement lines after 24-48h. Be non-needy, playful, and reference the previous conversation. Match tones (${tones.join('/')}).${variationInstruction} Keep under 150 characters.`;
 
     const userPrompt = mode === 'opener'
-      ? `Generate 4 unique conversation openers for someone with these interests: ${profileText}. Make them ${tones.join(', ')}.${variationInstruction} Return ONLY a JSON array of strings, no other text.`
+      ? `${profileContext}\n\nGenerate 4 unique conversation openers. Make them ${tones.join(', ')}.${variationInstruction}${commonInterestHint} Return ONLY a JSON array of strings, no other text.`
       : theirReply
-        ? `My previous message: "${priorMessage}". Their reply: "${theirReply}". Generate 3-5 follow-up messages for someone with these interests: ${profileText}. Make them ${tones.join(', ')}.${variationInstruction} Return ONLY a JSON array of strings, no other text.`
-        : `My previous message was: "${priorMessage}". They haven't replied in 24-48h. Generate 3-5 light re-engagement messages for someone with these interests: ${profileText}. Make them ${tones.join(', ')}.${variationInstruction} Return ONLY a JSON array of strings, no other text.`;
+        ? `${profileContext}\n\nMy previous message: "${priorMessage}". Their reply: "${theirReply}". Generate 3-5 follow-up messages. Make them ${tones.join(', ')}.${variationInstruction}${commonInterestHint} Return ONLY a JSON array of strings, no other text.`
+        : `${profileContext}\n\nMy previous message was: "${priorMessage}". They haven't replied in 24-48h. Generate 3-5 light re-engagement messages. Make them ${tones.join(', ')}.${variationInstruction} Return ONLY a JSON array of strings, no other text.`;
 
     // Call Lovable AI
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -160,7 +170,7 @@ serve(async (req) => {
       }
       
       // Fall back to template generation on AI error
-      return fallbackGeneration(profileText, tones, mode, priorMessage, theirReply, variationStyle);
+      return fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle);
     }
 
     const data = await response.json();
@@ -168,7 +178,7 @@ serve(async (req) => {
     
     if (!content) {
       console.error('No content in AI response');
-      return fallbackGeneration(profileText, tones, mode, priorMessage, theirReply, variationStyle);
+      return fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle);
     }
 
     // Parse the JSON array from the response
@@ -196,7 +206,7 @@ serve(async (req) => {
     }
 
     // Fall back if parsing failed
-    return fallbackGeneration(profileText, tones, mode, priorMessage, theirReply, variationStyle);
+    return fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle);
 
   } catch (error) {
     console.error('Error in generate function:', error);
@@ -209,6 +219,7 @@ serve(async (req) => {
 
 function fallbackGeneration(
   profileText: string,
+  userProfileText: string | undefined,
   tones: string[],
   mode: 'opener' | 'followup',
   priorMessage?: string,
