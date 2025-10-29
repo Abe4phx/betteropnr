@@ -23,7 +23,7 @@ const Generator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingFollowUpFor, setGeneratingFollowUpFor] = useState<string | null>(null);
 
-  const generateOpeners = () => {
+  const generateOpeners = async () => {
     if (!profileText.trim()) {
       toast.error('Please enter some profile information');
       return;
@@ -36,46 +36,90 @@ const Generator = () => {
 
     setIsGenerating(true);
 
-    // Simulate API call with mock data
-    setTimeout(() => {
-      const mockOpeners = selectedTones.map((tone, index) => ({
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({
+            profileText,
+            tones: selectedTones,
+            mode: 'opener',
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate openers');
+      }
+
+      const data = await response.json();
+      const openers = data.results.map((text: string, index: number) => ({
         id: `opener-${Date.now()}-${index}`,
-        text: getMockOpener(tone, profileText),
-        tone: tone.charAt(0).toUpperCase() + tone.slice(1),
+        text,
+        tone: selectedTones[index % selectedTones.length].charAt(0).toUpperCase() + 
+              selectedTones[index % selectedTones.length].slice(1),
       }));
 
-      setGeneratedOpeners(mockOpeners);
-      setIsGenerating(false);
+      setGeneratedOpeners(openers);
       toast.success('Openers generated!');
-    }, 1500);
+    } catch (error) {
+      console.error('Error generating openers:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to generate openers');
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
-  const generateFollowUp = (openerId: string) => {
+  const generateFollowUp = async (openerId: string) => {
+    const opener = generatedOpeners.find(o => o.id === openerId);
+    if (!opener) return;
+
     setGeneratingFollowUpFor(openerId);
     
-    setTimeout(() => {
-      const mockFollowUps = [
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate`,
         {
-          id: `followup-${Date.now()}-1`,
-          text: "What got you interested in that?",
-          openerId,
-        },
-        {
-          id: `followup-${Date.now()}-2`,
-          text: "That sounds fascinating! Tell me more about it.",
-          openerId,
-        },
-        {
-          id: `followup-${Date.now()}-3`,
-          text: "How long have you been into that?",
-          openerId,
-        },
-      ];
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({
+            profileText,
+            tones: [opener.tone.toLowerCase()],
+            mode: 'followup',
+            priorMessage: opener.text,
+          }),
+        }
+      );
 
-      setFollowUps([...followUps, ...mockFollowUps]);
-      setGeneratingFollowUpFor(null);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate follow-ups');
+      }
+
+      const data = await response.json();
+      const newFollowUps = data.results.map((text: string, index: number) => ({
+        id: `followup-${Date.now()}-${index}`,
+        text,
+        openerId,
+      }));
+
+      setFollowUps([...followUps, ...newFollowUps]);
       toast.success('Follow-ups generated!');
-    }, 1000);
+    } catch (error) {
+      console.error('Error generating follow-ups:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to generate follow-ups');
+    } finally {
+      setGeneratingFollowUpFor(null);
+    }
   };
 
   const hasSelectedOpener = generatedOpeners.length > 0;
@@ -156,33 +200,5 @@ const Generator = () => {
   );
 };
 
-// Mock data generator
-function getMockOpener(tone: string, profile: string): string {
-  const openers: Record<string, string[]> = {
-    playful: [
-      "Hey! I noticed we might have some fun things in common. What's the most spontaneous thing you've done lately?",
-      "Your profile made me smile! What's something that always makes you laugh?",
-      "If you could teleport anywhere right now for an adventure, where would you go?",
-    ],
-    sincere: [
-      "I really appreciated reading your profile. What's something you're genuinely passionate about?",
-      "Your interests caught my attention. What's a cause or value that's truly important to you?",
-      "I'd love to know more about you. What's something you've been reflecting on lately?",
-    ],
-    confident: [
-      "I think we'd have great conversations. What's a goal you're currently working towards?",
-      "Your profile stood out to me. What's something you're really proud of accomplishing?",
-      "I'm curious about your perspective on something—what's a belief you hold strongly?",
-    ],
-    funny: [
-      "If you could have any superpower, but it had to be completely useless, what would it be?",
-      "What's the weirdest food combination you actually enjoy? I promise not to judge... much.",
-      "If your life was a sitcom, what would the theme song be?",
-    ],
-  };
-
-  const toneOpeners = openers[tone] || openers.playful;
-  return toneOpeners[Math.floor(Math.random() * toneOpeners.length)];
-}
 
 export default Generator;
