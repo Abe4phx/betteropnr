@@ -4,9 +4,10 @@ import { Opener } from "@/contexts/TalkSparkContext";
 interface OpenerListProps {
   openers: Opener[];
   onTryAgain?: (openerId: string) => void;
+  onVariation?: (openerId: string, style: 'safer' | 'warmer' | 'funnier' | 'shorter') => void;
 }
 
-export const OpenerList = ({ openers, onTryAgain }: OpenerListProps) => {
+export const OpenerList = ({ openers, onTryAgain, onVariation }: OpenerListProps) => {
   if (openers.length === 0) {
     return null;
   }
@@ -22,6 +23,7 @@ export const OpenerList = ({ openers, onTryAgain }: OpenerListProps) => {
             key={opener.id}
             {...opener}
             onTryAgain={onTryAgain ? () => onTryAgain(opener.id) : undefined}
+            onVariation={onVariation ? (style) => onVariation(opener.id, style) : undefined}
           />
         ))}
       </div>

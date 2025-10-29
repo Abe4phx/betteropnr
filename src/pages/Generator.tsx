@@ -6,6 +6,7 @@ import { FollowUpList } from "@/components/FollowUpList";
 import { ReminderBanner } from "@/components/ReminderBanner";
 import { Button } from "@/components/ui/button";
 import { useTalkSpark } from "@/contexts/TalkSparkContext";
+import { Opener } from "@/contexts/TalkSparkContext";
 import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { trackEvent } from "@/lib/analytics";
@@ -24,8 +25,9 @@ const Generator = () => {
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingFollowUpFor, setGeneratingFollowUpFor] = useState<string | null>(null);
+  const [generatingVariationFor, setGeneratingVariationFor] = useState<string | null>(null);
 
-  const generateOpeners = async () => {
+  const generateOpeners = async (variationStyle?: 'safer' | 'warmer' | 'funnier' | 'shorter') => {
     if (!profileText.trim()) {
       toast.error('Please enter some profile information');
       return;
@@ -51,6 +53,7 @@ const Generator = () => {
             profileText,
             tones: selectedTones,
             mode: 'opener',
+            variationStyle,
           }),
         }
       );
@@ -79,6 +82,54 @@ const Generator = () => {
       toast.error(error instanceof Error ? error.message : 'Failed to generate openers');
     } finally {
       setIsGenerating(false);
+    }
+  };
+
+  const handleVariation = async (openerId: string, style: 'safer' | 'warmer' | 'funnier' | 'shorter') => {
+    setGeneratingVariationFor(openerId);
+    toast.info(`Generating ${style} variation...`);
+    
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({
+            profileText,
+            tones: selectedTones,
+            mode: 'opener',
+            variationStyle: style,
+          }),
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate variation');
+      }
+
+      const data = await response.json();
+      const newOpener: Opener = {
+        id: `opener-${Date.now()}`,
+        text: data.results[0],
+        tone: selectedTones[0].charAt(0).toUpperCase() + selectedTones[0].slice(1),
+      };
+
+      // Replace the opener
+      const updatedOpeners = generatedOpeners.map(o => o.id === openerId ? newOpener : o);
+      setGeneratedOpeners(updatedOpeners);
+      
+      trackEvent('generated_variation', { style, originalId: openerId });
+      toast.success(`${style.charAt(0).toUpperCase() + style.slice(1)} variation generated!`);
+    } catch (error) {
+      console.error('Error generating variation:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to generate variation');
+    } finally {
+      setGeneratingVariationFor(null);
     }
   };
 
@@ -156,7 +207,7 @@ const Generator = () => {
             <Button
               size="lg"
               className="flex-1 text-lg py-6 rounded-2xl shadow-lg bg-gradient-to-r from-primary to-secondary hover:shadow-xl transition-all"
-              onClick={generateOpeners}
+              onClick={() => generateOpeners()}
               disabled={isGenerating}
             >
               {isGenerating ? (
@@ -197,6 +248,7 @@ const Generator = () => {
                 // Regenerate just this opener
                 generateOpeners();
               }}
+              onVariation={handleVariation}
             />
             {generatedOpeners.map((opener) => (
               <FollowUpList

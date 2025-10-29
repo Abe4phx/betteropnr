@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart, Copy, RefreshCw, Star } from "lucide-react";
+import { Heart, Copy, RefreshCw, Star, Shield, Smile, Laugh, Minimize2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -8,15 +8,17 @@ import { useTalkSpark } from "@/contexts/TalkSparkContext";
 import { toast } from "sonner";
 import { trackEvent } from "@/lib/analytics";
 import { useState } from "react";
+import { motion } from "framer-motion";
 
 interface OpenerCardProps {
   id: string;
   text: string;
   tone: string;
   onTryAgain?: () => void;
+  onVariation?: (style: 'safer' | 'warmer' | 'funnier' | 'shorter') => void;
 }
 
-export const OpenerCard = ({ id, text, tone, onTryAgain }: OpenerCardProps) => {
+export const OpenerCard = ({ id, text, tone, onTryAgain, onVariation }: OpenerCardProps) => {
   const { isFavorite, addToFavorites, removeFromFavorites, rateFavorite, favorites, selectedTones } = useTalkSpark();
   const favorite = isFavorite(id);
   const favoriteItem = favorites.find(f => f.id === id);
@@ -58,32 +60,79 @@ export const OpenerCard = ({ id, text, tone, onTryAgain }: OpenerCardProps) => {
   };
 
   return (
-    <Card className="p-5 space-y-4 hover:shadow-lg transition-all duration-200 rounded-2xl border-2">
-      <div className="flex items-start justify-between gap-3">
-        <p className="text-base leading-relaxed flex-1">{text}</p>
-        <div className="flex flex-col items-end gap-2 shrink-0">
-          <Badge variant="secondary" className="rounded-full px-3 py-1">
-            {tone}
-          </Badge>
-          <div className="flex gap-1">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <button
-                key={star}
-                onClick={() => handleRating(star)}
-                className="transition-colors hover:scale-110 transform"
-              >
-                <Star
-                  className={`w-4 h-4 ${
-                    star <= currentRating
-                      ? 'fill-yellow-400 text-yellow-400'
-                      : 'text-gray-300'
-                  }`}
-                />
-              </button>
-            ))}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+    >
+      <Card className="p-5 space-y-4 hover:shadow-lg transition-all duration-200 rounded-2xl border-2">
+        <div className="flex items-start justify-between gap-3">
+          <p className="text-base leading-relaxed flex-1">{text}</p>
+          <div className="flex flex-col items-end gap-2 shrink-0">
+            <Badge variant="secondary" className="rounded-full px-3 py-1">
+              {tone}
+            </Badge>
+            <div className="flex gap-1">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  onClick={() => handleRating(star)}
+                  className="transition-colors hover:scale-110 transform"
+                >
+                  <Star
+                    className={`w-4 h-4 ${
+                      star <= currentRating
+                        ? 'fill-yellow-400 text-yellow-400'
+                        : 'text-gray-300'
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-      </div>
+
+        {/* Variation buttons */}
+        {onVariation && (
+          <div className="flex gap-2 flex-wrap">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onVariation('safer')}
+              className="rounded-xl text-xs"
+            >
+              <Shield className="w-3 h-3 mr-1" />
+              Safer
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onVariation('warmer')}
+              className="rounded-xl text-xs"
+            >
+              <Smile className="w-3 h-3 mr-1" />
+              Warmer
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onVariation('funnier')}
+              className="rounded-xl text-xs"
+            >
+              <Laugh className="w-3 h-3 mr-1" />
+              Funnier
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onVariation('shorter')}
+              className="rounded-xl text-xs"
+            >
+              <Minimize2 className="w-3 h-3 mr-1" />
+              Shorter
+            </Button>
+          </div>
+        )}
 
       {!favorite && (
         <div className="flex items-center space-x-2 pl-1">
@@ -135,5 +184,6 @@ export const OpenerCard = ({ id, text, tone, onTryAgain }: OpenerCardProps) => {
         )}
       </div>
     </Card>
+    </motion.div>
   );
 };

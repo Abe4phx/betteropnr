@@ -4,6 +4,7 @@ import { FollowUp, useTalkSpark } from "@/contexts/TalkSparkContext";
 import { MessageSquare, Copy, Heart, Star } from "lucide-react";
 import { toast } from "sonner";
 import { trackEvent } from "@/lib/analytics";
+import { motion } from "framer-motion";
 
 interface FollowUpListProps {
   followUps: FollowUp[];
@@ -61,7 +62,13 @@ export const FollowUpList = ({ followUps, openerId }: FollowUpListProps) => {
         const currentRating = favoriteItem?.likes || 0;
 
         return (
-          <Card key={followUp.id} className="p-4 bg-gradient-to-br from-muted/50 to-muted/30 rounded-xl border space-y-3">
+          <motion.div
+            key={followUp.id}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3, delay: 0.1 }}
+          >
+            <Card className="p-4 bg-gradient-to-br from-muted/50 to-muted/30 rounded-xl border space-y-3">
             <div className="flex items-start justify-between gap-3">
               <p className="text-sm leading-relaxed flex-1">{followUp.text}</p>
               <div className="flex gap-1 shrink-0">
@@ -103,6 +110,7 @@ export const FollowUpList = ({ followUps, openerId }: FollowUpListProps) => {
               </Button>
             </div>
           </Card>
+          </motion.div>
         );
       })}
     </div>

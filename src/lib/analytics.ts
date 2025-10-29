@@ -6,7 +6,8 @@ type AnalyticsEvent =
   | 'clicked_copy'
   | 'saved_opener'
   | 'generated_followup'
-  | 'rated_item';
+  | 'rated_item'
+  | 'generated_variation';
 
 interface EventData {
   [key: string]: string | number | boolean | undefined;

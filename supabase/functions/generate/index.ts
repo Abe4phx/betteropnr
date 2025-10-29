@@ -5,12 +5,31 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Content filter for explicit or inappropriate content
+const BLOCKED_WORDS = [
+  'explicit', 'sexual', 'racist', 'hate', 'violent', 'abuse',
+  'offensive', 'inappropriate', 'nsfw', 'porn', 'drug'
+];
+
+const MAX_OPENER_LENGTH = 220;
+
+function containsBlockedContent(text: string): boolean {
+  const lowerText = text.toLowerCase();
+  return BLOCKED_WORDS.some(word => lowerText.includes(word));
+}
+
+function enforceMaxLength(text: string): string {
+  if (text.length <= MAX_OPENER_LENGTH) return text;
+  return text.substring(0, MAX_OPENER_LENGTH - 3) + '...';
+}
+
 interface GenerateRequest {
   profileText: string;
   tones: string[];
   mode: 'opener' | 'followup';
   priorMessage?: string;
   theirReply?: string;
+  variationStyle?: 'safer' | 'warmer' | 'funnier' | 'shorter';
 }
 
 // Template system for fallback generation
@@ -47,9 +66,9 @@ serve(async (req) => {
   }
 
   try {
-    const { profileText, tones, mode, priorMessage, theirReply }: GenerateRequest = await req.json();
+    const { profileText, tones, mode, priorMessage, theirReply, variationStyle }: GenerateRequest = await req.json();
     
-    console.log('Generate request:', { profileText, tones, mode, priorMessage, theirReply });
+    console.log('Generate request:', { profileText, tones, mode, priorMessage, theirReply, variationStyle });
 
     // Validate inputs
     if (!profileText?.trim()) {
@@ -66,25 +85,45 @@ serve(async (req) => {
       );
     }
 
+    // Content filtering
+    if (containsBlockedContent(profileText)) {
+      return new Response(
+        JSON.stringify({ error: 'Content contains inappropriate language. Please revise.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       console.error('LOVABLE_API_KEY not configured');
       // Fall back to template generation
-      return fallbackGeneration(profileText, tones, mode, priorMessage);
+      return fallbackGeneration(profileText, tones, mode, priorMessage, theirReply, variationStyle);
+    }
+
+    // Build variation-specific instructions
+    let variationInstruction = '';
+    if (variationStyle === 'safer') {
+      variationInstruction = ' Make it more appropriate, polite, and professional.';
+    } else if (variationStyle === 'warmer') {
+      variationInstruction = ' Make it more friendly, kind, and emotionally warm.';
+    } else if (variationStyle === 'funnier') {
+      variationInstruction = ' Make it more humorous, witty, and playful.';
+    } else if (variationStyle === 'shorter') {
+      variationInstruction = ' Make it significantly shorter and more concise (under 120 characters).';
     }
 
     // Build the system prompt
     const systemPrompt = mode === 'opener'
-      ? `You are TalkSpark — a witty but respectful conversation starter. Use the person's stated interests. Be specific, ask one engaging question, and match the selected tones (${tones.join('/')}). Avoid generic greetings or pickup lines. Keep under 200 characters.`
+      ? `You are TalkSpark — a witty but respectful conversation starter. Use the person's stated interests. Be specific, ask one engaging question, and match the selected tones (${tones.join('/')}).${variationInstruction} Avoid generic greetings or pickup lines. CRITICAL: Keep under ${MAX_OPENER_LENGTH} characters. No inappropriate, explicit, or offensive content.`
       : theirReply
-        ? `You are TalkSpark — generate follow-up messages that: 1) Acknowledge what they said, 2) Add a small personal tidbit or observation, 3) Ask a specific next question, 4) Optionally bridge to a low-pressure meetup (coffee/walk). Match tones (${tones.join('/')}). Keep under 200 characters.`
-        : `You are TalkSpark — the chat has stalled. Generate light, fun re-engagement lines after 24-48h. Be non-needy, playful, and reference the previous conversation. Match tones (${tones.join('/')}). Keep under 150 characters.`;
+        ? `You are TalkSpark — generate follow-up messages that: 1) Acknowledge what they said, 2) Add a small personal tidbit or observation, 3) Ask a specific next question, 4) Optionally bridge to a low-pressure meetup (coffee/walk). Match tones (${tones.join('/')}).${variationInstruction} Keep under 200 characters.`
+        : `You are TalkSpark — the chat has stalled. Generate light, fun re-engagement lines after 24-48h. Be non-needy, playful, and reference the previous conversation. Match tones (${tones.join('/')}).${variationInstruction} Keep under 150 characters.`;
 
     const userPrompt = mode === 'opener'
-      ? `Generate 4 unique conversation openers for someone with these interests: ${profileText}. Make them ${tones.join(', ')}. Return ONLY a JSON array of strings, no other text.`
+      ? `Generate 4 unique conversation openers for someone with these interests: ${profileText}. Make them ${tones.join(', ')}.${variationInstruction} Return ONLY a JSON array of strings, no other text.`
       : theirReply
-        ? `My previous message: "${priorMessage}". Their reply: "${theirReply}". Generate 3-5 follow-up messages for someone with these interests: ${profileText}. Make them ${tones.join(', ')}. Return ONLY a JSON array of strings, no other text.`
-        : `My previous message was: "${priorMessage}". They haven't replied in 24-48h. Generate 3-5 light re-engagement messages for someone with these interests: ${profileText}. Make them ${tones.join(', ')}. Return ONLY a JSON array of strings, no other text.`;
+        ? `My previous message: "${priorMessage}". Their reply: "${theirReply}". Generate 3-5 follow-up messages for someone with these interests: ${profileText}. Make them ${tones.join(', ')}.${variationInstruction} Return ONLY a JSON array of strings, no other text.`
+        : `My previous message was: "${priorMessage}". They haven't replied in 24-48h. Generate 3-5 light re-engagement messages for someone with these interests: ${profileText}. Make them ${tones.join(', ')}.${variationInstruction} Return ONLY a JSON array of strings, no other text.`;
 
     // Call Lovable AI
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -121,7 +160,7 @@ serve(async (req) => {
       }
       
       // Fall back to template generation on AI error
-      return fallbackGeneration(profileText, tones, mode, priorMessage, theirReply);
+      return fallbackGeneration(profileText, tones, mode, priorMessage, theirReply, variationStyle);
     }
 
     const data = await response.json();
@@ -129,7 +168,7 @@ serve(async (req) => {
     
     if (!content) {
       console.error('No content in AI response');
-      return fallbackGeneration(profileText, tones, mode, priorMessage, theirReply);
+      return fallbackGeneration(profileText, tones, mode, priorMessage, theirReply, variationStyle);
     }
 
     // Parse the JSON array from the response
@@ -139,18 +178,25 @@ serve(async (req) => {
       const results = JSON.parse(cleanContent);
       
       if (Array.isArray(results) && results.length > 0) {
-        console.log('Successfully generated', results.length, 'results');
-        return new Response(
-          JSON.stringify({ results }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        );
+        // Enforce max length and filter inappropriate content
+        const filteredResults = results
+          .map(text => enforceMaxLength(text))
+          .filter(text => !containsBlockedContent(text));
+        
+        if (filteredResults.length > 0) {
+          console.log('Successfully generated', filteredResults.length, 'results');
+          return new Response(
+            JSON.stringify({ results: filteredResults }),
+            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
       }
     } catch (parseError) {
       console.error('Failed to parse AI response as JSON:', parseError);
     }
 
     // Fall back if parsing failed
-    return fallbackGeneration(profileText, tones, mode, priorMessage, theirReply);
+    return fallbackGeneration(profileText, tones, mode, priorMessage, theirReply, variationStyle);
 
   } catch (error) {
     console.error('Error in generate function:', error);
@@ -166,7 +212,8 @@ function fallbackGeneration(
   tones: string[],
   mode: 'opener' | 'followup',
   priorMessage?: string,
-  theirReply?: string
+  theirReply?: string,
+  variationStyle?: string
 ): Response {
   console.log('Using fallback template generation');
   
@@ -230,8 +277,13 @@ function fallbackGeneration(
     results.push(result);
   }
 
+  // Apply max length and content filtering to fallback results
+  const filteredResults = results
+    .map(text => enforceMaxLength(text))
+    .filter(text => !containsBlockedContent(text));
+
   return new Response(
-    JSON.stringify({ results }),
+    JSON.stringify({ results: filteredResults }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   );
 }
