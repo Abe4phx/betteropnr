@@ -10,6 +10,7 @@ interface GenerateRequest {
   tones: string[];
   mode: 'opener' | 'followup';
   priorMessage?: string;
+  theirReply?: string;
 }
 
 // Template system for fallback generation
@@ -46,9 +47,9 @@ serve(async (req) => {
   }
 
   try {
-    const { profileText, tones, mode, priorMessage }: GenerateRequest = await req.json();
+    const { profileText, tones, mode, priorMessage, theirReply }: GenerateRequest = await req.json();
     
-    console.log('Generate request:', { profileText, tones, mode, priorMessage });
+    console.log('Generate request:', { profileText, tones, mode, priorMessage, theirReply });
 
     // Validate inputs
     if (!profileText?.trim()) {
@@ -75,11 +76,15 @@ serve(async (req) => {
     // Build the system prompt
     const systemPrompt = mode === 'opener'
       ? `You are TalkSpark — a witty but respectful conversation starter. Use the person's stated interests. Be specific, ask one engaging question, and match the selected tones (${tones.join('/')}). Avoid generic greetings or pickup lines. Keep under 200 characters.`
-      : `You are TalkSpark — generate follow-up questions based on the previous message. Be engaging and show genuine interest. Match the selected tones (${tones.join('/')}). Keep under 150 characters.`;
+      : theirReply
+        ? `You are TalkSpark — generate follow-up messages that: 1) Acknowledge what they said, 2) Add a small personal tidbit or observation, 3) Ask a specific next question, 4) Optionally bridge to a low-pressure meetup (coffee/walk). Match tones (${tones.join('/')}). Keep under 200 characters.`
+        : `You are TalkSpark — the chat has stalled. Generate light, fun re-engagement lines after 24-48h. Be non-needy, playful, and reference the previous conversation. Match tones (${tones.join('/')}). Keep under 150 characters.`;
 
     const userPrompt = mode === 'opener'
       ? `Generate 4 unique conversation openers for someone with these interests: ${profileText}. Make them ${tones.join(', ')}. Return ONLY a JSON array of strings, no other text.`
-      : `The previous message was: "${priorMessage}". Generate 3 follow-up questions about this topic for someone with these interests: ${profileText}. Make them ${tones.join(', ')}. Return ONLY a JSON array of strings, no other text.`;
+      : theirReply
+        ? `My previous message: "${priorMessage}". Their reply: "${theirReply}". Generate 3-5 follow-up messages for someone with these interests: ${profileText}. Make them ${tones.join(', ')}. Return ONLY a JSON array of strings, no other text.`
+        : `My previous message was: "${priorMessage}". They haven't replied in 24-48h. Generate 3-5 light re-engagement messages for someone with these interests: ${profileText}. Make them ${tones.join(', ')}. Return ONLY a JSON array of strings, no other text.`;
 
     // Call Lovable AI
     const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
@@ -116,7 +121,7 @@ serve(async (req) => {
       }
       
       // Fall back to template generation on AI error
-      return fallbackGeneration(profileText, tones, mode, priorMessage);
+      return fallbackGeneration(profileText, tones, mode, priorMessage, theirReply);
     }
 
     const data = await response.json();
@@ -124,7 +129,7 @@ serve(async (req) => {
     
     if (!content) {
       console.error('No content in AI response');
-      return fallbackGeneration(profileText, tones, mode, priorMessage);
+      return fallbackGeneration(profileText, tones, mode, priorMessage, theirReply);
     }
 
     // Parse the JSON array from the response
@@ -145,7 +150,7 @@ serve(async (req) => {
     }
 
     // Fall back if parsing failed
-    return fallbackGeneration(profileText, tones, mode, priorMessage);
+    return fallbackGeneration(profileText, tones, mode, priorMessage, theirReply);
 
   } catch (error) {
     console.error('Error in generate function:', error);
@@ -160,18 +165,37 @@ function fallbackGeneration(
   profileText: string,
   tones: string[],
   mode: 'opener' | 'followup',
-  priorMessage?: string
+  priorMessage?: string,
+  theirReply?: string
 ): Response {
   console.log('Using fallback template generation');
   
   if (mode === 'followup') {
+    if (!theirReply) {
+      // Re-engagement templates for stalled conversations
+      const reEngagementTemplates = [
+        "Hey! Just remembered our chat about that. How'd it go?",
+        "Random thought: we never finished that conversation! Still curious...",
+        "Been thinking about what you said. Quick question...",
+        "No pressure, but I'm still curious about that thing you mentioned!",
+        "Hope you're doing well! Still want to hear more about that sometime.",
+        "Hey! Did you ever figure out that thing we were talking about?",
+      ];
+      
+      return new Response(
+        JSON.stringify({ results: reEngagementTemplates.slice(0, 3) }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    
+    // Standard follow-up templates with acknowledgment and next steps
     const followUpTemplates = [
-      "That's fascinating! Can you tell me more about that?",
-      "What got you interested in that?",
-      "How long have you been into that?",
-      "That sounds amazing! What do you love most about it?",
-      "What's been your biggest surprise so far?",
-      "Any fun stories about that?",
+      "That's fascinating! I actually have some experience with that too. What do you love most about it?",
+      "Oh interesting! I've been wanting to try that. What would you recommend for a beginner?",
+      "That sounds amazing! I'm curious — how did you first get into that?",
+      "Love that! I find it interesting too. Want to grab coffee sometime and chat more about it?",
+      "That's cool! I have a friend who's into that as well. What's been your biggest surprise so far?",
+      "Nice! I've always wondered about that. Any fun stories you can share?",
     ];
     
     return new Response(
