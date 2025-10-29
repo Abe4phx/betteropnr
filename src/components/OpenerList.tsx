@@ -3,23 +3,25 @@ import { Opener } from "@/contexts/TalkSparkContext";
 
 interface OpenerListProps {
   openers: Opener[];
-  onGenerateFollowUp?: (openerId: string) => void;
+  onTryAgain?: (openerId: string) => void;
 }
 
-export const OpenerList = ({ openers, onGenerateFollowUp }: OpenerListProps) => {
+export const OpenerList = ({ openers, onTryAgain }: OpenerListProps) => {
   if (openers.length === 0) {
     return null;
   }
 
   return (
-    <div className="space-y-3">
-      <h3 className="text-xl font-heading font-bold">Generated Openers</h3>
-      <div className="space-y-3">
+    <div className="space-y-4">
+      <h3 className="text-2xl font-heading font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+        Your Openers
+      </h3>
+      <div className="space-y-4">
         {openers.map((opener) => (
           <OpenerCard
             key={opener.id}
             {...opener}
-            onGenerateFollowUp={onGenerateFollowUp ? () => onGenerateFollowUp(opener.id) : undefined}
+            onTryAgain={onTryAgain ? () => onTryAgain(opener.id) : undefined}
           />
         ))}
       </div>

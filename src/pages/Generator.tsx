@@ -78,11 +78,15 @@ const Generator = () => {
     }, 1000);
   };
 
+  const hasSelectedOpener = generatedOpeners.length > 0;
+
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       <div className="space-y-8">
-        <div className="text-center space-y-2">
-          <h2 className="text-4xl font-heading font-bold">Start a Great Conversation</h2>
+        <div className="text-center space-y-3">
+          <h2 className="text-4xl md:text-5xl font-heading font-bold bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent">
+            Start a Great Conversation
+          </h2>
           <p className="text-lg text-muted-foreground">
             Generate personalized conversation starters in seconds
           </p>
@@ -92,31 +96,51 @@ const Generator = () => {
           <ProfileInput value={profileText} onChange={setProfileText} />
           <TonePicker selectedTones={selectedTones} onChange={setSelectedTones} />
 
-          <Button
-            size="lg"
-            className="w-full text-lg py-6"
-            onClick={generateOpeners}
-            disabled={isGenerating}
-          >
-            {isGenerating ? (
-              <>
-                <Sparkles className="w-5 h-5 mr-2 animate-spin" />
-                Generating...
-              </>
-            ) : (
-              <>
-                <Sparkles className="w-5 h-5 mr-2" />
-                Generate Openers
-              </>
-            )}
-          </Button>
+          <div className="flex gap-3">
+            <Button
+              size="lg"
+              className="flex-1 text-lg py-6 rounded-2xl shadow-lg bg-gradient-to-r from-primary to-secondary hover:shadow-xl transition-all"
+              onClick={generateOpeners}
+              disabled={isGenerating}
+            >
+              {isGenerating ? (
+                <>
+                  <Sparkles className="w-5 h-5 mr-2 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-5 h-5 mr-2" />
+                  Generate Openers
+                </>
+              )}
+            </Button>
+
+            <Button
+              size="lg"
+              variant="outline"
+              className="px-6 py-6 rounded-2xl shadow-md"
+              onClick={() => {
+                if (hasSelectedOpener) {
+                  generateFollowUp(generatedOpeners[0].id);
+                }
+              }}
+              disabled={!hasSelectedOpener || generatingFollowUpFor !== null}
+            >
+              <Sparkles className="w-5 h-5 mr-2" />
+              Need a Follow-Up?
+            </Button>
+          </div>
         </div>
 
         {generatedOpeners.length > 0 && (
-          <div className="space-y-4">
+          <div className="space-y-6">
             <OpenerList 
               openers={generatedOpeners} 
-              onGenerateFollowUp={generateFollowUp}
+              onTryAgain={(openerId) => {
+                // Regenerate just this opener
+                generateOpeners();
+              }}
             />
             {generatedOpeners.map((opener) => (
               <FollowUpList
@@ -135,39 +159,29 @@ const Generator = () => {
 // Mock data generator
 function getMockOpener(tone: string, profile: string): string {
   const openers: Record<string, string[]> = {
-    casual: [
-      "Hey! I noticed we might have some things in common. What's something you're passionate about?",
-      "Hi there! What's been the highlight of your week so far?",
-      "What's something interesting you've learned recently?",
+    playful: [
+      "Hey! I noticed we might have some fun things in common. What's the most spontaneous thing you've done lately?",
+      "Your profile made me smile! What's something that always makes you laugh?",
+      "If you could teleport anywhere right now for an adventure, where would you go?",
     ],
-    professional: [
-      "I'd love to learn more about your professional background. What inspired your career path?",
-      "What projects are you currently most excited about?",
-      "How did you get started in your field?",
+    sincere: [
+      "I really appreciated reading your profile. What's something you're genuinely passionate about?",
+      "Your interests caught my attention. What's a cause or value that's truly important to you?",
+      "I'd love to know more about you. What's something you've been reflecting on lately?",
     ],
-    flirty: [
-      "I have to say, your profile really caught my attention. What's your idea of a perfect evening?",
-      "You seem like someone worth getting to know better. What makes you smile?",
-      "What's something adventurous you've always wanted to try?",
+    confident: [
+      "I think we'd have great conversations. What's a goal you're currently working towards?",
+      "Your profile stood out to me. What's something you're really proud of accomplishing?",
+      "I'm curious about your perspective on something—what's a belief you hold strongly?",
     ],
     funny: [
       "If you could have any superpower, but it had to be completely useless, what would it be?",
-      "What's the weirdest food combination you actually enjoy?",
-      "If your life was a movie, what genre would it be and why?",
-    ],
-    thoughtful: [
-      "What's something you believe that most people don't?",
-      "If you could have dinner with anyone from history, who would it be and what would you ask them?",
-      "What's a book or idea that significantly changed your perspective?",
-    ],
-    creative: [
-      "If you could design your dream day with no limitations, what would it look like?",
-      "What's the most creative thing you've done recently?",
-      "If you had to describe yourself using only colors and shapes, what would that look like?",
+      "What's the weirdest food combination you actually enjoy? I promise not to judge... much.",
+      "If your life was a sitcom, what would the theme song be?",
     ],
   };
 
-  const toneOpeners = openers[tone] || openers.casual;
+  const toneOpeners = openers[tone] || openers.playful;
   return toneOpeners[Math.floor(Math.random() * toneOpeners.length)];
 }
 

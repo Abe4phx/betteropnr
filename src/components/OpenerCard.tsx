@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart, Share2, Sparkles } from "lucide-react";
+import { Heart, Copy, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useTalkSpark } from "@/contexts/TalkSparkContext";
 import { toast } from "sonner";
@@ -9,10 +9,10 @@ interface OpenerCardProps {
   id: string;
   text: string;
   tone: string;
-  onGenerateFollowUp?: () => void;
+  onTryAgain?: () => void;
 }
 
-export const OpenerCard = ({ id, text, tone, onGenerateFollowUp }: OpenerCardProps) => {
+export const OpenerCard = ({ id, text, tone, onTryAgain }: OpenerCardProps) => {
   const { isFavorite, addToFavorites, removeFromFavorites } = useTalkSpark();
   const favorite = isFavorite(id);
 
@@ -26,7 +26,7 @@ export const OpenerCard = ({ id, text, tone, onGenerateFollowUp }: OpenerCardPro
     }
   };
 
-  const handleShare = async () => {
+  const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(text);
       toast.success('Copied to clipboard!');
@@ -36,44 +36,44 @@ export const OpenerCard = ({ id, text, tone, onGenerateFollowUp }: OpenerCardPro
   };
 
   return (
-    <Card className="p-4 space-y-3 hover:shadow-md transition-shadow">
-      <div className="flex items-start justify-between gap-2">
-        <p className="text-base flex-1">{text}</p>
-        <Badge variant="secondary" className="shrink-0">
+    <Card className="p-5 space-y-4 hover:shadow-lg transition-all duration-200 rounded-2xl border-2">
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-base leading-relaxed flex-1">{text}</p>
+        <Badge variant="secondary" className="shrink-0 rounded-full px-3 py-1">
           {tone}
         </Badge>
       </div>
       
       <div className="flex gap-2">
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
-          onClick={handleFavoriteClick}
-          className="flex-1"
+          onClick={handleCopy}
+          className="flex-1 rounded-xl"
         >
-          <Heart className={`w-4 h-4 mr-2 ${favorite ? 'fill-primary' : ''}`} />
-          {favorite ? 'Saved' : 'Save'}
+          <Copy className="w-4 h-4 mr-2" />
+          Copy
         </Button>
         
         <Button
-          variant="ghost"
+          variant={favorite ? "default" : "outline"}
           size="sm"
-          onClick={handleShare}
-          className="flex-1"
+          onClick={handleFavoriteClick}
+          className="flex-1 rounded-xl"
         >
-          <Share2 className="w-4 h-4 mr-2" />
-          Share
+          <Heart className={`w-4 h-4 mr-2 ${favorite ? 'fill-current' : ''}`} />
+          {favorite ? 'Saved' : 'Save'}
         </Button>
         
-        {onGenerateFollowUp && (
+        {onTryAgain && (
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
-            onClick={onGenerateFollowUp}
-            className="flex-1"
+            onClick={onTryAgain}
+            className="flex-1 rounded-xl"
           >
-            <Sparkles className="w-4 h-4 mr-2" />
-            Follow-up
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Try Again
           </Button>
         )}
       </div>
