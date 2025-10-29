@@ -2,9 +2,12 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Heart, Copy, RefreshCw, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { useTalkSpark } from "@/contexts/TalkSparkContext";
 import { toast } from "sonner";
 import { trackEvent } from "@/lib/analytics";
+import { useState } from "react";
 
 interface OpenerCardProps {
   id: string;
@@ -18,15 +21,20 @@ export const OpenerCard = ({ id, text, tone, onTryAgain }: OpenerCardProps) => {
   const favorite = isFavorite(id);
   const favoriteItem = favorites.find(f => f.id === id);
   const currentRating = favoriteItem?.likes || 0;
+  const [showReminderCheckbox, setShowReminderCheckbox] = useState(false);
+  const [remindIn24h, setRemindIn24h] = useState(false);
 
   const handleFavoriteClick = () => {
     if (favorite) {
       removeFromFavorites(id);
+      setShowReminderCheckbox(false);
+      setRemindIn24h(false);
       toast.success('Removed from favorites');
     } else {
-      addToFavorites({ id, text, tone }, 'opener', selectedTones);
-      trackEvent('saved_opener', { tone });
-      toast.success('Added to favorites!');
+      addToFavorites({ id, text, tone }, 'opener', selectedTones, remindIn24h);
+      trackEvent('saved_opener', { tone, reminder: remindIn24h });
+      toast.success(remindIn24h ? 'Saved with 24h reminder!' : 'Added to favorites!');
+      setShowReminderCheckbox(false);
     }
   };
 
@@ -42,7 +50,7 @@ export const OpenerCard = ({ id, text, tone, onTryAgain }: OpenerCardProps) => {
 
   const handleRating = (rating: number) => {
     if (!favorite) {
-      addToFavorites({ id, text, tone }, 'opener', selectedTones);
+      addToFavorites({ id, text, tone }, 'opener', selectedTones, false);
     }
     rateFavorite(id, rating);
     trackEvent('rated_item', { type: 'opener', rating });
@@ -76,6 +84,22 @@ export const OpenerCard = ({ id, text, tone, onTryAgain }: OpenerCardProps) => {
           </div>
         </div>
       </div>
+
+      {!favorite && (
+        <div className="flex items-center space-x-2 pl-1">
+          <Checkbox 
+            id={`remind-${id}`}
+            checked={remindIn24h}
+            onCheckedChange={(checked) => setRemindIn24h(checked as boolean)}
+          />
+          <Label 
+            htmlFor={`remind-${id}`}
+            className="text-sm text-muted-foreground cursor-pointer"
+          >
+            Remind me in 24h to follow up
+          </Label>
+        </div>
+      )}
       
       <div className="flex gap-2">
         <Button

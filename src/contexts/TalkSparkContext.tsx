@@ -19,6 +19,7 @@ export interface Favorite {
   createdAt: string;
   type: 'opener' | 'followup';
   likes: number;
+  remindAt?: string;
 }
 
 interface TalkSparkContextType {
@@ -31,10 +32,12 @@ interface TalkSparkContextType {
   followUps: FollowUp[];
   setFollowUps: (followUps: FollowUp[]) => void;
   favorites: Favorite[];
-  addToFavorites: (item: Opener | FollowUp, type: 'opener' | 'followup', tones: string[]) => void;
+  addToFavorites: (item: Opener | FollowUp, type: 'opener' | 'followup', tones: string[], remindIn24h?: boolean) => void;
   removeFromFavorites: (itemId: string) => void;
   isFavorite: (itemId: string) => boolean;
   rateFavorite: (itemId: string, rating: number) => void;
+  getExpiredReminders: () => Favorite[];
+  dismissReminder: (itemId: string) => void;
 }
 
 const TalkSparkContext = createContext<TalkSparkContextType | undefined>(undefined);
@@ -63,8 +66,12 @@ export const TalkSparkProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     localStorage.setItem('talkSpark-favorites', JSON.stringify(favorites));
   }, [favorites]);
 
-  const addToFavorites = (item: Opener | FollowUp, type: 'opener' | 'followup', tones: string[]) => {
+  const addToFavorites = (item: Opener | FollowUp, type: 'opener' | 'followup', tones: string[], remindIn24h?: boolean) => {
     if (!favorites.find(f => f.id === item.id)) {
+      const remindAt = remindIn24h 
+        ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+        : undefined;
+      
       const favorite: Favorite = {
         id: item.id,
         text: item.text,
@@ -72,6 +79,7 @@ export const TalkSparkProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         createdAt: new Date().toISOString(),
         type,
         likes: 0,
+        remindAt,
       };
       setFavorites([...favorites, favorite]);
     }
@@ -91,6 +99,17 @@ export const TalkSparkProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     ));
   };
 
+  const getExpiredReminders = () => {
+    const now = Date.now();
+    return favorites.filter(f => f.remindAt && new Date(f.remindAt).getTime() <= now);
+  };
+
+  const dismissReminder = (itemId: string) => {
+    setFavorites(favorites.map(f => 
+      f.id === itemId ? { ...f, remindAt: undefined } : f
+    ));
+  };
+
   return (
     <TalkSparkContext.Provider
       value={{
@@ -107,6 +126,8 @@ export const TalkSparkProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         removeFromFavorites,
         isFavorite,
         rateFavorite,
+        getExpiredReminders,
+        dismissReminder,
       }}
     >
       {children}

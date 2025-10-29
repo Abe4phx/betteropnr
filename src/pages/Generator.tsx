@@ -3,6 +3,7 @@ import { ProfileInput } from "@/components/ProfileInput";
 import { TonePicker } from "@/components/TonePicker";
 import { OpenerList } from "@/components/OpenerList";
 import { FollowUpList } from "@/components/FollowUpList";
+import { ReminderBanner } from "@/components/ReminderBanner";
 import { Button } from "@/components/ui/button";
 import { useTalkSpark } from "@/contexts/TalkSparkContext";
 import { Sparkles } from "lucide-react";
@@ -144,6 +145,8 @@ const Generator = () => {
             Generate personalized conversation starters in seconds
           </p>
         </div>
+
+        <ReminderBanner />
 
         <div className="space-y-6">
           <ProfileInput value={profileText} onChange={setProfileText} />

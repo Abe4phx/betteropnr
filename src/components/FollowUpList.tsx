@@ -34,7 +34,7 @@ export const FollowUpList = ({ followUps, openerId }: FollowUpListProps) => {
       removeFromFavorites(followUp.id);
       toast.success('Removed from favorites');
     } else {
-      addToFavorites(followUp, 'followup', selectedTones);
+      addToFavorites(followUp, 'followup', selectedTones, false);
       trackEvent('saved_opener', { type: 'followup' });
       toast.success('Added to favorites!');
     }
@@ -42,7 +42,7 @@ export const FollowUpList = ({ followUps, openerId }: FollowUpListProps) => {
 
   const handleRating = (followUp: FollowUp, rating: number) => {
     if (!isFavorite(followUp.id)) {
-      addToFavorites(followUp, 'followup', selectedTones);
+      addToFavorites(followUp, 'followup', selectedTones, false);
     }
     rateFavorite(followUp.id, rating);
     trackEvent('rated_item', { type: 'followup', rating });

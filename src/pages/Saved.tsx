@@ -1,6 +1,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ReminderBanner } from "@/components/ReminderBanner";
 import { useTalkSpark } from "@/contexts/TalkSparkContext";
 import { Heart, Copy, Share2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
@@ -51,6 +52,8 @@ const Saved = () => {
             Your collection of favorite conversation starters
           </p>
         </div>
+
+        <ReminderBanner />
 
         {favorites.length === 0 ? (
           <div className="text-center py-16 space-y-4">
