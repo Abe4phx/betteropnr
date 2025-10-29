@@ -1,61 +1,158 @@
 /* Import Google Fonts */
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap");
 
-/* Tailwind base */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* CSS Variables (optional but handy) */
-:root {
-  --ts-coral: #FF6B6B;
-  --ts-yellow: #FFD166;
-  --ts-navy: #1A1A40;
-  --ts-gray: #F5F5F5;
-  --ts-ink: #0F1222;
+/* HSL Color System for shadcn/ui components */
+@layer base {
+  :root {
+    /* TalkSpark Brand Colors in HSL */
+    --background: 0 0% 96%;
+    --foreground: 240 46% 18%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 240 46% 18%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 46% 18%;
+
+    /* Coral Primary */
+    --primary: 0 100% 71%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Warm Yellow Secondary */
+    --secondary: 45 100% 70%;
+    --secondary-foreground: 240 46% 18%;
+
+    --muted: 0 0% 93%;
+    --muted-foreground: 240 20% 50%;
+
+    /* Deep Navy Accent */
+    --accent: 240 46% 18%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 88%;
+    --input: 0 0% 88%;
+    --ring: 0 100% 71%;
+
+    --radius: 1rem;
+
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 240 46% 18%;
+    --sidebar-primary: 0 100% 71%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 95%;
+    --sidebar-accent-foreground: 240 46% 18%;
+    --sidebar-border: 0 0% 88%;
+    --sidebar-ring: 0 100% 71%;
+
+    /* Direct color values for utility classes */
+    --ts-coral: #FF6B6B;
+    --ts-yellow: #FFD166;
+    --ts-navy: #1A1A40;
+    --ts-gray: #F5F5F5;
+    --ts-ink: #0F1222;
+  }
+
+  .dark {
+    --background: 240 46% 12%;
+    --foreground: 0 0% 96%;
+
+    --card: 240 46% 18%;
+    --card-foreground: 0 0% 96%;
+
+    --popover: 240 46% 18%;
+    --popover-foreground: 0 0% 96%;
+
+    --primary: 0 100% 71%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 45 100% 70%;
+    --secondary-foreground: 240 46% 18%;
+
+    --muted: 240 46% 22%;
+    --muted-foreground: 0 0% 70%;
+
+    --accent: 240 46% 18%;
+    --accent-foreground: 0 0% 96%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 96%;
+
+    --border: 240 46% 22%;
+    --input: 240 46% 22%;
+    --ring: 0 100% 71%;
+    
+    --sidebar-background: 240 46% 15%;
+    --sidebar-foreground: 0 0% 96%;
+    --sidebar-primary: 0 100% 71%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 46% 20%;
+    --sidebar-accent-foreground: 0 0% 96%;
+    --sidebar-border: 240 46% 22%;
+    --sidebar-ring: 0 100% 71%;
+  }
 }
 
-/* Base Typography */
-html, body, #root {
-  height: 100%;
-}
-body {
-  @apply bg-ts-gray text-ts-ink font-body antialiased;
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html, body, #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
 }
 
-/* Headings */
-.h1, h1 { @apply font-heading text-3xl sm:text-4xl text-ts-navy leading-tight; }
-.h2, h2 { @apply font-heading text-2xl sm:text-3xl text-ts-navy leading-snug; }
-.h3, h3 { @apply font-heading text-xl sm:text-2xl text-ts-navy; }
+/* Custom TalkSpark Utility Classes */
+@layer components {
+  /* Headings */
+  .h1 { @apply font-heading text-3xl sm:text-4xl text-ts-navy leading-tight; }
+  .h2 { @apply font-heading text-2xl sm:text-3xl text-ts-navy leading-snug; }
+  .h3 { @apply font-heading text-xl sm:text-2xl text-ts-navy; }
 
-/* Buttons */
-.btn {
-  @apply inline-flex items-center justify-center px-4 py-2 rounded-2xl font-medium transition;
-}
-.btn-primary {
-  @apply bg-ts-coral text-white shadow-soft hover:opacity-90 active:shadow-none;
-}
-.btn-secondary {
-  @apply bg-white text-ts-navy border border-ts-navy/10 hover:bg-ts-gray;
-}
-.btn-ghost {
-  @apply text-ts-navy hover:bg-white/60;
-}
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-2xl font-medium transition;
+  }
+  .btn-primary {
+    @apply bg-ts-coral text-white shadow-soft hover:opacity-90 active:shadow-none;
+  }
+  .btn-secondary {
+    @apply bg-white text-ts-navy border border-ts-navy/10 hover:bg-ts-gray;
+  }
+  .btn-ghost {
+    @apply text-ts-navy hover:bg-white/60;
+  }
 
-/* Cards */
-.card {
-  @apply bg-white rounded-3xl p-5 shadow-soft;
-}
+  /* Cards */
+  .card {
+    @apply bg-white rounded-3xl p-5 shadow-soft;
+  }
 
-/* Badges / Tone chips */
-.badge {
-  @apply rounded-full px-3 py-1 text-xs font-medium border border-black/5 bg-white;
-}
+  /* Badges / Tone chips */
+  .badge {
+    @apply rounded-full px-3 py-1 text-xs font-medium border border-black/5 bg-white;
+  }
 
-/* Share card layout */
-.screenshot-card {
-  background: linear-gradient(135deg, rgba(255,107,107,0.08), rgba(255,209,102,0.08));
-  @apply rounded-3xl p-6 border border-white/60;
+  /* Share card layout */
+  .screenshot-card {
+    background: linear-gradient(135deg, rgba(255,107,107,0.08), rgba(255,209,102,0.08));
+    @apply rounded-3xl p-6 border border-white/60;
+  }
 }
 
 /* Focus states */
