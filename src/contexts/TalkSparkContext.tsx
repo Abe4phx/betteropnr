@@ -52,6 +52,23 @@ export const TalkSparkProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
   const [favorites, setFavorites] = useState<Favorite[]>([]);
 
+  // Load userProfileText from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('talkSpark-userProfile');
+    if (stored) {
+      try {
+        setUserProfileText(stored);
+      } catch (e) {
+        console.error('Failed to load user profile', e);
+      }
+    }
+  }, []);
+
+  // Save userProfileText to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('talkSpark-userProfile', userProfileText);
+  }, [userProfileText]);
+
   // Load favorites from localStorage on mount
   useEffect(() => {
     const stored = localStorage.getItem('talkSpark-favorites');
