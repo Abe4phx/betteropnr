@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { ProfileInput } from "@/components/ProfileInput";
 import { UserProfileInput } from "@/components/UserProfileInput";
 import { TonePicker } from "@/components/TonePicker";
@@ -11,6 +11,10 @@ import { Opener } from "@/contexts/TalkSparkContext";
 import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { trackEvent } from "@/lib/analytics";
+import { useUsageTracking } from "@/hooks/useUsageTracking";
+import { useUserPlan } from "@/hooks/useUserPlan";
+import { PaywallModal } from "@/components/PaywallModal";
+import { UpgradeSuccessModal } from "@/components/UpgradeSuccessModal";
 
 const Generator = () => {
   const {
@@ -26,9 +30,23 @@ const Generator = () => {
     setFollowUps,
   } = useTalkSpark();
 
+  const { plan } = useUserPlan();
+  const { usage, loading: usageLoading, incrementOpeners } = useUsageTracking();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingFollowUpFor, setGeneratingFollowUpFor] = useState<string | null>(null);
   const [generatingVariationFor, setGeneratingVariationFor] = useState<string | null>(null);
+  const [showPaywallModal, setShowPaywallModal] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  useEffect(() => {
+    // Check if user just completed checkout
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('success') === 'true') {
+      setShowSuccessModal(true);
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname);
+    }
+  }, []);
 
   const generateOpeners = async (variationStyle?: 'safer' | 'warmer' | 'funnier' | 'shorter') => {
     if (!profileText.trim()) {
@@ -38,6 +56,13 @@ const Generator = () => {
     
     if (selectedTones.length === 0) {
       toast.error('Please select at least one tone');
+      return;
+    }
+
+    // Check usage limits for free users
+    if (plan === 'free' && usage.hasExceededOpenerLimit) {
+      setShowPaywallModal(true);
+      toast.error('Daily limit reached. Upgrade for unlimited openers!');
       return;
     }
 
@@ -76,6 +101,10 @@ const Generator = () => {
       }));
 
       setGeneratedOpeners(openers);
+      
+      // Increment usage count
+      await incrementOpeners();
+      
       trackEvent('generated_opener', { 
         count: openers.length, 
         tones: selectedTones.join(',') 
@@ -267,6 +296,9 @@ const Generator = () => {
           </div>
         )}
       </div>
+
+      <PaywallModal open={showPaywallModal} onOpenChange={setShowPaywallModal} />
+      <UpgradeSuccessModal open={showSuccessModal} onOpenChange={setShowSuccessModal} />
     </div>
   );
 };

@@ -1,4 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { useUsageTracking } from '@/hooks/useUsageTracking';
+import { useUserPlan } from '@/hooks/useUserPlan';
+import { toast } from 'sonner';
 
 export interface Opener {
   id: string;
@@ -51,6 +54,8 @@ export const TalkSparkProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [generatedOpeners, setGeneratedOpeners] = useState<Opener[]>([]);
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
   const [favorites, setFavorites] = useState<Favorite[]>([]);
+  const { plan } = useUserPlan();
+  const { usage, incrementFavorites } = useUsageTracking();
 
   // Load userProfileText from localStorage on mount
   useEffect(() => {
@@ -86,7 +91,13 @@ export const TalkSparkProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     localStorage.setItem('talkSpark-favorites', JSON.stringify(favorites));
   }, [favorites]);
 
-  const addToFavorites = (item: Opener | FollowUp, type: 'opener' | 'followup', tones: string[], remindIn24h?: boolean) => {
+  const addToFavorites = async (item: Opener | FollowUp, type: 'opener' | 'followup', tones: string[], remindIn24h?: boolean) => {
+    // Check favorites limit for free users
+    if (plan === 'free' && usage.hasExceededFavoriteLimit) {
+      toast.error('Favorites limit reached. Upgrade for unlimited favorites!');
+      return;
+    }
+
     if (!favorites.find(f => f.id === item.id)) {
       const remindAt = remindIn24h 
         ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
@@ -102,6 +113,9 @@ export const TalkSparkProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         remindAt,
       };
       setFavorites([...favorites, favorite]);
+
+      // Increment favorites count in usage tracking
+      await incrementFavorites();
     }
   };
 

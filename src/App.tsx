@@ -9,6 +9,7 @@ import { Navigation } from "@/components/Navigation";
 import Generator from "./pages/Generator";
 import Saved from "./pages/Saved";
 import Dashboard from "./pages/Dashboard";
+import Billing from "./pages/Billing";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import BrandPreview from "./pages/BrandPreview";
@@ -95,6 +96,19 @@ const App = () => {
                       <>
                         <SignedIn>
                           <Saved />
+                        </SignedIn>
+                        <SignedOut>
+                          <Navigate to="/sign-in" replace />
+                        </SignedOut>
+                      </>
+                    }
+                  />
+                  <Route
+                    path="/billing"
+                    element={
+                      <>
+                        <SignedIn>
+                          <Billing />
                         </SignedIn>
                         <SignedOut>
                           <Navigate to="/sign-in" replace />

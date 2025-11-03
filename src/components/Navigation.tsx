@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Heart, Zap, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -5,6 +6,7 @@ import { UserButton, useUser, useClerk } from "@clerk/clerk-react";
 import Logo from "@/components/Logo";
 import { useUserPlan } from "@/hooks/useUserPlan";
 import { useClerkSync } from "@/hooks/useClerkSync";
+import { PaywallModal } from "@/components/PaywallModal";
 
 export const Navigation = () => {
   const location = useLocation();
@@ -12,6 +14,7 @@ export const Navigation = () => {
   const { user, isLoaded } = useUser();
   const { signOut } = useClerk();
   const { plan } = useUserPlan();
+  const [showPaywallModal, setShowPaywallModal] = useState(false);
   
   // Sync user with Supabase
   useClerkSync();
@@ -49,6 +52,7 @@ export const Navigation = () => {
                   <Button
                     variant="default"
                     className="rounded-xl shadow-sm bg-gradient-to-r from-primary to-primary-glow"
+                    onClick={() => setShowPaywallModal(true)}
                   >
                     <Zap className="w-4 h-4 mr-2" />
                     Upgrade
@@ -90,6 +94,8 @@ export const Navigation = () => {
           </div>
         </div>
       </div>
+
+      <PaywallModal open={showPaywallModal} onOpenChange={setShowPaywallModal} />
     </nav>
   );
 };
