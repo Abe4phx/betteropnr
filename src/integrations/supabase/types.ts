@@ -14,6 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
+      stripe_customers: {
+        Row: {
+          created_at: string
+          id: string
+          stripe_customer_id: string
+          stripe_subscription_id: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          stripe_customer_id: string
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          stripe_customer_id?: string
+          stripe_subscription_id?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_usage: {
+        Row: {
+          created_at: string
+          date: string
+          favorites_count: number
+          id: string
+          openers_generated: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          date?: string
+          favorites_count?: number
+          id?: string
+          openers_generated?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          date?: string
+          favorites_count?: number
+          id?: string
+          openers_generated?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       users: {
         Row: {
           clerk_user_id: string
@@ -21,6 +78,7 @@ export type Database = {
           email: string
           id: string
           plan: string
+          plan_interval: string | null
           updated_at: string
           username: string | null
         }
@@ -30,6 +88,7 @@ export type Database = {
           email: string
           id?: string
           plan?: string
+          plan_interval?: string | null
           updated_at?: string
           username?: string | null
         }
@@ -39,6 +98,7 @@ export type Database = {
           email?: string
           id?: string
           plan?: string
+          plan_interval?: string | null
           updated_at?: string
           username?: string | null
         }
