@@ -15,7 +15,7 @@ import BrandPreview from "./pages/BrandPreview";
 import NotFound from "./pages/NotFound";
 
 // TODO: Replace with your actual Clerk publishable key from https://dashboard.clerk.com/
-const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_REPLACE_WITH_YOUR_KEY';
+const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_cm9idXN0LXBpcmFuaGEtMzUuY2xlcmsuYWNjb3VudHMuZGV2JA';
 
 const queryClient = new QueryClient();
 
