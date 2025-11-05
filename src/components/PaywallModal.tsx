@@ -25,12 +25,19 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
   const [isYearly, setIsYearly] = useState(false);
 
   const handleUpgrade = async (priceId: string, planName: string) => {
-    if (!user) return;
+    if (!user?.emailAddresses?.[0]?.emailAddress) {
+      toast.error('User email not found. Please try again.');
+      return;
+    }
 
     setLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('create-checkout', {
-        body: { priceId },
+        body: { 
+          priceId,
+          userEmail: user.emailAddresses[0].emailAddress,
+          userId: user.id,
+        },
       });
 
       if (error) throw error;

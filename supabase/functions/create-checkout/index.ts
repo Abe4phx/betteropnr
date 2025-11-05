@@ -20,25 +20,11 @@ serve(async (req) => {
   try {
     logStep('Function started');
 
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
-    );
-
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) throw new Error('No authorization header provided');
-
-    const token = authHeader.replace('Bearer ', '');
-    const { data: userData, error: userError } = await supabaseClient.auth.getUser(token);
-    if (userError) throw new Error(`Authentication error: ${userError.message}`);
-    
-    const user = userData.user;
-    if (!user?.email) throw new Error('User not authenticated or email not available');
-    logStep('User authenticated', { userId: user.id, email: user.email });
-
-    const { priceId } = await req.json();
+    const { priceId, userEmail, userId } = await req.json();
     if (!priceId) throw new Error('Price ID is required');
-    logStep('Price ID received', { priceId });
+    if (!userEmail) throw new Error('User email is required');
+    if (!userId) throw new Error('User ID is required');
+    logStep('Request data received', { priceId, userEmail, userId });
 
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
     if (!stripeKey) throw new Error('STRIPE_SECRET_KEY is not set');
@@ -46,7 +32,7 @@ serve(async (req) => {
     const stripe = new Stripe(stripeKey, { apiVersion: '2025-08-27.basil' });
 
     // Check if customer already exists
-    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
     let customerId: string;
 
     if (customers.data.length > 0) {
@@ -54,8 +40,8 @@ serve(async (req) => {
       logStep('Existing customer found', { customerId });
     } else {
       const customer = await stripe.customers.create({
-        email: user.email,
-        metadata: { clerk_user_id: user.id },
+        email: userEmail,
+        metadata: { clerk_user_id: userId },
       });
       customerId = customer.id;
       logStep('New customer created', { customerId });
@@ -75,7 +61,7 @@ serve(async (req) => {
       success_url: `${origin}/?success=true`,
       cancel_url: `${origin}/`,
       metadata: {
-        clerk_user_id: user.id,
+        clerk_user_id: userId,
       },
     });
 
