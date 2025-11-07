@@ -58,6 +58,7 @@ serve(async (req) => {
         },
       ],
       mode: 'subscription',
+      payment_method_types: ['card'],
       success_url: `${origin}/?success=true`,
       cancel_url: `${origin}/`,
       metadata: {
