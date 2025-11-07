@@ -1,9 +1,15 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.77.0';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Rate limiting store (in-memory, resets on function cold start)
+const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT_WINDOW = 60000; // 1 minute
+const RATE_LIMIT_MAX_REQUESTS = 10;
 
 // Content filter for explicit or inappropriate content
 const BLOCKED_WORDS = [
@@ -67,11 +73,103 @@ serve(async (req) => {
   }
 
   try {
+    // Authentication check
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Authentication required' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Verify JWT and get user
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+    if (authError || !user) {
+      console.error('Auth error:', authError);
+      return new Response(
+        JSON.stringify({ error: 'Invalid authentication' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const userId = user.id;
+
+    // Rate limiting
+    const now = Date.now();
+    const userRateLimit = rateLimitStore.get(userId);
+    
+    if (userRateLimit) {
+      if (now < userRateLimit.resetTime) {
+        if (userRateLimit.count >= RATE_LIMIT_MAX_REQUESTS) {
+          return new Response(
+            JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+            { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
+        userRateLimit.count++;
+      } else {
+        rateLimitStore.set(userId, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+      }
+    } else {
+      rateLimitStore.set(userId, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+    }
+
+    // Get user's plan and check usage limits
+    const { data: userData, error: userError } = await supabase
+      .from('users')
+      .select('plan, clerk_user_id')
+      .eq('clerk_user_id', userId)
+      .maybeSingle();
+
+    if (userError) {
+      console.error('Error fetching user:', userError);
+      return new Response(
+        JSON.stringify({ error: 'Failed to verify user plan' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const userPlan = userData?.plan || 'free';
+
+    // Check usage limits for free users
+    if (userPlan === 'free') {
+      const today = new Date().toISOString().split('T')[0];
+      const { data: usageData, error: usageError } = await supabase
+        .from('user_usage')
+        .select('openers_generated')
+        .eq('user_id', userId)
+        .eq('date', today)
+        .maybeSingle();
+
+      if (usageError) {
+        console.error('Error fetching usage:', usageError);
+      }
+
+      const openersGenerated = usageData?.openers_generated || 0;
+      const FREE_PLAN_LIMIT = 5;
+
+      if (openersGenerated >= FREE_PLAN_LIMIT) {
+        return new Response(
+          JSON.stringify({ 
+            error: 'Daily limit reached',
+            message: 'You have reached your daily limit of 5 openers. Upgrade to Pro for unlimited access.',
+            requiresUpgrade: true 
+          }),
+          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+    }
+
     const { profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle }: GenerateRequest = await req.json();
     
-    console.log('Generate request:', { profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle });
+    console.log('Generate request:', { userId, userPlan, mode });
 
-    // Validate inputs
+    // Enhanced input validation
     if (!profileText?.trim()) {
       return new Response(
         JSON.stringify({ error: 'Profile text is required' }),
@@ -79,9 +177,25 @@ serve(async (req) => {
       );
     }
 
+    // Enforce input length limits
+    if (profileText.length > 1000 || (userProfileText && userProfileText.length > 1000)) {
+      return new Response(
+        JSON.stringify({ error: 'Profile text is too long. Maximum 1000 characters allowed.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Validate tones array
+    const allowedTones = ['playful', 'sincere', 'thoughtful', 'fun', 'flirty', 'bold', 'curious', 'confident', 'funny'];
     if (!tones || tones.length === 0) {
       return new Response(
         JSON.stringify({ error: 'At least one tone must be selected' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    if (tones.length > 4 || !tones.every(tone => allowedTones.includes(tone))) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid tones provided. Maximum 4 allowed tones.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -211,7 +325,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in generate function:', error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : 'Unknown error' }),
+      JSON.stringify({ error: 'An error occurred while processing your request' }),
       { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
