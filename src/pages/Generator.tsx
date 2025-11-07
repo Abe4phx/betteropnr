@@ -6,7 +6,7 @@ import { OpenerList } from "@/components/OpenerList";
 import { FollowUpList } from "@/components/FollowUpList";
 import { ReminderBanner } from "@/components/ReminderBanner";
 import { Button } from "@/components/ui/button";
-import { useTalkSpark } from "@/contexts/TalkSparkContext";
+import { useBetterOpnr } from "@/contexts/TalkSparkContext";
 import { Opener } from "@/contexts/TalkSparkContext";
 import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
@@ -28,7 +28,7 @@ const Generator = () => {
     setGeneratedOpeners,
     followUps,
     setFollowUps,
-  } = useTalkSpark();
+  } = useBetterOpnr();
 
   const { plan } = useUserPlan();
   const { usage, loading: usageLoading, incrementOpeners } = useUsageTracking();

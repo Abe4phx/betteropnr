@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ClerkProvider, SignedIn, SignedOut } from "@clerk/clerk-react";
-import { TalkSparkProvider } from "@/contexts/TalkSparkContext";
+import { BetterOpnrProvider } from "@/contexts/TalkSparkContext";
 import { Navigation } from "@/components/Navigation";
 import Generator from "./pages/Generator";
 import Saved from "./pages/Saved";
@@ -50,7 +50,7 @@ const App = () => {
     <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <TalkSparkProvider>
+        <BetterOpnrProvider>
           <Toaster />
           <Sonner />
           <BrowserRouter>
@@ -123,7 +123,7 @@ const App = () => {
               </main>
             </div>
           </BrowserRouter>
-        </TalkSparkProvider>
+        </BetterOpnrProvider>
       </TooltipProvider>
     </QueryClientProvider>
   </ClerkProvider>

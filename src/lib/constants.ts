@@ -7,7 +7,7 @@ export const TS_COLORS = {
 };
 
 export const BRAND = {
-  name: "TalkSpark",
+  name: "BetterOpnr",
   tagline: "Because every great story starts with a spark.",
   gradient: "bg-ts-gradient",
   tones: ["Playful", "Sincere", "Confident", "Funny"] as const,

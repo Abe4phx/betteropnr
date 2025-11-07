@@ -25,7 +25,7 @@ export interface Favorite {
   remindAt?: string;
 }
 
-interface TalkSparkContextType {
+interface BetterOpnrContextType {
   profileText: string;
   setProfileText: (text: string) => void;
   userProfileText: string;
@@ -45,9 +45,9 @@ interface TalkSparkContextType {
   dismissReminder: (itemId: string) => void;
 }
 
-const TalkSparkContext = createContext<TalkSparkContextType | undefined>(undefined);
+const BetterOpnrContext = createContext<BetterOpnrContextType | undefined>(undefined);
 
-export const TalkSparkProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+export const BetterOpnrProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [profileText, setProfileText] = useState('');
   const [userProfileText, setUserProfileText] = useState('');
   const [selectedTones, setSelectedTones] = useState<string[]>([]);
@@ -59,7 +59,7 @@ export const TalkSparkProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   // Load userProfileText from localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem('talkSpark-userProfile');
+    const stored = localStorage.getItem('betterOpnr-userProfile');
     if (stored) {
       try {
         setUserProfileText(stored);
@@ -71,12 +71,12 @@ export const TalkSparkProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   // Save userProfileText to localStorage whenever it changes
   useEffect(() => {
-    localStorage.setItem('talkSpark-userProfile', userProfileText);
+    localStorage.setItem('betterOpnr-userProfile', userProfileText);
   }, [userProfileText]);
 
   // Load favorites from localStorage on mount
   useEffect(() => {
-    const stored = localStorage.getItem('talkSpark-favorites');
+    const stored = localStorage.getItem('betterOpnr-favorites');
     if (stored) {
       try {
         setFavorites(JSON.parse(stored));
@@ -88,7 +88,7 @@ export const TalkSparkProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
   // Save favorites to localStorage whenever they change
   useEffect(() => {
-    localStorage.setItem('talkSpark-favorites', JSON.stringify(favorites));
+    localStorage.setItem('betterOpnr-favorites', JSON.stringify(favorites));
   }, [favorites]);
 
   const addToFavorites = async (item: Opener | FollowUp, type: 'opener' | 'followup', tones: string[], remindIn24h?: boolean) => {
@@ -145,7 +145,7 @@ export const TalkSparkProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   };
 
   return (
-    <TalkSparkContext.Provider
+    <BetterOpnrContext.Provider
       value={{
         profileText,
         setProfileText,
@@ -167,14 +167,14 @@ export const TalkSparkProvider: React.FC<{ children: React.ReactNode }> = ({ chi
       }}
     >
       {children}
-    </TalkSparkContext.Provider>
+    </BetterOpnrContext.Provider>
   );
 };
 
-export const useTalkSpark = () => {
-  const context = useContext(TalkSparkContext);
+export const useBetterOpnr = () => {
+  const context = useContext(BetterOpnrContext);
   if (!context) {
-    throw new Error('useTalkSpark must be used within TalkSparkProvider');
+    throw new Error('useBetterOpnr must be used within BetterOpnrProvider');
   }
   return context;
 };

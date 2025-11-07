@@ -15,7 +15,7 @@ export default function Logo({ size = 28, wordmark = true, color = "#FF6B6B" }: 
         height={size}
         viewBox="0 0 64 64"
         fill="none"
-        aria-label="TalkSpark icon"
+        aria-label="BetterOpnr icon"
       >
         {/* Bubble */}
         <path
@@ -32,7 +32,7 @@ export default function Logo({ size = 28, wordmark = true, color = "#FF6B6B" }: 
 
       {wordmark && (
         <div className="flex flex-col leading-none">
-          <span className="font-heading text-lg md:text-xl text-ts-navy">TalkSpark</span>
+          <span className="font-heading text-lg md:text-xl text-ts-navy">BetterOpnr</span>
           <span className="text-[10px] text-ts-navy/60 -mt-0.5">Start better conversations</span>
         </div>
       )}

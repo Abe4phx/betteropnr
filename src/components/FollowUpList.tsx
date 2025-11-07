@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { FollowUp, useTalkSpark } from "@/contexts/TalkSparkContext";
+import { FollowUp, useBetterOpnr } from "@/contexts/TalkSparkContext";
 import { MessageSquare, Copy, Heart, Star } from "lucide-react";
 import { toast } from "sonner";
 import { trackEvent } from "@/lib/analytics";
@@ -12,7 +12,7 @@ interface FollowUpListProps {
 }
 
 export const FollowUpList = ({ followUps, openerId }: FollowUpListProps) => {
-  const { isFavorite, addToFavorites, removeFromFavorites, rateFavorite, favorites, selectedTones } = useTalkSpark();
+  const { isFavorite, addToFavorites, removeFromFavorites, rateFavorite, favorites, selectedTones } = useBetterOpnr();
   const relevantFollowUps = followUps.filter(f => f.openerId === openerId);
 
   if (relevantFollowUps.length === 0) {

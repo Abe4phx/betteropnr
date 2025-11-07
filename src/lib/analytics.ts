@@ -24,7 +24,7 @@ export const trackEvent = (event: AnalyticsEvent, data?: EventData) => {
     console.log('Analytics:', eventData);
     
     // Store in localStorage for local tracking
-    const stored = localStorage.getItem('talkSpark-analytics');
+    const stored = localStorage.getItem('betterOpnr-analytics');
     const events = stored ? JSON.parse(stored) : [];
     events.push(eventData);
     
@@ -33,7 +33,7 @@ export const trackEvent = (event: AnalyticsEvent, data?: EventData) => {
       events.shift();
     }
     
-    localStorage.setItem('talkSpark-analytics', JSON.stringify(events));
+    localStorage.setItem('betterOpnr-analytics', JSON.stringify(events));
   } catch (e) {
     console.error('Failed to track event', e);
   }
@@ -41,7 +41,7 @@ export const trackEvent = (event: AnalyticsEvent, data?: EventData) => {
 
 export const getAnalytics = () => {
   try {
-    const stored = localStorage.getItem('talkSpark-analytics');
+    const stored = localStorage.getItem('betterOpnr-analytics');
     return stored ? JSON.parse(stored) : [];
   } catch (e) {
     console.error('Failed to get analytics', e);

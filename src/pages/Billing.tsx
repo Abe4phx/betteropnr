@@ -91,7 +91,7 @@ const Billing = () => {
       <div className="container max-w-4xl mx-auto py-12 space-y-8">
         <div>
           <h1 className="text-3xl font-bold mb-2">Billing & Subscription</h1>
-          <p className="text-muted-foreground">Manage your TalkSpark subscription</p>
+          <p className="text-muted-foreground">Manage your BetterOpnr subscription</p>
         </div>
 
         <Card>

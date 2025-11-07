@@ -1,6 +1,6 @@
-# TalkSpark 💬✨
+# BetterOpnr 💬✨
 
-TalkSpark is an AI-powered conversation starter generator that helps you create personalized, engaging opening lines for dating apps, networking, or casual chats. Generate openers in different tones, get follow-up suggestions, and save your favorites with smart reminders.
+BetterOpnr is an AI-powered conversation starter generator that helps you create personalized, engaging opening lines for dating apps, networking, or casual chats. Generate openers in different tones, get follow-up suggestions, and save your favorites with smart reminders.
 
 ## Features
 
@@ -36,7 +36,7 @@ TalkSpark is an AI-powered conversation starter generator that helps you create 
 1. Clone the repository:
 ```bash
 git clone <YOUR_GIT_URL>
-cd talkspark
+cd betteropnr
 ```
 
 2. Install dependencies:
@@ -82,7 +82,7 @@ bun preview
 ## Project Structure
 
 ```
-talkspark/
+betteropnr/
 ├── src/
 │   ├── components/          # React components
 │   │   ├── ui/             # shadcn/ui base components

@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Bell, X } from "lucide-react";
-import { useTalkSpark } from "@/contexts/TalkSparkContext";
+import { useBetterOpnr } from "@/contexts/TalkSparkContext";
 import { useNavigate } from "react-router-dom";
 
 export const ReminderBanner = () => {
-  const { getExpiredReminders, dismissReminder } = useTalkSpark();
+  const { getExpiredReminders, dismissReminder } = useBetterOpnr();
   const [expiredReminders, setExpiredReminders] = useState<ReturnType<typeof getExpiredReminders>>([]);
   const navigate = useNavigate();
 

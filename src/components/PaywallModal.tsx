@@ -108,7 +108,7 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
               <Sparkles className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
               <h3 className="text-2xl font-bold mb-2">Free</h3>
               <p className="text-3xl font-bold mb-4">$0</p>
-              <p className="text-muted-foreground mb-6">Perfect for trying out TalkSpark</p>
+              <p className="text-muted-foreground mb-6">Perfect for trying out BetterOpnr</p>
             </div>
             <ul className="space-y-3">
               {features.free.map((feature, i) => (

@@ -2,12 +2,12 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ReminderBanner } from "@/components/ReminderBanner";
-import { useTalkSpark } from "@/contexts/TalkSparkContext";
+import { useBetterOpnr } from "@/contexts/TalkSparkContext";
 import { Heart, Copy, Share2, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 const Saved = () => {
-  const { favorites, removeFromFavorites } = useTalkSpark();
+  const { favorites, removeFromFavorites } = useBetterOpnr();
 
   const handleCopy = async (text: string) => {
     try {
@@ -19,7 +19,7 @@ const Saved = () => {
   };
 
   const handleShare = async (text: string) => {
-    const shareText = `"${text}"\n\n— Generated with TalkSpark 💬✨`;
+    const shareText = `"${text}"\n\n— Generated with BetterOpnr 💬✨`;
     
     if (navigator.share) {
       try {

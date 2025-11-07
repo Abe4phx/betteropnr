@@ -4,7 +4,7 @@ import { Heart, Copy, RefreshCw, Star, Shield, Smile, Laugh, Minimize2 } from "l
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { useTalkSpark } from "@/contexts/TalkSparkContext";
+import { useBetterOpnr } from "@/contexts/TalkSparkContext";
 import { toast } from "sonner";
 import { trackEvent } from "@/lib/analytics";
 import { useState } from "react";
@@ -19,7 +19,7 @@ interface OpenerCardProps {
 }
 
 export const OpenerCard = ({ id, text, tone, onTryAgain, onVariation }: OpenerCardProps) => {
-  const { isFavorite, addToFavorites, removeFromFavorites, rateFavorite, favorites, selectedTones } = useTalkSpark();
+  const { isFavorite, addToFavorites, removeFromFavorites, rateFavorite, favorites, selectedTones } = useBetterOpnr();
   const favorite = isFavorite(id);
   const favoriteItem = favorites.find(f => f.id === id);
   const currentRating = favoriteItem?.likes || 0;

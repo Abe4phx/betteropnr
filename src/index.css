@@ -8,7 +8,7 @@
 /* HSL Color System for shadcn/ui components */
 @layer base {
   :root {
-    /* TalkSpark Brand Colors in HSL */
+    /* BetterOpnr Brand Colors in HSL */
     --background: 0 0% 96%;
     --foreground: 240 46% 18%;
 
@@ -117,7 +117,7 @@
   }
 }
 
-/* Custom TalkSpark Utility Classes */
+/* Custom BetterOpnr Utility Classes */
 @layer components {
   /* Headings */
   .h1 { @apply font-heading text-3xl sm:text-4xl text-ts-navy leading-tight; }
