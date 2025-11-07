@@ -14,9 +14,9 @@ interface PaywallModalProps {
 }
 
 const PRICE_IDS = {
-  pro_monthly: 'price_1SPSnV5CiRcE7YEm2y2Tw3Me',
-  pro_yearly: 'price_1SPSnu5CiRcE7YEmVH0oxMlL',
-  creator_monthly: 'price_1SPSo85CiRcE7YEmfW6wIyUc',
+  pro_monthly: 'price_1SQiGI7GxpG0bh7WRavu0K4M',
+  pro_yearly: 'price_1SQiGb7GxpG0bh7WVHyvR74d',
+  creator_monthly: 'price_1SQiGr7GxpG0bh7Woot7ZPqs',
 };
 
 export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {

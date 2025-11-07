@@ -19,7 +19,7 @@ export const useUserPlan = () => {
           .from('users')
           .select('plan')
           .eq('clerk_user_id', user.id)
-          .single();
+          .maybeSingle();
 
         if (error) throw error;
         if (data) setPlan(data.plan);
