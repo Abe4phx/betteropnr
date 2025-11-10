@@ -12,11 +12,11 @@ const logStep = (step: string, details?: any) => {
   console.log(`[STRIPE-WEBHOOK] ${step}${detailsStr}`);
 };
 
-// Price ID to plan mapping
+// Price ID to plan mapping - PRODUCTION
 const PRICE_PLAN_MAP: Record<string, { plan: string; interval: string }> = {
-  'price_1SPSnV5CiRcE7YEm2y2Tw3Me': { plan: 'pro', interval: 'monthly' },  // Pro Monthly
-  'price_1SPSnu5CiRcE7YEmVH0oxMlL': { plan: 'pro', interval: 'yearly' },   // Pro Yearly
-  'price_1SPSo85CiRcE7YEmfW6wIyUc': { plan: 'creator', interval: 'monthly' }, // Creator Monthly
+  'price_1SQiGI7GxpG0bh7WRavu0K4M': { plan: 'pro', interval: 'monthly' },  // Pro Monthly
+  'price_1SQiGb7GxpG0bh7WVHyvR74d': { plan: 'pro', interval: 'yearly' },   // Pro Yearly
+  'price_1SQiGr7GxpG0bh7Woot7ZPqs': { plan: 'creator', interval: 'monthly' }, // Creator Monthly
 };
 
 serve(async (req) => {
