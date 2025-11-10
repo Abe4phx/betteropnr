@@ -1,15 +1,17 @@
 import { useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Heart, Zap } from 'lucide-react';
 import { useUserPlan } from '@/hooks/useUserPlan';
+import { PaywallModal } from '@/components/PaywallModal';
 
 const Dashboard = () => {
   const { user, isLoaded } = useUser();
   const { plan } = useUserPlan();
   const navigate = useNavigate();
+  const [showPaywall, setShowPaywall] = useState(false);
 
   useEffect(() => {
     if (isLoaded && !user) {
@@ -73,13 +75,15 @@ const Dashboard = () => {
               Current plan: <span className="font-semibold capitalize">{plan}</span>
             </p>
             {plan === 'free' && (
-              <Button variant="default" className="w-full">
+              <Button onClick={() => setShowPaywall(true)} variant="default" className="w-full">
                 Upgrade Now
               </Button>
             )}
           </Card>
         </div>
       </div>
+
+      <PaywallModal open={showPaywall} onOpenChange={setShowPaywall} />
     </div>
   );
 };
