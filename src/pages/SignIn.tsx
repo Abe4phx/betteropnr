@@ -12,6 +12,12 @@ const SignIn = () => {
             rootBox: 'mx-auto',
             card: 'shadow-xl',
           },
+          layout: {
+            logoPlacement: 'inside',
+          },
+          variables: {
+            colorPrimary: '#FF6B6B',
+          },
         }}
         routing="path"
         path="/sign-in"
