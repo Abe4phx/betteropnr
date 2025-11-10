@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useUser } from "@clerk/clerk-react";
 import { ProfileInput } from "@/components/ProfileInput";
 import { UserProfileInput } from "@/components/UserProfileInput";
 import { TonePicker } from "@/components/TonePicker";
@@ -15,8 +16,10 @@ import { useUsageTracking } from "@/hooks/useUsageTracking";
 import { useUserPlan } from "@/hooks/useUserPlan";
 import { PaywallModal } from "@/components/PaywallModal";
 import { UpgradeSuccessModal } from "@/components/UpgradeSuccessModal";
+import { supabase } from "@/integrations/supabase/client";
 
 const Generator = () => {
+  const { user } = useUser();
   const {
     profileText,
     setProfileText,
@@ -69,30 +72,21 @@ const Generator = () => {
     setIsGenerating(true);
 
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({
-            profileText,
-            userProfileText,
-            tones: selectedTones,
-            mode: 'opener',
-            variationStyle,
-          }),
-        }
-      );
+      const { data, error } = await supabase.functions.invoke('generate', {
+        body: {
+          profileText,
+          userProfileText,
+          tones: selectedTones,
+          mode: 'opener',
+          variationStyle,
+          userId: user?.id,
+        },
+      });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate openers');
+      if (error) {
+        throw new Error(error.message || 'Failed to generate openers');
       }
 
-      const data = await response.json();
       const openers = data.results.map((text: string, index: number) => ({
         id: `opener-${Date.now()}-${index}`,
         text,
@@ -123,30 +117,20 @@ const Generator = () => {
     toast.info(`Generating ${style} variation...`);
     
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({
-            profileText,
-            userProfileText,
-            tones: selectedTones,
-            mode: 'opener',
-            variationStyle: style,
-          }),
-        }
-      );
+      const { data, error } = await supabase.functions.invoke('generate', {
+        body: {
+          profileText,
+          userProfileText,
+          tones: selectedTones,
+          mode: 'opener',
+          variationStyle: style,
+          userId: user?.id,
+        },
+      });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate variation');
+      if (error) {
+        throw new Error(error.message || 'Failed to generate variation');
       }
-
-      const data = await response.json();
       const newOpener: Opener = {
         id: `opener-${Date.now()}`,
         text: data.results[0],
@@ -174,30 +158,20 @@ const Generator = () => {
     setGeneratingFollowUpFor(openerId);
     
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate`,
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-          },
-          body: JSON.stringify({
-            profileText,
-            userProfileText,
-            tones: [opener.tone.toLowerCase()],
-            mode: 'followup',
-            priorMessage: opener.text,
-          }),
-        }
-      );
+      const { data, error } = await supabase.functions.invoke('generate', {
+        body: {
+          profileText,
+          userProfileText,
+          tones: [opener.tone.toLowerCase()],
+          mode: 'followup',
+          priorMessage: opener.text,
+          userId: user?.id,
+        },
+      });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate follow-ups');
+      if (error) {
+        throw new Error(error.message || 'Failed to generate follow-ups');
       }
-
-      const data = await response.json();
       const newFollowUps = data.results.map((text: string, index: number) => ({
         id: `followup-${Date.now()}-${index}`,
         text,
