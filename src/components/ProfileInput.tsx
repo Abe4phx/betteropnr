@@ -1,5 +1,9 @@
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Camera, X, Loader2 } from "lucide-react";
+import { useImageTextExtraction } from "@/hooks/useImageTextExtraction";
+import { useRef } from "react";
 
 interface ProfileInputProps {
   value: string;
@@ -7,11 +11,82 @@ interface ProfileInputProps {
 }
 
 export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
+  const { isExtracting, imagePreview, extractText, clearPreview } = useImageTextExtraction();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const extractedText = await extractText(file);
+      onChange(value ? `${value}\n\n${extractedText}` : extractedText);
+    } catch (error) {
+      // Error handling is done in the hook
+    }
+
+    // Reset file input
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleClearPreview = () => {
+    clearPreview();
+  };
+
   return (
     <div className="space-y-3">
-      <Label htmlFor="profile" className="text-lg font-semibold">
-        Tell us about them
-      </Label>
+      <div className="flex items-center justify-between gap-2">
+        <Label htmlFor="profile" className="text-lg font-semibold">
+          Tell us about them
+        </Label>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={isExtracting}
+          className="gap-2"
+        >
+          {isExtracting ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Extracting...
+            </>
+          ) : (
+            <>
+              <Camera className="w-4 h-4" />
+              Upload Screenshot
+            </>
+          )}
+        </Button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/jpeg,image/png,image/webp"
+          onChange={handleFileSelect}
+          className="hidden"
+        />
+      </div>
+
+      {imagePreview && (
+        <div className="relative inline-block">
+          <img
+            src={imagePreview}
+            alt="Preview"
+            className="h-20 w-20 object-cover rounded-lg border-2 border-border"
+          />
+          <button
+            onClick={handleClearPreview}
+            className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90 transition-colors"
+            type="button"
+          >
+            <X className="w-3 h-3" />
+          </button>
+        </div>
+      )}
+
       <Textarea
         id="profile"
         placeholder="Paste their bio, prompts, or interests..."
@@ -20,7 +95,7 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
         className="min-h-[120px] resize-none text-base rounded-2xl shadow-sm focus:shadow-md transition-shadow"
       />
       <p className="text-sm text-muted-foreground">
-        The more details you provide, the better the conversation starters!
+        The more details you provide, the better the conversation starters! You can upload a screenshot or type manually.
       </p>
     </div>
   );
