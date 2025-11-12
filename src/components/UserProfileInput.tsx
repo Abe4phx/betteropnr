@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { User, ChevronDown, Camera, X, Loader2 } from "lucide-react";
 import { useImageTextExtraction } from "@/hooks/useImageTextExtraction";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 interface UserProfileInputProps {
   value: string;
@@ -14,7 +15,22 @@ interface UserProfileInputProps {
 export const UserProfileInput = ({ value, onChange }: UserProfileInputProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const { isExtracting, imagePreview, extractText, clearPreview } = useImageTextExtraction();
+  const { profileText, setProfileText, isLoading } = useUserProfile();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Sync profile text from database to parent component
+  useEffect(() => {
+    if (!isLoading && profileText && !value) {
+      onChange(profileText);
+    }
+  }, [isLoading, profileText, value, onChange]);
+
+  // Save to database when value changes
+  useEffect(() => {
+    if (value !== profileText) {
+      setProfileText(value);
+    }
+  }, [value, profileText, setProfileText]);
 
   // Auto-open if empty, stay collapsed if filled
   useEffect(() => {
@@ -111,7 +127,7 @@ export const UserProfileInput = ({ value, onChange }: UserProfileInputProps) => 
           className="min-h-[100px] resize-none text-base rounded-2xl shadow-sm focus:shadow-md transition-shadow"
         />
         <p className="text-sm text-muted-foreground">
-          This helps find common ground and makes conversations more natural! Upload a screenshot or type manually. Your profile is automatically saved.
+          This helps find common ground and makes conversations more natural! Upload a screenshot or type manually. {isLoading ? 'Loading...' : 'Changes are automatically saved.'}
         </p>
       </CollapsibleContent>
     </Collapsible>
