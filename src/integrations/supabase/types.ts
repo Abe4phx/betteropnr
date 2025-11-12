@@ -41,6 +41,30 @@ export type Database = {
         }
         Relationships: []
       }
+      user_profiles: {
+        Row: {
+          clerk_user_id: string
+          created_at: string
+          id: string
+          profile_text: string | null
+          updated_at: string
+        }
+        Insert: {
+          clerk_user_id: string
+          created_at?: string
+          id?: string
+          profile_text?: string | null
+          updated_at?: string
+        }
+        Update: {
+          clerk_user_id?: string
+          created_at?: string
+          id?: string
+          profile_text?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_usage: {
         Row: {
           created_at: string
