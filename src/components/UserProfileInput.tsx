@@ -124,11 +124,17 @@ export const UserProfileInput = ({ value, onChange }: UserProfileInputProps) => 
           placeholder="Your interests, hobbies, favorites... (e.g., 'Love hiking, coffee enthusiast, watch sci-fi, play guitar')"
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          maxLength={3000}
           className="min-h-[100px] resize-none text-base rounded-2xl shadow-sm focus:shadow-md transition-shadow"
         />
-        <p className="text-sm text-muted-foreground">
-          This helps find common ground and makes conversations more natural! Upload a screenshot or type manually. {isLoading ? 'Loading...' : 'Changes are automatically saved.'}
-        </p>
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            This helps find common ground and makes conversations more natural! Upload a screenshot or type manually. {isLoading ? 'Loading...' : 'Changes are automatically saved.'}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {value.length}/3000
+          </p>
+        </div>
       </CollapsibleContent>
     </Collapsible>
   );

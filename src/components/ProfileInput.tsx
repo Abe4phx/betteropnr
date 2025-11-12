@@ -92,11 +92,17 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
         placeholder="Paste their bio, prompts, or interests..."
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        maxLength={3000}
         className="min-h-[120px] resize-none text-base rounded-2xl shadow-sm focus:shadow-md transition-shadow"
       />
-      <p className="text-sm text-muted-foreground">
-        The more details you provide, the better the conversation starters! You can upload a screenshot or type manually.
-      </p>
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-muted-foreground">
+          The more details you provide, the better the conversation starters! You can upload a screenshot or type manually.
+        </p>
+        <p className="text-sm text-muted-foreground">
+          {value.length}/3000
+        </p>
+      </div>
     </div>
   );
 };

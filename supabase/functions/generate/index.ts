@@ -193,10 +193,10 @@ serve(async (req) => {
       );
     }
 
-    // Enforce input length limits
-    if (profileText.length > 1000 || (userProfileText && userProfileText.length > 1000)) {
+    // Enforce input length limits (increased to 3000 characters)
+    if (profileText.length > 3000 || (userProfileText && userProfileText.length > 3000)) {
       return new Response(
-        JSON.stringify({ error: 'Profile text is too long. Maximum 1000 characters allowed.' }),
+        JSON.stringify({ error: 'Profile text is too long. Maximum 3000 characters allowed.' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
