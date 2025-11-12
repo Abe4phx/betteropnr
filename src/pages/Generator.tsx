@@ -85,6 +85,7 @@ const Generator = () => {
           mode: 'opener',
           variationStyle,
           userId: user.id,
+          userEmail: user.primaryEmailAddress?.emailAddress,
         },
       });
 
@@ -154,6 +155,7 @@ const Generator = () => {
           mode: 'opener',
           variationStyle: style,
           userId: user?.id,
+          userEmail: user?.primaryEmailAddress?.emailAddress,
         },
       });
 
@@ -195,6 +197,7 @@ const Generator = () => {
           mode: 'followup',
           priorMessage: opener.text,
           userId: user?.id,
+          userEmail: user?.primaryEmailAddress?.emailAddress,
         },
       });
 

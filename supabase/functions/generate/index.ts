@@ -37,6 +37,7 @@ interface GenerateRequest {
   priorMessage?: string;
   theirReply?: string;
   variationStyle?: 'safer' | 'warmer' | 'funnier' | 'shorter';
+  userEmail?: string;
 }
 
 // Template system for fallback generation
@@ -124,15 +125,31 @@ serve(async (req) => {
       );
     }
 
+    let userPlan = 'free';
     if (!userData) {
-      console.error('User not found in database:', userId);
-      return new Response(
-        JSON.stringify({ error: 'User not found. Please try signing out and back in.' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
+      console.warn('User not found in database. Creating a new user record with free plan:', userId);
+      const emailFromClient = (requestBody && typeof requestBody.userEmail === 'string') ? requestBody.userEmail : undefined;
+      const fallbackEmail = `unknown+${userId}@placeholder.invalid`;
+      const { data: inserted, error: insertError } = await supabase
+        .from('users')
+        .insert({
+          clerk_user_id: userId,
+          email: emailFromClient || fallbackEmail,
+          username: 'User',
+          plan: 'free',
+        })
+        .select('plan, clerk_user_id')
+        .maybeSingle();
 
-    const userPlan = userData.plan || 'free';
+      if (insertError) {
+        console.error('Failed to auto-create user. Proceeding with free plan:', insertError);
+        userPlan = 'free';
+      } else {
+        userPlan = inserted?.plan || 'free';
+      }
+    } else {
+      userPlan = userData.plan || 'free';
+    }
     console.log('User plan:', userPlan);
 
     // Check usage limits for free users
