@@ -36,7 +36,7 @@ export const useUsageTracking = () => {
         .select('*')
         .eq('user_id', user.id)
         .eq('date', today)
-        .single();
+        .maybeSingle();
 
       if (usageError && usageError.code !== 'PGRST116') {
         throw usageError;
@@ -77,7 +77,7 @@ export const useUsageTracking = () => {
         .select('*')
         .eq('user_id', user.id)
         .eq('date', today)
-        .single();
+        .maybeSingle();
 
       if (existing) {
         await supabase
@@ -112,7 +112,7 @@ export const useUsageTracking = () => {
         .select('*')
         .eq('user_id', user.id)
         .eq('date', today)
-        .single();
+        .maybeSingle();
 
       if (existing) {
         await supabase

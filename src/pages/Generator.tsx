@@ -88,27 +88,32 @@ const Generator = () => {
           userEmail: user.primaryEmailAddress?.emailAddress,
         },
       });
-
+      
       if (error) {
         console.error('Edge function error:', error);
-        
-        // Handle specific error cases
-        if (error.message?.includes('User not found')) {
-          toast.error('Account setup incomplete. Please sign out and back in.');
-          return;
-        }
-        
-        if (error.message?.includes('Rate limit')) {
-          toast.error('Too many requests. Please wait a moment.');
-          return;
-        }
 
-        if (error.message?.includes('timeout') || error.message?.includes('timed out')) {
+        const status = (error as any)?.context?.status || (error as any)?.status;
+        const serverMsg = (error as any)?.context?.error || (error as any)?.context?.response?.error || (error as any)?.message;
+
+        if (status === 402) {
+          toast.error('AI credits exhausted. Please add credits to continue.');
+          return;
+        }
+        if (status === 429) {
+          toast.error('Rate limit exceeded. Please try again in a moment.');
+          return;
+        }
+        if (status === 403 || (serverMsg && String(serverMsg).toLowerCase().includes('daily limit'))) {
+          setShowPaywallModal(true);
+          toast.error('Daily limit reached. Upgrade for unlimited openers!');
+          return;
+        }
+        if (serverMsg && String(serverMsg).toLowerCase().includes('timeout')) {
           toast.error('Request timed out. Please try again.');
           return;
         }
 
-        throw new Error(error.message || 'Failed to generate openers');
+        throw new Error(serverMsg || 'Failed to generate openers');
       }
 
       if (!data?.results || !Array.isArray(data.results) || data.results.length === 0) {
@@ -160,7 +165,25 @@ const Generator = () => {
       });
 
       if (error) {
-        throw new Error(error.message || 'Failed to generate variation');
+        console.error('Variation edge function error:', error);
+        const status = (error as any)?.context?.status || (error as any)?.status;
+        const serverMsg = (error as any)?.context?.error || (error as any)?.context?.response?.error || (error as any)?.message;
+
+        if (status === 402) {
+          toast.error('AI credits exhausted. Please add credits to continue.');
+          return;
+        }
+        if (status === 429) {
+          toast.error('Rate limit exceeded. Please try again in a moment.');
+          return;
+        }
+        if (status === 403 || (serverMsg && String(serverMsg).toLowerCase().includes('daily limit'))) {
+          setShowPaywallModal(true);
+          toast.error('Daily limit reached. Upgrade for unlimited openers!');
+          return;
+        }
+
+        throw new Error(serverMsg || 'Failed to generate variation');
       }
       const newOpener: Opener = {
         id: `opener-${Date.now()}`,
@@ -202,7 +225,25 @@ const Generator = () => {
       });
 
       if (error) {
-        throw new Error(error.message || 'Failed to generate follow-ups');
+        console.error('Follow-up edge function error:', error);
+        const status = (error as any)?.context?.status || (error as any)?.status;
+        const serverMsg = (error as any)?.context?.error || (error as any)?.context?.response?.error || (error as any)?.message;
+
+        if (status === 402) {
+          toast.error('AI credits exhausted. Please add credits to continue.');
+          return;
+        }
+        if (status === 429) {
+          toast.error('Rate limit exceeded. Please try again in a moment.');
+          return;
+        }
+        if (status === 403 || (serverMsg && String(serverMsg).toLowerCase().includes('daily limit'))) {
+          setShowPaywallModal(true);
+          toast.error('Daily limit reached. Upgrade for unlimited openers!');
+          return;
+        }
+
+        throw new Error(serverMsg || 'Failed to generate follow-ups');
       }
       const newFollowUps = data.results.map((text: string, index: number) => ({
         id: `followup-${Date.now()}-${index}`,
