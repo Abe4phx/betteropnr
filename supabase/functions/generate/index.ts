@@ -109,6 +109,7 @@ serve(async (req) => {
     }
 
     // Get user's plan and check usage limits
+    console.log('Fetching user plan for:', userId);
     const { data: userData, error: userError } = await supabase
       .from('users')
       .select('plan, clerk_user_id')
@@ -123,7 +124,16 @@ serve(async (req) => {
       );
     }
 
-    const userPlan = userData?.plan || 'free';
+    if (!userData) {
+      console.error('User not found in database:', userId);
+      return new Response(
+        JSON.stringify({ error: 'User not found. Please try signing out and back in.' }),
+        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const userPlan = userData.plan || 'free';
+    console.log('User plan:', userPlan);
 
     // Check usage limits for free users
     if (userPlan === 'free') {
@@ -238,21 +248,42 @@ serve(async (req) => {
         ? `${profileContext}\n\nMy previous message: "${priorMessage}". Their reply: "${theirReply}". Generate 3-5 follow-up messages. Make them ${tones.join(', ')}.${variationInstruction}${commonInterestHint} Return ONLY a JSON array of strings, no other text.`
         : `${profileContext}\n\nMy previous message was: "${priorMessage}". They haven't replied in 24-48h. Generate 3-5 light re-engagement messages. Make them ${tones.join(', ')}.${variationInstruction} Return ONLY a JSON array of strings, no other text.`;
 
-    // Call Lovable AI
-    const response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${LOVABLE_API_KEY}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'google/gemini-2.5-flash',
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-      }),
-    });
+    // Call Lovable AI with timeout protection
+    console.log('Calling Lovable AI API...');
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      console.error('AI request timed out after 25 seconds');
+      controller.abort();
+    }, 25000);
+
+    let response;
+    try {
+      response = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        signal: controller.signal,
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userPrompt }
+          ],
+        }),
+      });
+      clearTimeout(timeoutId);
+      console.log('AI API response status:', response.status);
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error instanceof Error && error.name === 'AbortError') {
+        console.error('AI request was aborted due to timeout');
+        return fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle);
+      }
+      console.error('AI request failed:', error);
+      return fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle);
+    }
 
     if (!response.ok) {
       const errorText = await response.text();

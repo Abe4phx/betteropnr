@@ -72,6 +72,11 @@ const Generator = () => {
     setIsGenerating(true);
 
     try {
+      if (!user?.id) {
+        toast.error('Please sign in to generate openers');
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('generate', {
         body: {
           profileText,
@@ -79,12 +84,36 @@ const Generator = () => {
           tones: selectedTones,
           mode: 'opener',
           variationStyle,
-          userId: user?.id,
+          userId: user.id,
         },
       });
 
       if (error) {
+        console.error('Edge function error:', error);
+        
+        // Handle specific error cases
+        if (error.message?.includes('User not found')) {
+          toast.error('Account setup incomplete. Please sign out and back in.');
+          return;
+        }
+        
+        if (error.message?.includes('Rate limit')) {
+          toast.error('Too many requests. Please wait a moment.');
+          return;
+        }
+
+        if (error.message?.includes('timeout') || error.message?.includes('timed out')) {
+          toast.error('Request timed out. Please try again.');
+          return;
+        }
+
         throw new Error(error.message || 'Failed to generate openers');
+      }
+
+      if (!data?.results || !Array.isArray(data.results) || data.results.length === 0) {
+        console.error('Invalid response from edge function:', data);
+        toast.error('No openers generated. Please try again.');
+        return;
       }
 
       const openers = data.results.map((text: string, index: number) => ({
@@ -106,7 +135,7 @@ const Generator = () => {
       toast.success('Openers generated!');
     } catch (error) {
       console.error('Error generating openers:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to generate openers');
+      toast.error(error instanceof Error ? error.message : 'Failed to generate openers. Please try again.');
     } finally {
       setIsGenerating(false);
     }
