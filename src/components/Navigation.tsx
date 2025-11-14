@@ -27,7 +27,7 @@ export const Navigation = () => {
   };
 
   return (
-    <nav className="border-b bg-card shadow-sm">
+    <nav className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur-sm shadow-sm">
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between gap-4">
           <Link to="/" className="group">
@@ -51,7 +51,7 @@ export const Navigation = () => {
                 {plan === 'free' && (
                   <Button
                     variant="default"
-                    className="rounded-xl shadow-sm bg-gradient-to-r from-primary to-primary-glow"
+                    className="bg-bo-gradient shadow-sm hover:shadow-md"
                     onClick={() => setShowPaywallModal(true)}
                   >
                     <Zap className="w-4 h-4 mr-2" />

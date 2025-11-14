@@ -17,6 +17,7 @@ import { useUserPlan } from "@/hooks/useUserPlan";
 import { PaywallModal } from "@/components/PaywallModal";
 import { UpgradeSuccessModal } from "@/components/UpgradeSuccessModal";
 import { supabase } from "@/integrations/supabase/client";
+import { motion } from "framer-motion";
 
 const Generator = () => {
   const { user } = useUser();
@@ -268,80 +269,117 @@ const Generator = () => {
   const hasSelectedOpener = generatedOpeners.length > 0;
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      <div className="space-y-8">
-        <div className="text-center space-y-3">
-          <h2 className="text-4xl md:text-5xl font-heading font-bold bg-gradient-to-r from-primary via-secondary to-primary bg-clip-text text-transparent">
-            Start a Great Conversation
-          </h2>
-          <p className="text-lg text-muted-foreground">
-            Generate personalized conversation starters in seconds
-          </p>
-        </div>
-
-        <ReminderBanner />
-
-        <div className="space-y-6">
-          <UserProfileInput value={userProfileText} onChange={setUserProfileText} />
-          <ProfileInput value={profileText} onChange={setProfileText} />
-          <TonePicker selectedTones={selectedTones} onChange={setSelectedTones} />
-
-          <div className="flex gap-3">
-            <Button
-              size="lg"
-              className="flex-1 text-lg py-6 rounded-2xl shadow-lg bg-gradient-to-r from-primary to-secondary hover:shadow-xl transition-all"
-              onClick={() => generateOpeners()}
-              disabled={isGenerating}
-            >
-              {isGenerating ? (
-                <>
-                  <Sparkles className="w-5 h-5 mr-2 animate-spin" />
-                  Generating...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="w-5 h-5 mr-2" />
-                  Generate Openers
-                </>
-              )}
-            </Button>
-
-            <Button
-              size="lg"
-              variant="outline"
-              className="px-6 py-6 rounded-2xl shadow-md"
+    <div className="min-h-screen bg-muted">
+      {/* Hero Section */}
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.6 }}
+        className="relative bg-bo-gradient text-white overflow-hidden"
+      >
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 opacity-50" />
+        <div className="container mx-auto px-4 py-16 md:py-24 relative z-10">
+          <motion.div 
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2, duration: 0.6 }}
+            className="max-w-3xl mx-auto text-center space-y-6"
+          >
+            <h1 className="text-4xl md:text-6xl font-heading font-bold">
+              Start better conversations — get more replies.
+            </h1>
+            <p className="text-lg md:text-xl text-white/90">
+              Generate personalized conversation starters that actually work. No more awkward first messages.
+            </p>
+            <Button 
+              size="lg" 
+              variant="secondary"
+              className="bg-white text-primary hover:bg-white/90 shadow-lg hover:shadow-xl mt-4"
               onClick={() => {
-                if (hasSelectedOpener) {
-                  generateFollowUp(generatedOpeners[0].id);
-                }
+                const inputSection = document.getElementById('input-section');
+                inputSection?.scrollIntoView({ behavior: 'smooth' });
               }}
-              disabled={!hasSelectedOpener || generatingFollowUpFor !== null}
             >
               <Sparkles className="w-5 h-5 mr-2" />
-              Need a Follow-Up?
+              Create Your First Opener
             </Button>
-          </div>
+          </motion.div>
         </div>
+      </motion.div>
 
-        {generatedOpeners.length > 0 && (
-          <div className="space-y-6">
-            <OpenerList 
-              openers={generatedOpeners} 
-              onTryAgain={(openerId) => {
-                // Regenerate just this opener
-                generateOpeners();
-              }}
-              onVariation={handleVariation}
-            />
-            {generatedOpeners.map((opener) => (
-              <FollowUpList
-                key={opener.id}
-                followUps={followUps}
-                openerId={opener.id}
-              />
-            ))}
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-12 max-w-4xl" id="input-section">
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4, duration: 0.6 }}
+          className="space-y-8"
+        >
+          <ReminderBanner />
+
+          <div className="bg-card rounded-3xl shadow-soft p-6 md:p-8 space-y-6">
+            <div className="space-y-2">
+              <h2 className="text-2xl font-heading font-bold text-foreground">
+                Let's craft something great
+              </h2>
+              <p className="text-muted-foreground">
+                Tell us about them, and we'll help you break the ice
+              </p>
+            </div>
+
+            <UserProfileInput value={userProfileText} onChange={setUserProfileText} />
+            <ProfileInput value={profileText} onChange={setProfileText} />
+            <TonePicker selectedTones={selectedTones} onChange={setSelectedTones} />
+
+            <Button
+              onClick={() => generateOpeners()}
+              disabled={isGenerating || usageLoading}
+              size="lg"
+              className="w-full shadow-md"
+            >
+              <Sparkles className="w-5 h-5 mr-2" />
+              {isGenerating ? 'Generating...' : 'Generate Openers'}
+            </Button>
+
+            {plan === 'free' && (
+              <p className="text-sm text-center text-muted-foreground">
+                {usage.openers_generated} / 5 openers used today
+              </p>
+            )}
           </div>
-        )}
+
+          {generatedOpeners.length > 0 && (
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.2, duration: 0.5 }}
+              className="space-y-6"
+            >
+              <div className="text-center space-y-2">
+                <h3 className="text-2xl font-heading font-bold text-foreground">
+                  Your Conversation Starters
+                </h3>
+                <p className="text-muted-foreground">
+                  Pick your favorite and make it your own
+                </p>
+              </div>
+              
+              <OpenerList
+                openers={generatedOpeners}
+                onTryAgain={() => generateOpeners()}
+                onVariation={handleVariation}
+              />
+
+              {generatedOpeners.map((opener) => (
+                <FollowUpList
+                  key={opener.id}
+                  followUps={followUps}
+                  openerId={opener.id}
+                />
+              ))}
+            </motion.div>
+          )}
+        </motion.div>
       </div>
 
       <PaywallModal open={showPaywallModal} onOpenChange={setShowPaywallModal} />

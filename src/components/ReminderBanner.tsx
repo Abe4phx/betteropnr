@@ -35,7 +35,7 @@ export const ReminderBanner = () => {
   };
 
   return (
-    <Card className="mb-6 p-4 bg-gradient-to-r from-primary/10 to-accent/10 border-primary/20">
+    <Card className="mb-6 p-4 bg-gradient-subtle border-primary/20">
       <div className="flex items-start gap-3">
         <Bell className="w-5 h-5 text-primary mt-0.5 animate-pulse" />
         <div className="flex-1">

@@ -64,7 +64,7 @@ export const FollowUpList = ({ followUps, openerId }: FollowUpListProps) => {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.3, delay: 0.1 }}
           >
-            <Card className="p-4 bg-gradient-to-br from-muted/50 to-muted/30 rounded-xl border space-y-3">
+            <Card className="p-4 bg-gradient-subtle rounded-2xl border border-border/50 space-y-3">
             <div className="flex items-start justify-between gap-3">
               <p className="text-sm leading-relaxed flex-1">{followUp.text}</p>
               <div className="flex gap-1 shrink-0">
@@ -75,10 +75,10 @@ export const FollowUpList = ({ followUps, openerId }: FollowUpListProps) => {
                     className="transition-colors hover:scale-110 transform"
                   >
                     <Star
-                      className={`w-3 h-3 ${
+                      className={`w-3 h-3 transition-all ${
                         star <= currentRating
-                          ? 'fill-yellow-400 text-yellow-400'
-                          : 'text-gray-300'
+                          ? 'fill-secondary text-secondary'
+                          : 'text-muted-foreground/30'
                       }`}
                     />
                   </button>

@@ -61,11 +61,11 @@ export const OpenerCard = ({ id, text, tone, onTryAgain, onVariation }: OpenerCa
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
     >
-      <Card className="p-5 space-y-4 hover:shadow-lg transition-all duration-200 rounded-2xl border-2">
+      <Card className="p-6 space-y-4 hover:shadow-elegant transition-all duration-300 border border-border/50">
         <div className="flex items-start justify-between gap-3">
           <p className="text-base leading-relaxed flex-1">{text}</p>
           <div className="flex flex-col items-end gap-2 shrink-0">
-            <Badge variant="secondary" className="rounded-full px-3 py-1">
+            <Badge variant="secondary" className="rounded-full px-4 py-1.5">
               {tone}
             </Badge>
             <div className="flex gap-1">
@@ -76,10 +76,10 @@ export const OpenerCard = ({ id, text, tone, onTryAgain, onVariation }: OpenerCa
                   className="transition-colors hover:scale-110 transform"
                 >
                   <Star
-                    className={`w-4 h-4 ${
+                    className={`w-4 h-4 transition-all ${
                       star <= currentRating
-                        ? 'fill-yellow-400 text-yellow-400'
-                        : 'text-gray-300'
+                        ? 'fill-secondary text-secondary'
+                        : 'text-muted-foreground/30'
                     }`}
                   />
                 </button>

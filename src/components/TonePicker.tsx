@@ -24,16 +24,16 @@ export const TonePicker = ({ selectedTones, onChange }: TonePickerProps) => {
 
   return (
     <div className="space-y-3">
-      <Label className="text-lg font-semibold">Choose your tone</Label>
+      <Label className="text-lg font-semibold text-foreground">Choose your tone</Label>
       <div className="flex flex-wrap gap-3">
         {TONES.map((tone) => (
           <Badge
             key={tone.id}
             variant={selectedTones.includes(tone.id) ? "default" : "outline"}
-            className="cursor-pointer px-5 py-2.5 text-base rounded-full transition-all hover:scale-105 shadow-sm hover:shadow-md"
+            className="cursor-pointer px-6 py-3 text-base rounded-full transition-all hover:scale-105 shadow-sm hover:shadow-md"
             onClick={() => toggleTone(tone.id)}
           >
-            <span className="mr-2">{tone.emoji}</span>
+            <span className="mr-2 text-lg">{tone.emoji}</span>
             {tone.label}
           </Badge>
         ))}
