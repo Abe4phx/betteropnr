@@ -19,10 +19,9 @@ interface OpenerCardProps {
 }
 
 export const OpenerCard = ({ id, text, tone, onTryAgain, onVariation }: OpenerCardProps) => {
-  const { isFavorite, addToFavorites, removeFromFavorites, rateFavorite, favorites, selectedTones } = useBetterOpnr();
+  const { isFavorite, addToFavorites, removeFromFavorites, rateItem, getItemRating, selectedTones } = useBetterOpnr();
   const favorite = isFavorite(id);
-  const favoriteItem = favorites.find(f => f.id === id);
-  const currentRating = favoriteItem?.likes || 0;
+  const currentRating = getItemRating(id);
   const [showReminderCheckbox, setShowReminderCheckbox] = useState(false);
   const [remindIn24h, setRemindIn24h] = useState(false);
 
@@ -50,16 +49,10 @@ export const OpenerCard = ({ id, text, tone, onTryAgain, onVariation }: OpenerCa
     }
   };
 
-  const handleRating = async (rating: number) => {
-    if (!favorite) {
-      await addToFavorites({ id, text, tone }, 'opener', selectedTones, false);
-    }
-    // Use setTimeout to ensure state has updated
-    setTimeout(() => {
-      rateFavorite(id, rating);
-      trackEvent('rated_item', { type: 'opener', rating });
-      toast.success(`Rated ${rating} star${rating !== 1 ? 's' : ''}!`);
-    }, 0);
+  const handleRating = (rating: number) => {
+    rateItem(id, rating);
+    trackEvent('rated_item', { type: 'opener', rating });
+    toast.success(`Rated ${rating} star${rating !== 1 ? 's' : ''}!`);
   };
 
   return (

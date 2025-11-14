@@ -21,8 +21,12 @@ export interface Favorite {
   tone: string[];
   createdAt: string;
   type: 'opener' | 'followup';
-  likes: number;
   remindAt?: string;
+}
+
+export interface Rating {
+  id: string;
+  stars: number;
 }
 
 interface BetterOpnrContextType {
@@ -40,7 +44,9 @@ interface BetterOpnrContextType {
   addToFavorites: (item: Opener | FollowUp, type: 'opener' | 'followup', tones: string[], remindIn24h?: boolean) => void;
   removeFromFavorites: (itemId: string) => void;
   isFavorite: (itemId: string) => boolean;
-  rateFavorite: (itemId: string, rating: number) => void;
+  ratings: Rating[];
+  rateItem: (itemId: string, stars: number) => void;
+  getItemRating: (itemId: string) => number;
   getExpiredReminders: () => Favorite[];
   dismissReminder: (itemId: string) => void;
 }
@@ -54,8 +60,11 @@ export const BetterOpnrProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const [generatedOpeners, setGeneratedOpeners] = useState<Opener[]>([]);
   const [followUps, setFollowUps] = useState<FollowUp[]>([]);
   const [favorites, setFavorites] = useState<Favorite[]>([]);
+  const [ratings, setRatings] = useState<Rating[]>([]);
   const { plan } = useUserPlan();
   const { usage, incrementFavorites } = useUsageTracking();
+
+  const MAX_FAVORITES = 20;
 
   // Load userProfileText from localStorage on mount
   useEffect(() => {
@@ -91,7 +100,30 @@ export const BetterOpnrProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     localStorage.setItem('betterOpnr-favorites', JSON.stringify(favorites));
   }, [favorites]);
 
+  // Load ratings from localStorage on mount
+  useEffect(() => {
+    const stored = localStorage.getItem('betterOpnr-ratings');
+    if (stored) {
+      try {
+        setRatings(JSON.parse(stored));
+      } catch (e) {
+        console.error('Failed to load ratings', e);
+      }
+    }
+  }, []);
+
+  // Save ratings to localStorage whenever they change
+  useEffect(() => {
+    localStorage.setItem('betterOpnr-ratings', JSON.stringify(ratings));
+  }, [ratings]);
+
   const addToFavorites = async (item: Opener | FollowUp, type: 'opener' | 'followup', tones: string[], remindIn24h?: boolean) => {
+    // Check if already at max favorites
+    if (favorites.length >= MAX_FAVORITES) {
+      toast.error(`Maximum ${MAX_FAVORITES} saved items reached. Remove some to add more.`);
+      return;
+    }
+
     // Check favorites limit for free users
     if (plan === 'free' && usage.hasExceededFavoriteLimit) {
       toast.error('Favorites limit reached. Upgrade for unlimited favorites!');
@@ -109,7 +141,6 @@ export const BetterOpnrProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         tone: tones,
         createdAt: new Date().toISOString(),
         type,
-        likes: 0,
         remindAt,
       };
       setFavorites([...favorites, favorite]);
@@ -127,12 +158,19 @@ export const BetterOpnrProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     return favorites.some(f => f.id === itemId);
   };
 
-  const rateFavorite = (itemId: string, rating: number) => {
-    setFavorites(prevFavorites => 
-      prevFavorites.map(f => 
-        f.id === itemId ? { ...f, likes: rating } : f
-      )
-    );
+  const rateItem = (itemId: string, stars: number) => {
+    setRatings(prevRatings => {
+      const existingRating = prevRatings.find(r => r.id === itemId);
+      if (existingRating) {
+        return prevRatings.map(r => r.id === itemId ? { ...r, stars } : r);
+      }
+      return [...prevRatings, { id: itemId, stars }];
+    });
+  };
+
+  const getItemRating = (itemId: string): number => {
+    const rating = ratings.find(r => r.id === itemId);
+    return rating?.stars || 0;
   };
 
   const getExpiredReminders = () => {
@@ -163,7 +201,9 @@ export const BetterOpnrProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         addToFavorites,
         removeFromFavorites,
         isFavorite,
-        rateFavorite,
+        ratings,
+        rateItem,
+        getItemRating,
         getExpiredReminders,
         dismissReminder,
       }}

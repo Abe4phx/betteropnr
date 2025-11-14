@@ -12,7 +12,7 @@ interface FollowUpListProps {
 }
 
 export const FollowUpList = ({ followUps, openerId }: FollowUpListProps) => {
-  const { isFavorite, addToFavorites, removeFromFavorites, rateFavorite, favorites, selectedTones } = useBetterOpnr();
+  const { isFavorite, addToFavorites, removeFromFavorites, rateItem, getItemRating, selectedTones } = useBetterOpnr();
   const relevantFollowUps = followUps.filter(f => f.openerId === openerId);
 
   if (relevantFollowUps.length === 0) {
@@ -42,10 +42,7 @@ export const FollowUpList = ({ followUps, openerId }: FollowUpListProps) => {
   };
 
   const handleRating = (followUp: FollowUp, rating: number) => {
-    if (!isFavorite(followUp.id)) {
-      addToFavorites(followUp, 'followup', selectedTones, false);
-    }
-    rateFavorite(followUp.id, rating);
+    rateItem(followUp.id, rating);
     trackEvent('rated_item', { type: 'followup', rating });
     toast.success(`Rated ${rating} star${rating !== 1 ? 's' : ''}!`);
   };
@@ -58,8 +55,7 @@ export const FollowUpList = ({ followUps, openerId }: FollowUpListProps) => {
       </p>
       {relevantFollowUps.map((followUp) => {
         const favorite = isFavorite(followUp.id);
-        const favoriteItem = favorites.find(f => f.id === followUp.id);
-        const currentRating = favoriteItem?.likes || 0;
+        const currentRating = getItemRating(followUp.id);
 
         return (
           <motion.div
