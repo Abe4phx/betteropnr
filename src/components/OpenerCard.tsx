@@ -50,13 +50,16 @@ export const OpenerCard = ({ id, text, tone, onTryAgain, onVariation }: OpenerCa
     }
   };
 
-  const handleRating = (rating: number) => {
+  const handleRating = async (rating: number) => {
     if (!favorite) {
-      addToFavorites({ id, text, tone }, 'opener', selectedTones, false);
+      await addToFavorites({ id, text, tone }, 'opener', selectedTones, false);
     }
-    rateFavorite(id, rating);
-    trackEvent('rated_item', { type: 'opener', rating });
-    toast.success(`Rated ${rating} star${rating !== 1 ? 's' : ''}!`);
+    // Use setTimeout to ensure state has updated
+    setTimeout(() => {
+      rateFavorite(id, rating);
+      trackEvent('rated_item', { type: 'opener', rating });
+      toast.success(`Rated ${rating} star${rating !== 1 ? 's' : ''}!`);
+    }, 0);
   };
 
   return (

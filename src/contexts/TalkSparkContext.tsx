@@ -128,9 +128,11 @@ export const BetterOpnrProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const rateFavorite = (itemId: string, rating: number) => {
-    setFavorites(favorites.map(f => 
-      f.id === itemId ? { ...f, likes: rating } : f
-    ));
+    setFavorites(prevFavorites => 
+      prevFavorites.map(f => 
+        f.id === itemId ? { ...f, likes: rating } : f
+      )
+    );
   };
 
   const getExpiredReminders = () => {
