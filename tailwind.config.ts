@@ -67,21 +67,28 @@ export default {
           navy: "#1A1A40",
           gray: "#F5F5F5",
           ink: "#0F1222",
+          teal: "#00B8A9",
+          error: "#E63946",
+          success: "#06D6A0",
         },
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+        xl: "1rem",
         "2xl": "1.25rem",
         "3xl": "1.75rem",
       },
       boxShadow: {
         soft: "0 6px 24px rgba(16, 24, 40, 0.08)",
         glow: "0 0 0 6px rgba(255, 107, 107, 0.15)",
+        elegant: "0 10px 30px -10px rgba(255, 107, 107, 0.3)",
       },
       backgroundImage: {
         "ts-gradient": "linear-gradient(135deg, #FF6B6B 0%, #FFD166 100%)",
+        "bo-gradient": "linear-gradient(135deg, #FF6B6B 0%, #FFD166 100%)",
+        "gradient-subtle": "linear-gradient(180deg, rgba(255, 107, 107, 0.05), rgba(255, 209, 102, 0.05))",
       },
       keyframes: {
         "accordion-down": {

@@ -32,8 +32,8 @@ export default function Logo({ size = 28, wordmark = true, color = "#FF6B6B" }: 
 
       {wordmark && (
         <div className="flex flex-col leading-none">
-          <span className="font-heading text-lg md:text-xl text-ts-navy">BetterOpnr</span>
-          <span className="text-[10px] text-ts-navy/60 -mt-0.5">Start better conversations</span>
+          <span className="font-heading text-lg md:text-xl text-foreground font-bold">BetterOpnr</span>
+          <span className="text-[10px] text-muted-foreground -mt-0.5">Start better conversations</span>
         </div>
       )}
     </div>

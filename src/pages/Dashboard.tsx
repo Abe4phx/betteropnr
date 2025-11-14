@@ -28,55 +28,66 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="container mx-auto px-4 py-12 max-w-6xl">
-      <div className="space-y-8">
-        <div className="text-center space-y-4">
-          <h1 className="text-4xl font-bold">
-            Welcome, {user.firstName || user.username || 'Friend'}! 🎉
-          </h1>
-          <p className="text-lg text-muted-foreground">
-            You're all set to create amazing conversation starters
-          </p>
+    <div className="min-h-screen bg-muted">
+      {/* Hero Greeting Section */}
+      <div className="bg-gradient-subtle border-b">
+        <div className="container mx-auto px-4 py-12">
+          <div className="text-center space-y-4">
+            <h1 className="text-4xl md:text-5xl font-heading font-bold text-foreground">
+              Welcome back, {user.firstName || user.username || 'Friend'}! 👋
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Ready to spark some amazing conversations today?
+            </p>
+          </div>
         </div>
+      </div>
 
+      {/* Feature Cards */}
+      <div className="container mx-auto px-4 py-12 max-w-6xl">
         <div className="grid md:grid-cols-3 gap-6">
-          <Card className="p-6 space-y-4">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <Sparkles className="w-6 h-6 text-primary" />
+          <Card className="p-6 space-y-4 hover:shadow-elegant transition-all duration-300 hover:scale-[1.02]">
+            <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+              <Sparkles className="w-7 h-7 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold">Generate Openers</h3>
+            <h3 className="text-xl font-heading font-semibold text-foreground">Generate Openers</h3>
             <p className="text-muted-foreground">
-              Create personalized conversation starters based on profiles
+              Create personalized conversation starters that get replies
             </p>
             <Button onClick={() => navigate('/')} className="w-full">
-              Start Now
+              Start Creating
             </Button>
           </Card>
 
-          <Card className="p-6 space-y-4">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <Heart className="w-6 h-6 text-primary" />
+          <Card className="p-6 space-y-4 hover:shadow-elegant transition-all duration-300 hover:scale-[1.02]">
+            <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+              <Heart className="w-7 h-7 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold">Your Favorites</h3>
+            <h3 className="text-xl font-heading font-semibold text-foreground">Your Favorites</h3>
             <p className="text-muted-foreground">
-              View and manage your saved conversation starters
+              Access your saved conversation starters anytime
             </p>
             <Button onClick={() => navigate('/saved')} variant="outline" className="w-full">
-              View Saved
+              View Collection
             </Button>
           </Card>
 
-          <Card className="p-6 space-y-4">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <Zap className="w-6 h-6 text-primary" />
+          <Card className="p-6 space-y-4 hover:shadow-elegant transition-all duration-300 hover:scale-[1.02] border-primary/20">
+            <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center">
+              <Zap className="w-7 h-7 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold">Your Plan</h3>
+            <h3 className="text-xl font-heading font-semibold text-foreground">Your Plan</h3>
             <p className="text-muted-foreground">
-              Current plan: <span className="font-semibold capitalize">{plan}</span>
+              <span className="font-semibold capitalize text-foreground">{plan}</span> plan
             </p>
-            {plan === 'free' && (
-              <Button onClick={() => setShowPaywall(true)} variant="default" className="w-full">
-                Upgrade Now
+            {plan === 'free' ? (
+              <Button onClick={() => setShowPaywall(true)} variant="default" className="w-full bg-bo-gradient">
+                <Zap className="w-4 h-4 mr-2" />
+                Upgrade to Pro
+              </Button>
+            ) : (
+              <Button onClick={() => navigate('/billing')} variant="outline" className="w-full">
+                Manage Billing
               </Button>
             )}
           </Card>

@@ -24,14 +24,14 @@ export const UpgradeSuccessModal = ({ open, onOpenChange }: UpgradeSuccessModalP
           angle: 60,
           spread: 55,
           origin: { x: 0 },
-          colors: ['#a855f7', '#ec4899', '#8b5cf6']
+          colors: ['#FF6B6B', '#FFD166', '#00B8A9']
         });
         confetti({
           particleCount: 2,
           angle: 120,
           spread: 55,
           origin: { x: 1 },
-          colors: ['#a855f7', '#ec4899', '#8b5cf6']
+          colors: ['#FF6B6B', '#FFD166', '#00B8A9']
         });
 
         if (Date.now() < end) {
@@ -54,37 +54,37 @@ export const UpgradeSuccessModal = ({ open, onOpenChange }: UpgradeSuccessModalP
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md rounded-3xl">
         <DialogHeader>
-          <div className="mx-auto mb-4 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
-            <Sparkles className="w-8 h-8 text-primary" />
+          <div className="mx-auto mb-4 w-20 h-20 bg-bo-gradient rounded-full flex items-center justify-center shadow-lg">
+            <Sparkles className="w-10 h-10 text-white" />
           </div>
-          <DialogTitle className="text-2xl font-bold text-center">
-            Welcome to Unlimited Sparks! 🎉
+          <DialogTitle className="text-3xl font-heading font-bold text-center text-foreground">
+            Welcome to Pro! 🎉
           </DialogTitle>
-          <DialogDescription className="text-center">
-            You now have access to all premium features
+          <DialogDescription className="text-center text-base">
+            You now have unlimited access to create amazing conversations
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
+        <div className="space-y-6 py-4">
           <div className="space-y-3">
             {features.map((feature, i) => (
               <div key={i} className="flex items-center gap-3">
-                <div className="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                  <Check className="w-4 h-4 text-primary" />
+                <div className="w-7 h-7 rounded-full bg-accent/10 flex items-center justify-center flex-shrink-0">
+                  <Check className="w-4 h-4 text-accent" />
                 </div>
-                <span className="text-sm">{feature}</span>
+                <span className="text-sm text-foreground">{feature}</span>
               </div>
             ))}
           </div>
 
           <Button 
             onClick={() => onOpenChange(false)} 
-            className="w-full"
+            className="w-full bg-bo-gradient"
             size="lg"
           >
-            Start Creating
+            Start Creating Amazing Openers
           </Button>
         </div>
       </DialogContent>
