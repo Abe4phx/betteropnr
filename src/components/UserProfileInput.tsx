@@ -43,7 +43,8 @@ export const UserProfileInput = ({ value, onChange }: UserProfileInputProps) => 
 
     try {
       const extractedText = await extractText(file);
-      onChange(value ? `${value}\n\n${extractedText}` : extractedText);
+      // Replace previous profile data with new image data
+      onChange(extractedText);
     } catch (error) {
       // Error handling is done in the hook
     }
