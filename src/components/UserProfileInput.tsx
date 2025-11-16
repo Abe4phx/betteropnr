@@ -55,6 +55,30 @@ export const UserProfileInput = ({ value, onChange }: UserProfileInputProps) => 
     }
   };
 
+  const handlePaste = async (event: React.ClipboardEvent) => {
+    const items = event.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      
+      if (item.type.startsWith('image/')) {
+        event.preventDefault();
+        const file = item.getAsFile();
+        if (!file) continue;
+
+        try {
+          const extractedText = await extractText(file);
+          // Replace previous profile data with new image data
+          onChange(extractedText);
+        } catch (error) {
+          // Error handling is done in the hook
+        }
+        break;
+      }
+    }
+  };
+
   const handleClearPreview = () => {
     clearPreview();
   };
@@ -74,26 +98,29 @@ export const UserProfileInput = ({ value, onChange }: UserProfileInputProps) => 
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-3">
         <div className="flex items-center justify-between gap-2 mb-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isExtracting}
-            className="gap-2"
-          >
-            {isExtracting ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                Extracting...
-              </>
-            ) : (
-              <>
-                <Camera className="w-4 h-4" />
-                Upload Screenshot
-              </>
-            )}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isExtracting}
+              className="gap-2"
+            >
+              {isExtracting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Extracting...
+                </>
+              ) : (
+                <>
+                  <Camera className="w-4 h-4" />
+                  Upload Screenshot
+                </>
+              )}
+            </Button>
+            <span className="text-xs text-muted-foreground">or paste image (Ctrl/Cmd+V)</span>
+          </div>
           <input
             ref={fileInputRef}
             type="file"
@@ -125,6 +152,7 @@ export const UserProfileInput = ({ value, onChange }: UserProfileInputProps) => 
           placeholder="Your interests, hobbies, favorites... (e.g., 'Love hiking, coffee enthusiast, watch sci-fi, play guitar')"
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onPaste={handlePaste}
           maxLength={3000}
           className="min-h-[100px] resize-none text-base rounded-2xl shadow-sm focus:shadow-md transition-shadow"
         />
