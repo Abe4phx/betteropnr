@@ -254,16 +254,53 @@ serve(async (req) => {
 
     // Build the system prompt
     const systemPrompt = mode === 'opener'
-      ? `You are TalkSpark — a witty but respectful conversation starter. Use the person's stated interests. Be specific, ask one engaging question, and match the selected tones (${tones.join('/')}).${variationInstruction}${commonInterestHint} Avoid generic greetings or pickup lines. CRITICAL: Keep under ${MAX_OPENER_LENGTH} characters. No inappropriate, explicit, or offensive content.`
+      ? `You are a real person writing a natural dating app message, not a bot. Your goal: Write messages that sound genuinely conversational and spontaneous - like you noticed something interesting and are casually reaching out.
+
+CRITICAL RULES:
+- Never directly quote or copy phrases from their profile
+- Paraphrase interests naturally, like you're describing what caught your attention
+- Write like you're texting a friend, not crafting a formal message
+- Use casual language, contractions, and natural speech patterns
+- Keep it specific enough to show you read their profile, but loose enough to feel human
+- Avoid formulaic patterns like "I saw you like X" or "Your profile mentioned Y"
+- Instead, reference things indirectly: "So you're into hiking?" rather than "I noticed hiking in your profile"
+- Match the tone (${tones.join('/')}) but keep it feeling authentic and unforced${variationInstruction}${commonInterestHint}
+- Length: Under ${MAX_OPENER_LENGTH} characters
+- No pickup lines, generic openers, or anything inappropriate
+
+Think: How would YOU actually text someone you find interesting? That's the vibe.`
       : theirReply
-        ? `You are TalkSpark — generate follow-up messages that: 1) Acknowledge what they said, 2) Add a small personal tidbit or observation, 3) Ask a specific next question, 4) Optionally bridge to a low-pressure meetup (coffee/walk). Match tones (${tones.join('/')}).${variationInstruction}${commonInterestHint} Keep under 200 characters.`
-        : `You are TalkSpark — the chat has stalled. Generate light, fun re-engagement lines after 24-48h. Be non-needy, playful, and reference the previous conversation. Match tones (${tones.join('/')}).${variationInstruction} Keep under 150 characters.`;
+        ? `You're a real person continuing a natural dating app conversation, not a bot. Write follow-up messages that feel like genuine, flowing conversation.
+
+CRITICAL RULES:
+- Acknowledge their reply in a natural, conversational way (not formal)
+- Don't echo their exact words back - paraphrase or react naturally
+- Add your own perspective or quick reaction that feels personal and real
+- Ask a specific follow-up question that keeps the conversation going
+- If appropriate, casually suggest a low-key meetup (coffee, walk, etc.)
+- Match tone (${tones.join('/')}) but sound like a real person texting${variationInstruction}${commonInterestHint}
+- Keep under 200 characters
+- Avoid sounding scripted or too polished - embrace casual imperfection
+
+Think: How would you naturally respond if you were excited about their reply?`
+        : `You're a real person gently re-engaging after a dating app conversation stalled, not a bot. Write messages that are light, non-needy, and feel genuinely casual.
+
+CRITICAL RULES:
+- Reference the previous conversation naturally without being weird about the gap
+- Be playful and low-pressure - never guilt-trip or seem desperate
+- Sound like you just remembered something fun about your chat
+- Keep it short, breezy, and easy to respond to
+- Match tone (${tones.join('/')})${variationInstruction}
+- Keep under 150 characters
+- No "just checking in" or "hope you're well" - too formal
+
+Think: What would you actually send if you wanted to casually revive a fun chat?`;
 
     const userPrompt = mode === 'opener'
-      ? `${profileContext}\n\nGenerate 4 unique conversation openers. Make them ${tones.join(', ')}.${variationInstruction}${commonInterestHint} Return ONLY a JSON array of strings, no other text.`
+      ? `${profileContext}\n\nWrite 4 unique, natural conversation openers. Sound like a real person who noticed something interesting and wants to chat about it. Be ${tones.join(', ')} - but authentic, not trying too hard.${variationInstruction}${commonInterestHint}\n\nDon't copy exact words from their profile. Paraphrase naturally. Write like you're genuinely texting someone.\n\nReturn ONLY a JSON array of 4 strings, no other text.`
       : theirReply
-        ? `${profileContext}\n\nMy previous message: "${priorMessage}". Their reply: "${theirReply}". Generate 3-5 follow-up messages. Make them ${tones.join(', ')}.${variationInstruction}${commonInterestHint} Return ONLY a JSON array of strings, no other text.`
-        : `${profileContext}\n\nMy previous message was: "${priorMessage}". They haven't replied in 24-48h. Generate 3-5 light re-engagement messages. Make them ${tones.join(', ')}.${variationInstruction} Return ONLY a JSON array of strings, no other text.`;
+        ? `${profileContext}\n\nMy message: "${priorMessage}"\nTheir reply: "${theirReply}"\n\nWrite 3-5 natural follow-up messages. React to what they said like a real person would, add your take, and keep the conversation flowing. Be ${tones.join(', ')}.${variationInstruction}${commonInterestHint}\n\nReturn ONLY a JSON array of strings, no other text.`
+        : `${profileContext}\n\nMy last message: "${priorMessage}"\n\nThey went quiet 24-48h ago. Write 3-5 light, casual messages to re-engage without being pushy. Be ${tones.join(', ')}.${variationInstruction}\n\nReturn ONLY a JSON array of strings, no other text.`;
 
     // Call Lovable AI with timeout protection
     console.log('Calling Lovable AI API...');
