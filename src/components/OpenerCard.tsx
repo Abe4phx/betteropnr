@@ -8,7 +8,8 @@ import { useBetterOpnr } from "@/contexts/TalkSparkContext";
 import { toast } from "sonner";
 import { trackEvent } from "@/lib/analytics";
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, useAnimation } from "framer-motion";
+import { cardVariants, heartPulse } from "@/lib/motionConfig";
 
 interface OpenerCardProps {
   id: string;
@@ -24,6 +25,7 @@ export const OpenerCard = ({ id, text, tone, onTryAgain, onVariation }: OpenerCa
   const currentRating = getItemRating(id);
   const [showReminderCheckbox, setShowReminderCheckbox] = useState(false);
   const [remindIn24h, setRemindIn24h] = useState(false);
+  const heartControls = useAnimation();
 
   const handleFavoriteClick = () => {
     if (favorite) {
@@ -36,6 +38,8 @@ export const OpenerCard = ({ id, text, tone, onTryAgain, onVariation }: OpenerCa
       trackEvent('saved_opener', { tone, reminder: remindIn24h });
       toast.success(remindIn24h ? 'Saved with 24h reminder!' : 'Added to favorites!');
       setShowReminderCheckbox(false);
+      // Trigger heart pulse animation
+      heartControls.start(heartPulse);
     }
   };
 
@@ -57,11 +61,12 @@ export const OpenerCard = ({ id, text, tone, onTryAgain, onVariation }: OpenerCa
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
+      variants={cardVariants}
+      initial="initial"
+      animate="animate"
+      whileHover="hover"
     >
-      <Card className="p-6 space-y-4 hover:shadow-elegant transition-all duration-300 border border-border/50">
+      <Card className="p-6 space-y-4 transition-all duration-300 border border-border/50">
         <div className="flex items-start justify-between gap-3">
           <p className="text-base leading-relaxed flex-1">{text}</p>
           <div className="flex flex-col items-end gap-2 shrink-0">
@@ -163,7 +168,9 @@ export const OpenerCard = ({ id, text, tone, onTryAgain, onVariation }: OpenerCa
           onClick={handleFavoriteClick}
           className="flex-1 rounded-xl"
         >
-          <Heart className={`w-4 h-4 mr-2 ${favorite ? 'fill-current' : ''}`} />
+          <motion.div animate={heartControls}>
+            <Heart className={`w-4 h-4 mr-2 ${favorite ? 'fill-current' : ''}`} />
+          </motion.div>
           {favorite ? 'Saved' : 'Save'}
         </Button>
         

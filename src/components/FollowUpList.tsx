@@ -5,6 +5,7 @@ import { MessageSquare, Copy, Heart, Star } from "lucide-react";
 import { toast } from "sonner";
 import { trackEvent } from "@/lib/analytics";
 import { motion } from "framer-motion";
+import { staggerContainer, cardVariants } from "@/lib/motionConfig";
 
 interface FollowUpListProps {
   followUps: FollowUp[];
@@ -48,21 +49,25 @@ export const FollowUpList = ({ followUps, openerId }: FollowUpListProps) => {
   };
 
   return (
-    <div className="ml-8 mt-3 space-y-3">
+    <motion.div 
+      className="ml-8 mt-3 space-y-3"
+      variants={staggerContainer}
+      initial="initial"
+      animate="animate"
+    >
       <p className="text-sm font-semibold text-muted-foreground flex items-center gap-2">
         <MessageSquare className="w-4 h-4" />
         Follow-up ideas:
       </p>
-      {relevantFollowUps.map((followUp) => {
+      {relevantFollowUps.map((followUp, index) => {
         const favorite = isFavorite(followUp.id);
         const currentRating = getItemRating(followUp.id);
 
         return (
           <motion.div
             key={followUp.id}
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3, delay: 0.1 }}
+            variants={cardVariants}
+            transition={{ delay: index * 0.08 }}
           >
             <Card className="p-4 bg-gradient-subtle rounded-2xl border border-border/50 space-y-3">
             <div className="flex items-start justify-between gap-3">
@@ -109,6 +114,6 @@ export const FollowUpList = ({ followUps, openerId }: FollowUpListProps) => {
           </motion.div>
         );
       })}
-    </div>
+    </motion.div>
   );
 };

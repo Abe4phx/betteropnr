@@ -1,5 +1,7 @@
 import { OpenerCard } from "./OpenerCard";
 import { Opener } from "@/contexts/TalkSparkContext";
+import { motion } from "framer-motion";
+import { staggerContainer } from "@/lib/motionConfig";
 
 interface OpenerListProps {
   openers: Opener[];
@@ -13,7 +15,12 @@ export const OpenerList = ({ openers, onTryAgain, onVariation }: OpenerListProps
   }
 
   return (
-    <div className="space-y-4">
+    <motion.div 
+      className="space-y-4"
+      variants={staggerContainer}
+      initial="initial"
+      animate="animate"
+    >
       <h3 className="text-2xl font-heading font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
         Your Openers
       </h3>
@@ -27,6 +34,6 @@ export const OpenerList = ({ openers, onTryAgain, onVariation }: OpenerListProps
           />
         ))}
       </div>
-    </div>
+    </motion.div>
   );
 };

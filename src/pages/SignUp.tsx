@@ -1,8 +1,22 @@
 import { SignUp as ClerkSignUp } from '@clerk/clerk-react';
+import { Spark } from '@/components/ui/Spark';
 
 const SignUp = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4 relative overflow-hidden">
+      {/* Decorative floating sparks */}
+      <Spark 
+        className="absolute top-24 right-16 pointer-events-none hidden md:block"
+        animate="pulse"
+        duration={5}
+        size={30}
+      />
+      <Spark 
+        className="absolute bottom-28 left-20 pointer-events-none hidden md:block"
+        animate="drift"
+        duration={8}
+        size={26}
+      />
       <ClerkSignUp
         appearance={{
           elements: {

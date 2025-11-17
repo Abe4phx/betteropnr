@@ -17,7 +17,9 @@ import { useUserPlan } from "@/hooks/useUserPlan";
 import { PaywallModal } from "@/components/PaywallModal";
 import { UpgradeSuccessModal } from "@/components/UpgradeSuccessModal";
 import { supabase } from "@/integrations/supabase/client";
-import { motion } from "framer-motion";
+import { motion, useAnimation } from "framer-motion";
+import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
+import { sparkBurst } from "@/lib/motionConfig";
 
 const Generator = () => {
   const { user } = useUser();
@@ -41,6 +43,7 @@ const Generator = () => {
   const [generatingVariationFor, setGeneratingVariationFor] = useState<string | null>(null);
   const [showPaywallModal, setShowPaywallModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const sparkControls = useAnimation();
 
   useEffect(() => {
     // Check if user just completed checkout
@@ -71,6 +74,12 @@ const Generator = () => {
     }
 
     setIsGenerating(true);
+    // Trigger spark burst animation
+    sparkControls.start({
+      scale: 1.1,
+      opacity: 0,
+      transition: { duration: 0.8, ease: 'easeOut' }
+    });
 
     try {
       if (!user?.id) {
@@ -331,15 +340,24 @@ const Generator = () => {
             <ProfileInput value={profileText} onChange={setProfileText} />
             <TonePicker selectedTones={selectedTones} onChange={setSelectedTones} />
 
-            <Button
-              onClick={() => generateOpeners()}
-              disabled={isGenerating || usageLoading}
-              size="lg"
-              className="w-full shadow-md"
-            >
-              <Sparkles className="w-5 h-5 mr-2" />
-              {isGenerating ? 'Generating...' : 'Generate Openers'}
-            </Button>
+            <div className="relative">
+              {/* Spark burst background animation */}
+              <motion.div
+                className="absolute inset-0 rounded-2xl bg-gradient-to-r from-primary/20 to-secondary/20 -z-10"
+                animate={sparkControls}
+                initial={{ scale: 0.9, opacity: 0 }}
+              />
+              
+              <Button
+                onClick={() => generateOpeners()}
+                disabled={isGenerating || usageLoading}
+                size="lg"
+                className="w-full shadow-md"
+              >
+                <Sparkles className="w-5 h-5 mr-2" />
+                {isGenerating ? 'Generating...' : 'Generate Openers'}
+              </Button>
+            </div>
 
             {plan === 'free' && (
               <p className="text-sm text-center text-muted-foreground">
@@ -348,7 +366,10 @@ const Generator = () => {
             )}
           </div>
 
-          {generatedOpeners.length > 0 && (
+          {/* Loading skeleton while generating */}
+          {isGenerating && <LoadingSkeleton />}
+
+          {generatedOpeners.length > 0 && !isGenerating && (
             <motion.div
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}

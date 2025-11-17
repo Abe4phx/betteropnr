@@ -1,11 +1,25 @@
 import { SignIn as ClerkSignIn } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
+import { Spark } from '@/components/ui/Spark';
 
 const SignIn = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4 relative overflow-hidden">
+      {/* Decorative floating sparks */}
+      <Spark 
+        className="absolute top-20 right-20 pointer-events-none hidden md:block"
+        animate="drift"
+        duration={6}
+        size={32}
+      />
+      <Spark 
+        className="absolute bottom-32 left-24 pointer-events-none hidden md:block"
+        animate="float"
+        duration={7}
+        size={28}
+      />
       <ClerkSignIn
         appearance={{
           elements: {
