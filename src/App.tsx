@@ -2,7 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ClerkProvider, SignedIn, SignedOut } from "@clerk/clerk-react";
 import { BetterOpnrProvider } from "@/contexts/TalkSparkContext";
 import { Navigation } from "@/components/Navigation";
@@ -16,11 +16,94 @@ import SignUp from "./pages/SignUp";
 import BrandPreview from "./pages/BrandPreview";
 import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
+import { AnimatePresence, motion } from "framer-motion";
+import { pageTransition } from "@/lib/motionConfig";
 
 // TODO: Replace with your actual Clerk publishable key from https://dashboard.clerk.com/
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_cm9idXN0LXBpcmFuaGEtMzUuY2xlcmsuYWNjb3VudHMuZGV2JA';
 
 const queryClient = new QueryClient();
+
+const AnimatedRoutes = () => {
+  const location = useLocation();
+  
+  return (
+    <AnimatePresence mode="wait">
+      <Routes location={location} key={location.pathname}>
+        {/* Public routes */}
+        <Route path="/sign-in/*" element={<SignIn />} />
+        <Route path="/sign-up/*" element={<SignUp />} />
+        <Route path="/brand-preview" element={<BrandPreview />} />
+        <Route path="/install" element={<Install />} />
+        
+        {/* Protected routes with page transitions */}
+        <Route
+          path="/"
+          element={
+            <>
+              <SignedIn>
+                <motion.div {...pageTransition}>
+                  <Generator />
+                </motion.div>
+              </SignedIn>
+              <SignedOut>
+                <Navigate to="/sign-in" replace />
+              </SignedOut>
+            </>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <>
+              <SignedIn>
+                <motion.div {...pageTransition}>
+                  <Dashboard />
+                </motion.div>
+              </SignedIn>
+              <SignedOut>
+                <Navigate to="/sign-in" replace />
+              </SignedOut>
+            </>
+          }
+        />
+        <Route
+          path="/saved"
+          element={
+            <>
+              <SignedIn>
+                <motion.div {...pageTransition}>
+                  <Saved />
+                </motion.div>
+              </SignedIn>
+              <SignedOut>
+                <Navigate to="/sign-in" replace />
+              </SignedOut>
+            </>
+          }
+        />
+        <Route
+          path="/billing"
+          element={
+            <>
+              <SignedIn>
+                <motion.div {...pageTransition}>
+                  <Billing />
+                </motion.div>
+              </SignedIn>
+              <SignedOut>
+                <Navigate to="/sign-in" replace />
+              </SignedOut>
+            </>
+          }
+        />
+        
+        {/* 404 Not Found */}
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </AnimatePresence>
+  );
+};
 
 const App = () => {
   // Show setup instructions if no valid key is configured
@@ -60,70 +143,7 @@ const App = () => {
               <Navigation />
               <InstallBanner />
               <main className="flex-1">
-                <Routes>
-                  {/* Public routes */}
-                  <Route path="/sign-in/*" element={<SignIn />} />
-                  <Route path="/sign-up/*" element={<SignUp />} />
-                  <Route path="/brand-preview" element={<BrandPreview />} />
-                  <Route path="/install" element={<Install />} />
-                  
-                  {/* Protected routes */}
-                  <Route
-                    path="/"
-                    element={
-                      <>
-                        <SignedIn>
-                          <Generator />
-                        </SignedIn>
-                        <SignedOut>
-                          <Navigate to="/sign-in" replace />
-                        </SignedOut>
-                      </>
-                    }
-                  />
-                  <Route
-                    path="/dashboard"
-                    element={
-                      <>
-                        <SignedIn>
-                          <Dashboard />
-                        </SignedIn>
-                        <SignedOut>
-                          <Navigate to="/sign-in" replace />
-                        </SignedOut>
-                      </>
-                    }
-                  />
-                  <Route
-                    path="/saved"
-                    element={
-                      <>
-                        <SignedIn>
-                          <Saved />
-                        </SignedIn>
-                        <SignedOut>
-                          <Navigate to="/sign-in" replace />
-                        </SignedOut>
-                      </>
-                    }
-                  />
-                  <Route
-                    path="/billing"
-                    element={
-                      <>
-                        <SignedIn>
-                          <Billing />
-                        </SignedIn>
-                        <SignedOut>
-                          <Navigate to="/sign-in" replace />
-                        </SignedOut>
-                      </>
-                    }
-                  />
-                  
-                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                  <Route path="*" element={<NotFound />} />
-                </Routes>
+                <AnimatedRoutes />
               </main>
             </div>
           </BrowserRouter>

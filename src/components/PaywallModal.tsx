@@ -174,7 +174,12 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
                 )}
                 disabled={loading}
                 size="lg"
-                className="w-full shadow-md hover:shadow-lg"
+                className="w-full shadow-md hover:shadow-lg relative overflow-hidden"
+                style={{
+                  background: 'linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 50%, hsl(var(--primary)) 100%)',
+                  backgroundSize: '200% 100%',
+                  animation: 'shimmer 8s linear infinite',
+                }}
               >
                 {loading ? 'Processing...' : 'Upgrade to Pro'}
               </Button>
@@ -213,8 +218,13 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
                 onClick={() => handleUpgrade(PRICE_IDS.creator_monthly, 'Creator')}
                 disabled={loading}
                 size="lg"
-                className="w-full shadow-md hover:shadow-lg"
+                className="w-full shadow-md hover:shadow-lg relative overflow-hidden"
                 variant="accent"
+                style={{
+                  background: 'linear-gradient(90deg, hsl(var(--accent)) 0%, hsl(var(--accent-foreground)) 50%, hsl(var(--accent)) 100%)',
+                  backgroundSize: '200% 100%',
+                  animation: 'shimmer 8s linear infinite',
+                }}
               >
                 {loading ? 'Processing...' : 'Upgrade to Creator'}
               </Button>

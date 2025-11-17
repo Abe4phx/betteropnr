@@ -7,6 +7,8 @@ import Logo from "@/components/Logo";
 import { useUserPlan } from "@/hooks/useUserPlan";
 import { useClerkSync } from "@/hooks/useClerkSync";
 import { PaywallModal } from "@/components/PaywallModal";
+import { motion } from "framer-motion";
+import { pageTransition } from "@/lib/motionConfig";
 
 export const Navigation = () => {
   const location = useLocation();
@@ -27,7 +29,12 @@ export const Navigation = () => {
   };
 
   return (
-    <nav className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur-sm shadow-sm">
+    <motion.nav 
+      className="sticky top-0 z-50 border-b bg-card/95 backdrop-blur-sm shadow-sm"
+      initial={{ opacity: 0, y: -10 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+    >
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between gap-4">
           <Link to="/" className="group">
@@ -51,7 +58,7 @@ export const Navigation = () => {
                 {plan === 'free' && (
                   <Button
                     variant="default"
-                    className="bg-bo-gradient shadow-sm hover:shadow-md"
+                    className="bg-bo-gradient shadow-sm hover:shadow-md animate-pulse-soft"
                     onClick={() => setShowPaywallModal(true)}
                   >
                     <Zap className="w-4 h-4 mr-2" />
@@ -96,6 +103,6 @@ export const Navigation = () => {
       </div>
 
       <PaywallModal open={showPaywallModal} onOpenChange={setShowPaywallModal} />
-    </nav>
+    </motion.nav>
   );
 };
