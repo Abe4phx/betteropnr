@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ClerkProvider, SignedIn, SignedOut } from "@clerk/clerk-react";
 import { BetterOpnrProvider } from "@/contexts/TalkSparkContext";
 import { Navigation } from "@/components/Navigation";
+import { InstallBanner } from "@/components/InstallBanner";
 import Generator from "./pages/Generator";
 import Saved from "./pages/Saved";
 import Dashboard from "./pages/Dashboard";
@@ -13,6 +14,7 @@ import Billing from "./pages/Billing";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import BrandPreview from "./pages/BrandPreview";
+import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
 
 // TODO: Replace with your actual Clerk publishable key from https://dashboard.clerk.com/
@@ -56,12 +58,14 @@ const App = () => {
           <BrowserRouter>
             <div className="min-h-screen flex flex-col">
               <Navigation />
+              <InstallBanner />
               <main className="flex-1">
                 <Routes>
                   {/* Public routes */}
                   <Route path="/sign-in/*" element={<SignIn />} />
                   <Route path="/sign-up/*" element={<SignUp />} />
                   <Route path="/brand-preview" element={<BrandPreview />} />
+                  <Route path="/install" element={<Install />} />
                   
                   {/* Protected routes */}
                   <Route
