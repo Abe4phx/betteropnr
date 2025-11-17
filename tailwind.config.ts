@@ -117,8 +117,8 @@ export default {
           '66%': { transform: 'translate(-5px, -10px) scale(0.95)' },
         },
         'pulse-soft': {
-          '0%, 100%': { opacity: '0.6', transform: 'scale(1)' },
-          '50%': { opacity: '0.9', transform: 'scale(1.05)' },
+          '0%, 100%': { opacity: '1', transform: 'scale(1)' },
+          '50%': { opacity: '0.95', transform: 'scale(1.01)' },
         },
       },
       animation: {
