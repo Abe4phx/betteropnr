@@ -58,7 +58,7 @@ export const Navigation = () => {
                 {plan === 'free' && (
                   <Button
                     variant="default"
-                    className="bg-bo-gradient shadow-sm hover:shadow-md animate-pulse-soft"
+                    className="bg-bo-gradient shadow-sm hover:shadow-md"
                     onClick={() => setShowPaywallModal(true)}
                   >
                     <Zap className="w-4 h-4 mr-2" />
