@@ -15,7 +15,9 @@ import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
 import BrandPreview from "./pages/BrandPreview";
 import Install from "./pages/Install";
+import Privacy from "./pages/Privacy";
 import NotFound from "./pages/NotFound";
+import Footer from "@/components/Footer";
 import { AnimatePresence, motion } from "framer-motion";
 import { pageTransition } from "@/lib/motionConfig";
 
@@ -35,6 +37,11 @@ const AnimatedRoutes = () => {
         <Route path="/sign-up/*" element={<SignUp />} />
         <Route path="/brand-preview" element={<BrandPreview />} />
         <Route path="/install" element={<Install />} />
+        <Route path="/privacy" element={
+          <motion.div {...pageTransition}>
+            <Privacy />
+          </motion.div>
+        } />
         
         {/* Protected routes with page transitions */}
         <Route
@@ -145,6 +152,7 @@ const App = () => {
               <main className="flex-1">
                 <AnimatedRoutes />
               </main>
+              <Footer />
             </div>
           </BrowserRouter>
         </BetterOpnrProvider>
