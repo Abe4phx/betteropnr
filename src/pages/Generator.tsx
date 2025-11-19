@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { ProfileInput } from "@/components/ProfileInput";
 import { UserProfileInput } from "@/components/UserProfileInput";
@@ -20,6 +20,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { motion, useAnimation } from "framer-motion";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { sparkBurst } from "@/lib/motionConfig";
+import { extractMatchName } from "@/lib/extractMatchName";
 
 const Generator = () => {
   const { user } = useUser();
@@ -44,6 +45,9 @@ const Generator = () => {
   const [showPaywallModal, setShowPaywallModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const sparkControls = useAnimation();
+
+  // Extract match name from profile text
+  const matchName = useMemo(() => extractMatchName(profileText), [profileText]);
 
   useEffect(() => {
     // Check if user just completed checkout
@@ -387,6 +391,7 @@ const Generator = () => {
               
               <OpenerList
                 openers={generatedOpeners}
+                matchName={matchName}
                 onTryAgain={() => generateOpeners()}
                 onVariation={handleVariation}
               />

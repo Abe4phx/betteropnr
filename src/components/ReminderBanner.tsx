@@ -43,7 +43,7 @@ export const ReminderBanner = () => {
             Ready to spark the next message?
           </h3>
           <p className="text-sm text-muted-foreground mb-3">
-            It's been 24 hours since you saved "{reminder.text.substring(0, 50)}..."
+            It's been 24 hours since you saved {reminder.matchName ? `your opener for ${reminder.matchName}` : `"${reminder.text.substring(0, 50)}..."`}
           </p>
           <div className="flex gap-2">
             <Button 

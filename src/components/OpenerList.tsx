@@ -5,11 +5,12 @@ import { staggerContainer } from "@/lib/motionConfig";
 
 interface OpenerListProps {
   openers: Opener[];
+  matchName?: string;
   onTryAgain?: (openerId: string) => void;
   onVariation?: (openerId: string, style: 'safer' | 'warmer' | 'funnier' | 'shorter') => void;
 }
 
-export const OpenerList = ({ openers, onTryAgain, onVariation }: OpenerListProps) => {
+export const OpenerList = ({ openers, matchName, onTryAgain, onVariation }: OpenerListProps) => {
   if (openers.length === 0) {
     return null;
   }
@@ -29,6 +30,7 @@ export const OpenerList = ({ openers, onTryAgain, onVariation }: OpenerListProps
           <OpenerCard
             key={opener.id}
             {...opener}
+            matchName={matchName}
             onTryAgain={onTryAgain ? () => onTryAgain(opener.id) : undefined}
             onVariation={onVariation ? (style) => onVariation(opener.id, style) : undefined}
           />
