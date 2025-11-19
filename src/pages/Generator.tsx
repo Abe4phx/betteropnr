@@ -394,6 +394,7 @@ const Generator = () => {
                 matchName={matchName}
                 onTryAgain={() => generateOpeners()}
                 onVariation={handleVariation}
+                onShowPaywall={() => setShowPaywallModal(true)}
               />
 
               {generatedOpeners.map((opener) => (
