@@ -14,7 +14,7 @@ interface UserProfileInputProps {
 
 export const UserProfileInput = ({ value, onChange }: UserProfileInputProps) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { isExtracting, imagePreview, extractText, clearPreview } = useImageTextExtraction();
+  const { isExtracting, imagePreviews, extractText, clearPreviews } = useImageTextExtraction();
   const { profileText, setProfileText, isLoading } = useUserProfile();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -80,7 +80,7 @@ export const UserProfileInput = ({ value, onChange }: UserProfileInputProps) => 
   };
 
   const handleClearPreview = () => {
-    clearPreview();
+    clearPreviews();
   };
 
   return (
@@ -130,10 +130,10 @@ export const UserProfileInput = ({ value, onChange }: UserProfileInputProps) => 
           />
         </div>
 
-        {imagePreview && (
+        {imagePreviews.length > 0 && (
           <div className="relative inline-block">
             <img
-              src={imagePreview}
+              src={imagePreviews[0]}
               alt="Preview"
               className="h-20 w-20 object-cover rounded-lg border-2 border-border"
             />

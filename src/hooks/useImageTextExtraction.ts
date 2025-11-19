@@ -7,7 +7,7 @@ const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
 export const useImageTextExtraction = () => {
   const [isExtracting, setIsExtracting] = useState(false);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
 
   const validateFile = (file: File): boolean => {
     if (!ALLOWED_TYPES.includes(file.type)) {
@@ -49,7 +49,7 @@ export const useImageTextExtraction = () => {
 
     try {
       const base64Image = await convertToBase64(file);
-      setImagePreview(base64Image);
+      setImagePreviews((prev) => [...prev, base64Image]);
 
       const { data, error } = await supabase.functions.invoke('extract-profile-text', {
         body: { image: base64Image },
@@ -83,14 +83,102 @@ export const useImageTextExtraction = () => {
     }
   };
 
-  const clearPreview = () => {
-    setImagePreview(null);
+  const extractMultipleTexts = async (files: File[]): Promise<string> => {
+    if (files.length === 0) {
+      throw new Error('No files provided');
+    }
+
+    if (files.length > 5) {
+      toast({
+        title: 'Too many images',
+        description: 'Please upload a maximum of 5 images at once.',
+        variant: 'destructive',
+      });
+      throw new Error('Too many images');
+    }
+
+    setIsExtracting(true);
+
+    try {
+      const extractedTexts: string[] = [];
+
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        
+        if (!validateFile(file)) {
+          toast({
+            title: `Invalid file ${i + 1}`,
+            description: 'Skipping this file.',
+            variant: 'destructive',
+          });
+          continue;
+        }
+
+        const base64Image = await convertToBase64(file);
+        setImagePreviews((prev) => [...prev, base64Image]);
+
+        const { data, error } = await supabase.functions.invoke('extract-profile-text', {
+          body: { image: base64Image },
+        });
+
+        if (error) {
+          console.error(`Error extracting text from image ${i + 1}:`, error);
+          toast({
+            title: `Failed to extract from image ${i + 1}`,
+            description: 'Continuing with other images...',
+            variant: 'destructive',
+          });
+          continue;
+        }
+
+        if (data?.text) {
+          extractedTexts.push(data.text);
+        }
+      }
+
+      if (extractedTexts.length === 0) {
+        throw new Error('No text could be extracted from any image');
+      }
+
+      toast({
+        title: 'Text extracted!',
+        description: `Successfully extracted text from ${extractedTexts.length} image(s).`,
+      });
+
+      // Concatenate with section separators
+      return extractedTexts
+        .map((text, index) => {
+          if (index === 0) return text;
+          return `\n\n--- Profile Section ${index + 1} ---\n\n${text}`;
+        })
+        .join('');
+    } catch (error) {
+      console.error('Error in extractMultipleTexts:', error);
+      toast({
+        title: 'Extraction failed',
+        description: error instanceof Error ? error.message : 'Failed to extract text from images',
+        variant: 'destructive',
+      });
+      throw error;
+    } finally {
+      setIsExtracting(false);
+    }
+  };
+
+  const clearPreviews = () => {
+    setImagePreviews([]);
+  };
+
+  const removePreview = (index: number) => {
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   return {
     isExtracting,
-    imagePreview,
+    imagePreviews,
     extractText,
-    clearPreview,
+    extractMultipleTexts,
+    clearPreviews,
+    removePreview,
   };
 };
