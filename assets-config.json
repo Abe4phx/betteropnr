@@ -1,0 +1,8 @@
+{
+  "iconPath": "public/icon.png",
+  "splashPath": "public/splash.png",
+  "iconBackgroundColor": "#FF6B6B",
+  "iconBackgroundColorDark": "#1A1A40",
+  "splashBackgroundColor": "#1A1A40",
+  "splashBackgroundColorDark": "#0F1222"
+}

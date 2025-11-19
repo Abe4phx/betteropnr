@@ -11,10 +11,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@capacitor/camera": "^7.0.2",
     "@capacitor/core": "^7.4.4",
     "@capacitor/haptics": "^7.0.2",
     "@capacitor/local-notifications": "^7.0.3",
+    "@capacitor/splash-screen": "^7.0.3",
     "@capacitor/status-bar": "^7.0.3",
     "@clerk/clerk-react": "^5.53.4",
     "@hookform/resolvers": "^3.10.0",
