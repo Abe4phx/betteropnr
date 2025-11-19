@@ -5,9 +5,32 @@ import { toast } from '@/hooks/use-toast';
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 
+interface ImageData {
+  preview: string;
+  text: string;
+}
+
 export const useImageTextExtraction = () => {
   const [isExtracting, setIsExtracting] = useState(false);
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [imageData, setImageData] = useState<ImageData[]>([]);
+
+  const reorderImages = (startIndex: number, endIndex: number) => {
+    setImageData((prev) => {
+      const result = Array.from(prev);
+      const [removed] = result.splice(startIndex, 1);
+      result.splice(endIndex, 0, removed);
+      return result;
+    });
+  };
+
+  const getCombinedText = (): string => {
+    return imageData
+      .map((item, index) => {
+        if (index === 0) return item.text;
+        return `\n\n--- Profile Section ${index + 1} ---\n\n${item.text}`;
+      })
+      .join('');
+  };
 
   const validateFile = (file: File): boolean => {
     if (!ALLOWED_TYPES.includes(file.type)) {
@@ -49,7 +72,6 @@ export const useImageTextExtraction = () => {
 
     try {
       const base64Image = await convertToBase64(file);
-      setImagePreviews((prev) => [...prev, base64Image]);
 
       const { data, error } = await supabase.functions.invoke('extract-profile-text', {
         body: { image: base64Image },
@@ -63,6 +85,8 @@ export const useImageTextExtraction = () => {
       if (!data?.text) {
         throw new Error('No text found in image');
       }
+
+      setImageData((prev) => [...prev, { preview: base64Image, text: data.text }]);
 
       toast({
         title: 'Text extracted!',
@@ -100,7 +124,7 @@ export const useImageTextExtraction = () => {
     setIsExtracting(true);
 
     try {
-      const extractedTexts: string[] = [];
+      const newImageData: ImageData[] = [];
 
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
@@ -115,7 +139,6 @@ export const useImageTextExtraction = () => {
         }
 
         const base64Image = await convertToBase64(file);
-        setImagePreviews((prev) => [...prev, base64Image]);
 
         const { data, error } = await supabase.functions.invoke('extract-profile-text', {
           body: { image: base64Image },
@@ -132,24 +155,26 @@ export const useImageTextExtraction = () => {
         }
 
         if (data?.text) {
-          extractedTexts.push(data.text);
+          newImageData.push({ preview: base64Image, text: data.text });
         }
       }
 
-      if (extractedTexts.length === 0) {
+      if (newImageData.length === 0) {
         throw new Error('No text could be extracted from any image');
       }
 
+      setImageData(newImageData);
+
       toast({
         title: 'Text extracted!',
-        description: `Successfully extracted text from ${extractedTexts.length} image(s).`,
+        description: `Successfully extracted text from ${newImageData.length} image(s). Drag to reorder sections.`,
       });
 
       // Concatenate with section separators
-      return extractedTexts
-        .map((text, index) => {
-          if (index === 0) return text;
-          return `\n\n--- Profile Section ${index + 1} ---\n\n${text}`;
+      return newImageData
+        .map((item, index) => {
+          if (index === 0) return item.text;
+          return `\n\n--- Profile Section ${index + 1} ---\n\n${item.text}`;
         })
         .join('');
     } catch (error) {
@@ -165,20 +190,28 @@ export const useImageTextExtraction = () => {
     }
   };
 
-  const clearPreviews = () => {
-    setImagePreviews([]);
+  const clearData = () => {
+    setImageData([]);
   };
 
-  const removePreview = (index: number) => {
-    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
+  const removeImage = (index: number) => {
+    setImageData((prev) => prev.filter((_, i) => i !== index));
   };
 
   return {
     isExtracting,
-    imagePreviews,
+    imageData,
+    imagePreviews: imageData.map(item => item.preview),
     extractText,
     extractMultipleTexts,
-    clearPreviews,
-    removePreview,
+    clearData,
+    clearPreviews: clearData,
+    removeImage,
+    removePreview: removeImage,
+    reorderImages,
+    reorderPreviews: reorderImages,
+    getCombinedText,
+    setImageData,
+    setImagePreviews: setImageData,
   };
 };
