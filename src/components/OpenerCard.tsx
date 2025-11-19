@@ -15,11 +15,12 @@ interface OpenerCardProps {
   id: string;
   text: string;
   tone: string;
+  matchName?: string;
   onTryAgain?: () => void;
   onVariation?: (style: 'safer' | 'warmer' | 'funnier' | 'shorter') => void;
 }
 
-export const OpenerCard = ({ id, text, tone, onTryAgain, onVariation }: OpenerCardProps) => {
+export const OpenerCard = ({ id, text, tone, matchName, onTryAgain, onVariation }: OpenerCardProps) => {
   const { isFavorite, addToFavorites, removeFromFavorites, rateItem, getItemRating, selectedTones } = useBetterOpnr();
   const favorite = isFavorite(id);
   const currentRating = getItemRating(id);
@@ -34,7 +35,7 @@ export const OpenerCard = ({ id, text, tone, onTryAgain, onVariation }: OpenerCa
       setRemindIn24h(false);
       toast.success('Removed from favorites');
     } else {
-      addToFavorites({ id, text, tone }, 'opener', selectedTones, remindIn24h);
+      addToFavorites({ id, text, tone }, 'opener', selectedTones, remindIn24h, matchName);
       trackEvent('saved_opener', { tone, reminder: remindIn24h });
       toast.success(remindIn24h ? 'Saved with 24h reminder!' : 'Added to favorites!');
       setShowReminderCheckbox(false);
@@ -146,7 +147,7 @@ export const OpenerCard = ({ id, text, tone, onTryAgain, onVariation }: OpenerCa
             htmlFor={`remind-${id}`}
             className="text-sm text-muted-foreground cursor-pointer"
           >
-            Remind me in 24h to follow up
+            Remind me in 24h to follow up{matchName ? ` with ${matchName}` : ''}
           </Label>
         </div>
       )}

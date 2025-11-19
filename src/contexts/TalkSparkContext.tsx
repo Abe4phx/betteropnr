@@ -22,6 +22,7 @@ export interface Favorite {
   createdAt: string;
   type: 'opener' | 'followup';
   remindAt?: string;
+  matchName?: string;
 }
 
 export interface Rating {
@@ -41,7 +42,7 @@ interface BetterOpnrContextType {
   followUps: FollowUp[];
   setFollowUps: (followUps: FollowUp[]) => void;
   favorites: Favorite[];
-  addToFavorites: (item: Opener | FollowUp, type: 'opener' | 'followup', tones: string[], remindIn24h?: boolean) => void;
+  addToFavorites: (item: Opener | FollowUp, type: 'opener' | 'followup', tones: string[], remindIn24h?: boolean, matchName?: string) => void;
   removeFromFavorites: (itemId: string) => void;
   isFavorite: (itemId: string) => boolean;
   ratings: Rating[];
@@ -117,7 +118,7 @@ export const BetterOpnrProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     localStorage.setItem('betterOpnr-ratings', JSON.stringify(ratings));
   }, [ratings]);
 
-  const addToFavorites = async (item: Opener | FollowUp, type: 'opener' | 'followup', tones: string[], remindIn24h?: boolean) => {
+  const addToFavorites = async (item: Opener | FollowUp, type: 'opener' | 'followup', tones: string[], remindIn24h?: boolean, matchName?: string) => {
     // Check if already at max favorites
     if (favorites.length >= MAX_FAVORITES) {
       toast.error(`Maximum ${MAX_FAVORITES} saved items reached. Remove some to add more.`);
@@ -128,6 +129,17 @@ export const BetterOpnrProvider: React.FC<{ children: React.ReactNode }> = ({ ch
     if (plan === 'free' && usage.hasExceededFavoriteLimit) {
       toast.error('Favorites limit reached. Upgrade for unlimited favorites!');
       return;
+    }
+
+    // Check reminder limits if user wants a reminder
+    if (remindIn24h) {
+      const activeReminders = favorites.filter(f => f.remindAt).length;
+      const maxReminders = plan === 'free' ? 3 : 10;
+      
+      if (activeReminders >= maxReminders) {
+        toast.error(`Maximum ${maxReminders} active reminders reached. ${plan === 'free' ? 'Upgrade for more reminders!' : 'Remove some to add more.'}`);
+        return;
+      }
     }
 
     if (!favorites.find(f => f.id === item.id)) {
@@ -142,6 +154,7 @@ export const BetterOpnrProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         createdAt: new Date().toISOString(),
         type,
         remindAt,
+        matchName,
       };
       setFavorites([...favorites, favorite]);
 
