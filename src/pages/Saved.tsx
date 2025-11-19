@@ -1,13 +1,18 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
 import { ReminderBanner } from "@/components/ReminderBanner";
+import { NotificationSetup } from "@/components/NotificationSetup";
 import { useBetterOpnr } from "@/contexts/TalkSparkContext";
-import { Heart, Copy, Share2, Trash2, Sparkles } from "lucide-react";
+import { Heart, Copy, Share2, Trash2, Sparkles, Edit2, Check, X } from "lucide-react";
 import { toast } from "sonner";
+import { useState } from "react";
 
 const Saved = () => {
-  const { favorites, removeFromFavorites } = useBetterOpnr();
+  const { favorites, removeFromFavorites, updateFavoriteReminderName } = useBetterOpnr();
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState("");
 
   const handleCopy = async (text: string) => {
     try {
@@ -40,6 +45,25 @@ const Saved = () => {
     toast.success('Removed from favorites');
   };
 
+  const handleStartEdit = (id: string, currentName?: string) => {
+    setEditingId(id);
+    setEditName(currentName || "");
+  };
+
+  const handleSaveEdit = (id: string) => {
+    if (editName.trim()) {
+      updateFavoriteReminderName(id, editName.trim());
+      toast.success('Reminder name updated');
+    }
+    setEditingId(null);
+    setEditName("");
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditName("");
+  };
+
   return (
     <div className="min-h-screen bg-muted">
       <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 md:py-12 max-w-4xl">
@@ -55,6 +79,8 @@ const Saved = () => {
           </div>
 
           <ReminderBanner />
+
+          <NotificationSetup />
 
           {favorites.length === 0 ? (
             <Card className="text-center py-12 sm:py-16 md:py-20 space-y-4 sm:space-y-5 md:space-y-6 mx-2 sm:mx-0">
@@ -76,6 +102,51 @@ const Saved = () => {
             <div className="space-y-3 sm:space-y-4">
               {favorites.map((opener) => (
                 <Card key={opener.id} className="p-4 sm:p-5 md:p-6 space-y-3 sm:space-y-4 hover:shadow-elegant transition-all duration-300 border border-border/50">
+                  {opener.remindAt && (
+                    <div className="flex items-center gap-2 pb-2 border-b border-border/30">
+                      {editingId === opener.id ? (
+                        <div className="flex items-center gap-2 flex-1">
+                          <Input
+                            value={editName}
+                            onChange={(e) => setEditName(e.target.value)}
+                            placeholder="Enter reminder name..."
+                            className="h-8 text-sm"
+                            autoFocus
+                          />
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleSaveEdit(opener.id)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Check className="w-4 h-4 text-primary" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={handleCancelEdit}
+                            className="h-8 w-8 p-0"
+                          >
+                            <X className="w-4 h-4 text-muted-foreground" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2 flex-1">
+                          <Badge variant="outline" className="text-xs">
+                            Reminder: {opener.customReminderName || opener.matchName || 'Follow up'}
+                          </Badge>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleStartEdit(opener.id, opener.customReminderName || opener.matchName)}
+                            className="h-7 w-7 p-0"
+                          >
+                            <Edit2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <div className="flex items-start justify-between gap-2 sm:gap-3">
                     <p className="text-sm sm:text-base leading-relaxed flex-1">{opener.text}</p>
                     <Badge variant="secondary" className="shrink-0 text-xs">
