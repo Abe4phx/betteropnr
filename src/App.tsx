@@ -22,8 +22,7 @@ import Footer from "@/components/Footer";
 import { AnimatePresence, motion } from "framer-motion";
 import { pageTransition } from "@/lib/motionConfig";
 
-// TODO: Replace with your actual Clerk publishable key from https://dashboard.clerk.com/
-const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_cm9idXN0LXBpcmFuaGEtMzUuY2xlcmsuYWNjb3VudHMuZGV2JA';
+const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
 const queryClient = new QueryClient();
 
@@ -115,24 +114,32 @@ const AnimatedRoutes = () => {
 
 const App = () => {
   // Show setup instructions if no valid key is configured
-  if (!CLERK_PUBLISHABLE_KEY || CLERK_PUBLISHABLE_KEY === 'pk_test_REPLACE_WITH_YOUR_KEY') {
+  if (!CLERK_PUBLISHABLE_KEY) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4">
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-subtle">
         <div className="max-w-2xl space-y-6 text-center">
-          <h1 className="text-3xl font-bold">🔐 Clerk Setup Required</h1>
-          <div className="bg-card p-6 rounded-2xl shadow-lg space-y-4 text-left">
-            <h2 className="text-xl font-semibold">Setup Instructions:</h2>
-            <ol className="space-y-3 list-decimal list-inside">
-              <li>Go to <a href="https://dashboard.clerk.com/" target="_blank" rel="noopener noreferrer" className="text-primary underline">Clerk Dashboard</a></li>
-              <li>Create a new application (or select existing)</li>
-              <li>Enable Email, Google, and Apple sign-in methods</li>
-              <li>Copy your <strong>Publishable Key</strong> from API Keys page</li>
-              <li>Update <code className="bg-muted px-2 py-1 rounded">src/App.tsx</code> line 18:<br/>
-                <code className="block bg-muted p-2 rounded mt-2 text-sm">
-                  const CLERK_PUBLISHABLE_KEY = 'pk_test_YOUR_ACTUAL_KEY_HERE';
+          <h1 className="text-3xl font-bold text-foreground">🔐 Missing Clerk Configuration</h1>
+          <div className="bg-card p-6 rounded-2xl shadow-elegant space-y-4 text-left">
+            <h2 className="text-xl font-semibold text-foreground">Setup Required:</h2>
+            <p className="text-muted-foreground">
+              The <code className="bg-muted px-2 py-1 rounded text-sm">VITE_CLERK_PUBLISHABLE_KEY</code> environment variable is not configured.
+            </p>
+            <ol className="space-y-3 list-decimal list-inside text-foreground">
+              <li>Go to your <a href="https://dashboard.clerk.com/" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80">Clerk Dashboard</a></li>
+              <li>Navigate to <strong>API Keys</strong></li>
+              <li>Copy your <strong>Publishable Key</strong> (starts with <code className="bg-muted px-1 rounded text-xs">pk_live_</code> or <code className="bg-muted px-1 rounded text-xs">pk_test_</code>)</li>
+              <li>Add it to your <code className="bg-muted px-2 py-1 rounded text-sm">.env</code> file:
+                <code className="block bg-muted p-3 rounded mt-2 text-sm font-mono">
+                  VITE_CLERK_PUBLISHABLE_KEY="pk_live_..."
                 </code>
               </li>
+              <li>Restart your development server</li>
             </ol>
+            <div className="mt-4 p-4 bg-muted/50 rounded-xl">
+              <p className="text-sm text-muted-foreground">
+                <strong>Note:</strong> Use a production key (<code className="text-xs">pk_live_</code>) for real users. Test keys don't send actual emails.
+              </p>
+            </div>
           </div>
         </div>
       </div>
