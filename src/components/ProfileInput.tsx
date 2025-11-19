@@ -1,9 +1,10 @@
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Camera, X, Loader2 } from "lucide-react";
+import { Camera, X, Loader2, Upload, GripVertical } from "lucide-react";
 import { useImageTextExtraction } from "@/hooks/useImageTextExtraction";
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { toast } from "@/hooks/use-toast";
 
 interface ProfileInputProps {
   value: string;
@@ -11,8 +12,18 @@ interface ProfileInputProps {
 }
 
 export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
-  const { isExtracting, imagePreviews, extractMultipleTexts, clearPreviews, removePreview } = useImageTextExtraction();
+  const { 
+    isExtracting, 
+    imagePreviews, 
+    extractMultipleTexts, 
+    clearPreviews, 
+    removePreview, 
+    reorderPreviews,
+    getCombinedText,
+  } = useImageTextExtraction();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -35,6 +46,75 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
   const handleClearAll = () => {
     clearPreviews();
     onChange('');
+  };
+
+  // Drag and drop for file upload
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(false);
+  };
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingOver(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+
+    if (imageFiles.length === 0) {
+      toast({
+        title: 'No images found',
+        description: 'Please drop image files (JPG, PNG, or WEBP).',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (imageFiles.length > 5) {
+      toast({
+        title: 'Too many images',
+        description: 'Please upload a maximum of 5 images at once.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    try {
+      const extractedText = await extractMultipleTexts(imageFiles);
+      onChange(extractedText);
+    } catch (error) {
+      // Error handling is done in the hook
+    }
+  };
+
+  // Drag and drop for reordering
+  const handleImageDragStart = (e: React.DragEvent, index: number) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = 'move';
+  };
+
+  const handleImageDragOver = (e: React.DragEvent, index: number) => {
+    e.preventDefault();
+    if (draggedIndex === null || draggedIndex === index) return;
+    
+    reorderPreviews(draggedIndex, index);
+    setDraggedIndex(index);
+    
+    // Update the combined text after reordering
+    const newText = getCombinedText();
+    onChange(newText);
+  };
+
+  const handleImageDragEnd = () => {
+    setDraggedIndex(null);
   };
 
   return (
@@ -86,27 +166,75 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
         />
       </div>
 
+      {/* Drag and drop zone */}
+      <div
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={`
+          border-2 border-dashed rounded-2xl p-6 transition-all duration-200
+          ${isDraggingOver 
+            ? 'border-primary bg-primary/5 scale-[1.02]' 
+            : 'border-border bg-muted/30 hover:border-primary/50 hover:bg-muted/50'
+          }
+          ${isExtracting ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}
+        `}
+        onClick={() => !isExtracting && fileInputRef.current?.click()}
+      >
+        <div className="flex flex-col items-center justify-center gap-2 text-center">
+          <Upload className={`w-8 h-8 ${isDraggingOver ? 'text-primary animate-bounce' : 'text-muted-foreground'}`} />
+          <p className="text-sm font-medium">
+            {isDraggingOver ? 'Drop images here' : 'Drag & drop images or click to browse'}
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Upload 2-5 screenshots • JPG, PNG, or WEBP • Max 5MB each
+          </p>
+        </div>
+      </div>
+
       {imagePreviews.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {imagePreviews.map((preview, index) => (
-            <div key={index} className="relative inline-block">
-              <img
-                src={preview}
-                alt={`Preview ${index + 1}`}
-                className="h-20 w-20 object-cover rounded-lg border-2 border-border"
-              />
-              <button
-                onClick={() => removePreview(index)}
-                className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90 transition-colors"
-                type="button"
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground font-medium">
+            Drag to reorder profile sections:
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {imagePreviews.map((preview, index) => (
+              <div
+                key={index}
+                draggable
+                onDragStart={(e) => handleImageDragStart(e, index)}
+                onDragOver={(e) => handleImageDragOver(e, index)}
+                onDragEnd={handleImageDragEnd}
+                className={`
+                  relative inline-block group cursor-move
+                  transition-all duration-200
+                  ${draggedIndex === index ? 'opacity-50 scale-95' : 'hover:scale-105'}
+                `}
               >
-                <X className="w-3 h-3" />
-              </button>
-              <div className="absolute bottom-1 left-1 bg-background/80 text-xs px-1 rounded">
-                {index + 1}
+                <div className="absolute inset-0 bg-background/80 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg flex items-center justify-center pointer-events-none">
+                  <GripVertical className="w-6 h-6 text-foreground" />
+                </div>
+                <img
+                  src={preview}
+                  alt={`Preview ${index + 1}`}
+                  className="h-24 w-24 object-cover rounded-lg border-2 border-border group-hover:border-primary transition-colors"
+                />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    removePreview(index);
+                  }}
+                  className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90 transition-colors z-10"
+                  type="button"
+                >
+                  <X className="w-3 h-3" />
+                </button>
+                <div className="absolute bottom-1 left-1 bg-primary text-primary-foreground text-xs px-2 py-0.5 rounded font-semibold">
+                  {index + 1}
+                </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       )}
 
