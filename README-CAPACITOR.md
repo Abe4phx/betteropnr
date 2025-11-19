@@ -105,6 +105,17 @@ npx cap open android
 
 ## Optional Enhancements
 
+### Configure App Icons & Splash Screens (RECOMMENDED)
+Professional app icons and splash screens are ready! See **ICONS-AND-SPLASH-SETUP.md** for complete guide.
+
+**Quick setup:**
+```bash
+# After adding platforms, automatically generate all icon sizes
+npx capacitor-assets generate
+```
+
+This creates all required iOS (10+ sizes) and Android (5 densities) icons plus splash screens automatically!
+
 ### Add Camera Plugin for Better UX
 Currently uses web file upload. You can upgrade to native camera:
 
