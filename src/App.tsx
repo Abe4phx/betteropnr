@@ -146,7 +146,7 @@ const App = () => {
           <Toaster />
           <Sonner />
           <BrowserRouter>
-            <div className="min-h-screen flex flex-col">
+            <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
               <Navigation />
               <InstallBanner />
               <main className="flex-1">
