@@ -2,8 +2,9 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Smartphone, Download, Check } from "lucide-react";
+import { Smartphone, Download, Check, CheckCircle } from "lucide-react";
 import { useInstallPrompt } from "@/hooks/useInstallPrompt";
+import { isNativeApp, getPlatform } from "@/lib/platformDetection";
 
 const Install = () => {
   const navigate = useNavigate();
@@ -29,6 +30,40 @@ const Install = () => {
       }
     }
   };
+
+  // If running as native app, show success message
+  if (isNativeApp()) {
+    return (
+      <div className="min-h-screen bg-gradient-subtle pt-20 pb-12 px-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-ts-coral to-ts-yellow rounded-full mb-4">
+              <CheckCircle className="w-8 h-8 text-white" />
+            </div>
+            <h1 className="text-4xl font-heading font-bold mb-4">
+              You're All Set!
+            </h1>
+            <p className="text-lg text-muted-foreground">
+              BetterOpnr is installed as a native {getPlatform() === 'ios' ? 'iOS' : 'Android'} app
+            </p>
+          </div>
+
+          <Card className="p-6 bg-card/50 backdrop-blur border-primary/20">
+            <p className="text-center text-muted-foreground mb-4">
+              Enjoy the full native experience with offline access, push notifications, and more!
+            </p>
+            <Button
+              onClick={() => navigate("/")}
+              className="w-full rounded-2xl"
+              size="lg"
+            >
+              Start Using BetterOpnr
+            </Button>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
   if (isInstalled) {
     return (

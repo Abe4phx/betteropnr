@@ -1,6 +1,9 @@
 /**
- * Notification utilities for PWA push notifications
+ * Unified notification utilities that work across web and native platforms
  */
+
+import { isNativeApp } from './platformDetection';
+import * as CapacitorNotifications from './capacitorNotifications';
 
 export interface NotificationPermissionStatus {
   granted: boolean;
@@ -9,9 +12,15 @@ export interface NotificationPermissionStatus {
 }
 
 /**
- * Request notification permission from the user
+ * Request notification permission from the user (works on both web and native)
  */
 export const requestNotificationPermission = async (): Promise<NotificationPermissionStatus> => {
+  if (isNativeApp()) {
+    const result = await CapacitorNotifications.requestNotificationPermission();
+    localStorage.setItem('notification-permission-status', JSON.stringify(result));
+    return result;
+  }
+
   if (!('Notification' in window)) {
     console.warn('This browser does not support notifications');
     return { granted: false, denied: true, default: false };
@@ -27,9 +36,16 @@ export const requestNotificationPermission = async (): Promise<NotificationPermi
 };
 
 /**
- * Get current notification permission status
+ * Get current notification permission status (works on both web and native)
  */
 export const getNotificationPermissionStatus = (): NotificationPermissionStatus => {
+  if (isNativeApp()) {
+    // Return cached status for sync compatibility
+    const cached = localStorage.getItem('notification-permission-status');
+    if (cached) return JSON.parse(cached);
+    return { granted: false, denied: false, default: true };
+  }
+
   if (!('Notification' in window)) {
     return { granted: false, denied: true, default: false };
   }
@@ -44,13 +60,18 @@ export const getNotificationPermissionStatus = (): NotificationPermissionStatus 
 };
 
 /**
- * Schedule a notification for a specific time
+ * Schedule a notification for a specific time (works on both web and native)
  */
 export const scheduleNotification = (
   title: string,
   options: NotificationOptions & { scheduledTime: number },
   notificationId: string
 ): void => {
+  if (isNativeApp()) {
+    CapacitorNotifications.scheduleNotification(title, options, notificationId);
+    return;
+  }
+
   const { scheduledTime, ...notificationOptions } = options;
   const now = Date.now();
   const delay = scheduledTime - now;
@@ -78,9 +99,14 @@ export const scheduleNotification = (
 };
 
 /**
- * Show a notification immediately
+ * Show a notification immediately (works on both web and native)
  */
 export const showNotification = (title: string, options?: NotificationOptions): void => {
+  if (isNativeApp()) {
+    CapacitorNotifications.showNotification(title, options);
+    return;
+  }
+
   if (!('Notification' in window)) {
     console.warn('This browser does not support notifications');
     return;
@@ -109,9 +135,13 @@ export const showNotification = (title: string, options?: NotificationOptions): 
 };
 
 /**
- * Cancel a scheduled notification
+ * Cancel a scheduled notification (works on both web and native)
  */
 export const cancelNotification = (notificationId: string): void => {
+  if (isNativeApp()) {
+    CapacitorNotifications.cancelNotification(notificationId);
+    return;
+  }
   removeStoredNotification(notificationId);
 };
 
@@ -133,9 +163,14 @@ const removeStoredNotification = (notificationId: string): void => {
 };
 
 /**
- * Initialize notifications system - reschedule any pending notifications
+ * Initialize notifications system - reschedule any pending notifications (works on both web and native)
  */
 export const initializeNotifications = (): void => {
+  if (isNativeApp()) {
+    CapacitorNotifications.initializeNotifications();
+    return;
+  }
+
   const storedNotifications = getStoredNotifications();
   const now = Date.now();
 

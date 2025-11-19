@@ -7,13 +7,23 @@ import {
   requestNotificationPermission,
   getNotificationPermissionStatus,
 } from "@/lib/notifications";
+import { isNativeApp } from "@/lib/platformDetection";
+import { getNotificationPermissionStatus as getNativeStatus } from "@/lib/capacitorNotifications";
 
 export const NotificationSetup = () => {
   const [permission, setPermission] = useState(getNotificationPermissionStatus());
   const [isRequesting, setIsRequesting] = useState(false);
 
   useEffect(() => {
-    setPermission(getNotificationPermissionStatus());
+    const checkPermission = async () => {
+      if (isNativeApp()) {
+        const status = await getNativeStatus();
+        setPermission(status);
+      } else {
+        setPermission(getNotificationPermissionStatus());
+      }
+    };
+    checkPermission();
   }, []);
 
   const handleRequestPermission = async () => {

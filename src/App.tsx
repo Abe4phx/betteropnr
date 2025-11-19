@@ -7,6 +7,7 @@ import { ClerkProvider, SignedIn, SignedOut } from "@clerk/clerk-react";
 import { BetterOpnrProvider } from "@/contexts/TalkSparkContext";
 import { Navigation } from "@/components/Navigation";
 import { InstallBanner } from "@/components/InstallBanner";
+import { isWebApp } from "@/lib/platformDetection";
 import Generator from "./pages/Generator";
 import Saved from "./pages/Saved";
 import Dashboard from "./pages/Dashboard";
@@ -148,7 +149,7 @@ const App = () => {
           <BrowserRouter>
             <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
               <Navigation />
-              <InstallBanner />
+              {isWebApp() && <InstallBanner />}
               <main className="flex-1">
                 <AnimatedRoutes />
               </main>
