@@ -42,14 +42,14 @@ const Saved = () => {
 
   return (
     <div className="min-h-screen bg-muted">
-      <div className="container mx-auto px-4 py-12 max-w-4xl">
-        <div className="space-y-8">
-          <div className="text-center space-y-3 bg-gradient-subtle rounded-3xl p-8">
-            <div className="flex items-center justify-center gap-3">
-              <Heart className="w-10 h-10 text-primary fill-primary" />
-              <h2 className="text-4xl md:text-5xl font-heading font-bold text-foreground">Saved Favorites</h2>
+      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 md:py-12 max-w-4xl">
+        <div className="space-y-6 sm:space-y-8">
+          <div className="text-center space-y-2 sm:space-y-3 bg-gradient-subtle rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8">
+            <div className="flex items-center justify-center gap-2 sm:gap-3">
+              <Heart className="w-7 h-7 sm:w-8 sm:h-8 md:w-10 md:h-10 text-primary fill-primary" />
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-foreground">Saved Favorites</h2>
             </div>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-sm sm:text-base md:text-lg text-muted-foreground px-2">
               Your collection of conversation starters that really work
             </p>
           </div>
@@ -57,40 +57,40 @@ const Saved = () => {
           <ReminderBanner />
 
           {favorites.length === 0 ? (
-            <Card className="text-center py-20 space-y-6">
-              <div className="w-28 h-28 mx-auto bg-bo-gradient rounded-full flex items-center justify-center opacity-90">
-                <Heart className="w-14 h-14 text-white" />
+            <Card className="text-center py-12 sm:py-16 md:py-20 space-y-4 sm:space-y-5 md:space-y-6 mx-2 sm:mx-0">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 mx-auto bg-bo-gradient rounded-full flex items-center justify-center opacity-90">
+                <Heart className="w-10 h-10 sm:w-12 sm:h-12 md:w-14 md:h-14 text-white" />
               </div>
-              <div className="space-y-3">
-                <h3 className="text-2xl font-heading font-semibold text-foreground">No favorites yet</h3>
-                <p className="text-muted-foreground max-w-md mx-auto">
+              <div className="space-y-2 sm:space-y-3 px-3">
+                <h3 className="text-xl sm:text-2xl font-heading font-semibold text-foreground">No favorites yet</h3>
+                <p className="text-sm sm:text-base text-muted-foreground max-w-md mx-auto">
                   Start generating conversation starters and save the ones you love. They'll appear here for easy access.
                 </p>
               </div>
-              <Button onClick={() => window.location.href = '/'} size="lg">
-                <Sparkles className="w-5 h-5 mr-2" />
+              <Button onClick={() => window.location.href = '/'} size="default" className="text-sm sm:text-base">
+                <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                 Generate Your First Opener
               </Button>
             </Card>
           ) : (
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {favorites.map((opener) => (
-                <Card key={opener.id} className="p-6 space-y-4 hover:shadow-elegant transition-all duration-300 border border-border/50">
-                  <div className="flex items-start justify-between gap-3">
-                    <p className="text-base leading-relaxed flex-1">{opener.text}</p>
-                    <Badge variant="secondary" className="shrink-0">
+                <Card key={opener.id} className="p-4 sm:p-5 md:p-6 space-y-3 sm:space-y-4 hover:shadow-elegant transition-all duration-300 border border-border/50">
+                  <div className="flex items-start justify-between gap-2 sm:gap-3">
+                    <p className="text-sm sm:text-base leading-relaxed flex-1">{opener.text}</p>
+                    <Badge variant="secondary" className="shrink-0 text-xs">
                       {opener.tone}
                     </Badge>
                   </div>
                   
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => handleCopy(opener.text)}
-                      className="flex-1"
+                      className="flex-1 min-w-[100px] text-xs sm:text-sm"
                     >
-                      <Copy className="w-4 h-4 mr-2" />
+                      <Copy className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                       Copy
                     </Button>
                     
@@ -98,19 +98,19 @@ const Saved = () => {
                       variant="outline"
                       size="sm"
                       onClick={() => handleShare(opener.text)}
-                      className="flex-1"
+                      className="flex-1 min-w-[100px] text-xs sm:text-sm"
                     >
-                      <Share2 className="w-4 h-4 mr-2" />
+                      <Share2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                       Share
                     </Button>
                     
                     <Button
-                      variant="outline"
+                      variant="ghost"
                       size="sm"
                       onClick={() => handleDelete(opener.id)}
-                      className="flex-1 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      className="min-w-[80px] text-xs sm:text-sm text-destructive hover:text-destructive hover:bg-destructive/10"
                     >
-                      <Trash2 className="w-4 h-4 mr-2" />
+                      <Trash2 className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2" />
                       Delete
                     </Button>
                   </div>
