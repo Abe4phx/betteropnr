@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { useUserPlan } from '@/hooks/useUserPlan';
 import { toast } from 'sonner';
+import { scheduleNotification, cancelNotification, initializeNotifications } from '@/lib/notifications';
 
 export interface Opener {
   id: string;
@@ -23,6 +24,7 @@ export interface Favorite {
   type: 'opener' | 'followup';
   remindAt?: string;
   matchName?: string;
+  customReminderName?: string;
 }
 
 export interface Rating {
@@ -45,6 +47,7 @@ interface BetterOpnrContextType {
   addToFavorites: (item: Opener | FollowUp, type: 'opener' | 'followup', tones: string[], remindIn24h?: boolean, matchName?: string) => void;
   removeFromFavorites: (itemId: string) => void;
   isFavorite: (itemId: string) => boolean;
+  updateFavoriteReminderName: (itemId: string, customName: string) => void;
   ratings: Rating[];
   rateItem: (itemId: string, stars: number) => void;
   getItemRating: (itemId: string) => number;
@@ -66,6 +69,11 @@ export const BetterOpnrProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   const { usage, incrementFavorites } = useUsageTracking();
 
   const MAX_FAVORITES = 20;
+
+  // Initialize notifications system on mount
+  useEffect(() => {
+    initializeNotifications();
+  }, []);
 
   // Load userProfileText from localStorage on mount
   useEffect(() => {
@@ -158,17 +166,39 @@ export const BetterOpnrProvider: React.FC<{ children: React.ReactNode }> = ({ ch
       };
       setFavorites([...favorites, favorite]);
 
+      // Schedule notification if reminder is set
+      if (remindAt && matchName) {
+        scheduleNotification(
+          'Time to follow up! 💬',
+          {
+            body: `Don't forget to message ${matchName}`,
+            tag: item.id,
+            data: { url: '/', favId: item.id },
+            scheduledTime: new Date(remindAt).getTime(),
+          },
+          item.id
+        );
+      }
+
       // Increment favorites count in usage tracking
       await incrementFavorites();
     }
   };
 
   const removeFromFavorites = (itemId: string) => {
+    // Cancel notification if exists
+    cancelNotification(itemId);
     setFavorites(favorites.filter(f => f.id !== itemId));
   };
 
   const isFavorite = (itemId: string) => {
     return favorites.some(f => f.id === itemId);
+  };
+
+  const updateFavoriteReminderName = (itemId: string, customName: string) => {
+    setFavorites(favorites.map(f => 
+      f.id === itemId ? { ...f, customReminderName: customName } : f
+    ));
   };
 
   const rateItem = (itemId: string, stars: number) => {
@@ -192,6 +222,8 @@ export const BetterOpnrProvider: React.FC<{ children: React.ReactNode }> = ({ ch
   };
 
   const dismissReminder = (itemId: string) => {
+    // Cancel notification
+    cancelNotification(itemId);
     setFavorites(favorites.map(f => 
       f.id === itemId ? { ...f, remindAt: undefined } : f
     ));
@@ -214,6 +246,7 @@ export const BetterOpnrProvider: React.FC<{ children: React.ReactNode }> = ({ ch
         addToFavorites,
         removeFromFavorites,
         isFavorite,
+        updateFavoriteReminderName,
         ratings,
         rateItem,
         getItemRating,
