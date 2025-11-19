@@ -8,9 +8,10 @@ interface OpenerListProps {
   matchName?: string;
   onTryAgain?: (openerId: string) => void;
   onVariation?: (openerId: string, style: 'safer' | 'warmer' | 'funnier' | 'shorter') => void;
+  onShowPaywall?: () => void;
 }
 
-export const OpenerList = ({ openers, matchName, onTryAgain, onVariation }: OpenerListProps) => {
+export const OpenerList = ({ openers, matchName, onTryAgain, onVariation, onShowPaywall }: OpenerListProps) => {
   if (openers.length === 0) {
     return null;
   }
@@ -33,6 +34,7 @@ export const OpenerList = ({ openers, matchName, onTryAgain, onVariation }: Open
             matchName={matchName}
             onTryAgain={onTryAgain ? () => onTryAgain(opener.id) : undefined}
             onVariation={onVariation ? (style) => onVariation(opener.id, style) : undefined}
+            onShowPaywall={onShowPaywall}
           />
         ))}
       </div>

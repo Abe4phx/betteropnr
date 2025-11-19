@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart, Copy, RefreshCw, Star, Shield, Smile, Laugh, Minimize2 } from "lucide-react";
+import { Heart, Copy, RefreshCw, Star, Shield, Smile, Laugh, Minimize2, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -10,6 +10,7 @@ import { trackEvent } from "@/lib/analytics";
 import { useState } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { cardVariants, heartPulse } from "@/lib/motionConfig";
+import { useUserPlan } from "@/hooks/useUserPlan";
 
 interface OpenerCardProps {
   id: string;
@@ -18,15 +19,23 @@ interface OpenerCardProps {
   matchName?: string;
   onTryAgain?: () => void;
   onVariation?: (style: 'safer' | 'warmer' | 'funnier' | 'shorter') => void;
+  onShowPaywall?: () => void;
 }
 
-export const OpenerCard = ({ id, text, tone, matchName, onTryAgain, onVariation }: OpenerCardProps) => {
-  const { isFavorite, addToFavorites, removeFromFavorites, rateItem, getItemRating, selectedTones } = useBetterOpnr();
+export const OpenerCard = ({ id, text, tone, matchName, onTryAgain, onVariation, onShowPaywall }: OpenerCardProps) => {
+  const { isFavorite, addToFavorites, removeFromFavorites, rateItem, getItemRating, selectedTones, favorites } = useBetterOpnr();
+  const { plan } = useUserPlan();
   const favorite = isFavorite(id);
   const currentRating = getItemRating(id);
   const [showReminderCheckbox, setShowReminderCheckbox] = useState(false);
   const [remindIn24h, setRemindIn24h] = useState(false);
   const heartControls = useAnimation();
+
+  // Calculate active reminders
+  const activeReminders = favorites.filter(f => f.remindAt).length;
+  const maxReminders = plan === 'free' ? 3 : 10;
+  const remindersRemaining = Math.max(0, maxReminders - activeReminders);
+  const isAtReminderLimit = activeReminders >= maxReminders;
 
   const handleFavoriteClick = () => {
     if (favorite) {
@@ -137,18 +146,46 @@ export const OpenerCard = ({ id, text, tone, matchName, onTryAgain, onVariation 
         )}
 
       {!favorite && (
-        <div className="flex items-center space-x-2 pl-1">
-          <Checkbox 
-            id={`remind-${id}`}
-            checked={remindIn24h}
-            onCheckedChange={(checked) => setRemindIn24h(checked as boolean)}
-          />
-          <Label 
-            htmlFor={`remind-${id}`}
-            className="text-sm text-muted-foreground cursor-pointer"
-          >
-            Remind me in 24h to follow up{matchName ? ` with ${matchName}` : ''}
-          </Label>
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2 pl-1">
+              <Checkbox 
+                id={`remind-${id}`}
+                checked={remindIn24h}
+                disabled={isAtReminderLimit && !remindIn24h}
+                onCheckedChange={(checked) => {
+                  if (checked && isAtReminderLimit && plan === 'free') {
+                    onShowPaywall?.();
+                    toast.error('Reminder limit reached. Upgrade for more reminders!');
+                  } else {
+                    setRemindIn24h(checked as boolean);
+                  }
+                }}
+              />
+              <Label 
+                htmlFor={`remind-${id}`}
+                className={`text-sm cursor-pointer ${isAtReminderLimit && !remindIn24h ? 'text-muted-foreground/50' : 'text-muted-foreground'}`}
+              >
+                Remind me in 24h to follow up{matchName ? ` with ${matchName}` : ''}
+              </Label>
+            </div>
+            <div className="flex items-center gap-1.5 text-xs">
+              <span className={`font-medium ${isAtReminderLimit ? 'text-destructive' : 'text-muted-foreground'}`}>
+                {remindersRemaining}/{maxReminders}
+              </span>
+              {plan === 'free' && isAtReminderLimit && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onShowPaywall}
+                  className="h-6 px-2 text-xs rounded-lg"
+                >
+                  <Sparkles className="w-3 h-3 mr-1" />
+                  Upgrade
+                </Button>
+              )}
+            </div>
+          </div>
         </div>
       )}
       
