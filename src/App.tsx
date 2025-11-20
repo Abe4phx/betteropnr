@@ -22,7 +22,7 @@ import Footer from "@/components/Footer";
 import { AnimatePresence, motion } from "framer-motion";
 import { pageTransition } from "@/lib/motionConfig";
 
-const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+const CLERK_PUBLISHABLE_KEY = 'pk_live_Y2xlcmsuYmV0dGVyb3Buci5jb20k';
 
 const queryClient = new QueryClient();
 
