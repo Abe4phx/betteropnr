@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { ClerkProvider, SignedIn, SignedOut } from "@clerk/clerk-react";
+import { ClerkProvider, useUser } from "@clerk/clerk-react";
 import { BetterOpnrProvider } from "@/contexts/TalkSparkContext";
 import { Navigation } from "@/components/Navigation";
 import { InstallBanner } from "@/components/InstallBanner";
@@ -26,6 +26,24 @@ const CLERK_PUBLISHABLE_KEY = 'pk_live_Y2xlcmsuYmV0dGVyb3Buci5jb20k';
 
 const queryClient = new QueryClient();
 
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isLoaded, isSignedIn } = useUser();
+
+  if (!isLoaded) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Loading your account…</div>
+      </div>
+    );
+  }
+
+  if (!isSignedIn) {
+    return <Navigate to="/sign-in" replace />;
+  }
+
+  return <>{children}</>;
+};
+
 const AnimatedRoutes = () => {
   const location = useLocation();
   
@@ -47,61 +65,41 @@ const AnimatedRoutes = () => {
         <Route
           path="/"
           element={
-            <>
-              <SignedIn>
-                <motion.div {...pageTransition}>
-                  <Generator />
-                </motion.div>
-              </SignedIn>
-              <SignedOut>
-                <Navigate to="/sign-in" replace />
-              </SignedOut>
-            </>
+            <ProtectedRoute>
+              <motion.div {...pageTransition}>
+                <Generator />
+              </motion.div>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/dashboard"
           element={
-            <>
-              <SignedIn>
-                <motion.div {...pageTransition}>
-                  <Dashboard />
-                </motion.div>
-              </SignedIn>
-              <SignedOut>
-                <Navigate to="/sign-in" replace />
-              </SignedOut>
-            </>
+            <ProtectedRoute>
+              <motion.div {...pageTransition}>
+                <Dashboard />
+              </motion.div>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/saved"
           element={
-            <>
-              <SignedIn>
-                <motion.div {...pageTransition}>
-                  <Saved />
-                </motion.div>
-              </SignedIn>
-              <SignedOut>
-                <Navigate to="/sign-in" replace />
-              </SignedOut>
-            </>
+            <ProtectedRoute>
+              <motion.div {...pageTransition}>
+                <Saved />
+              </motion.div>
+            </ProtectedRoute>
           }
         />
         <Route
           path="/billing"
           element={
-            <>
-              <SignedIn>
-                <motion.div {...pageTransition}>
-                  <Billing />
-                </motion.div>
-              </SignedIn>
-              <SignedOut>
-                <Navigate to="/sign-in" replace />
-              </SignedOut>
-            </>
+            <ProtectedRoute>
+              <motion.div {...pageTransition}>
+                <Billing />
+              </motion.div>
+            </ProtectedRoute>
           }
         />
         
