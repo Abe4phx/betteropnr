@@ -1,9 +1,11 @@
 import { SignIn as ClerkSignIn } from '@clerk/clerk-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Spark } from '@/components/ui/Spark';
 
 const SignIn = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = (location.state as any)?.from || '/dashboard';
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4 relative overflow-hidden">
@@ -49,7 +51,7 @@ const SignIn = () => {
         routing="path"
         path="/sign-in"
         signUpUrl="/sign-up"
-        afterSignInUrl="/dashboard"
+        afterSignInUrl={from}
       />
     </div>
   );

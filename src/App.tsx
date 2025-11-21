@@ -28,17 +28,22 @@ const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isLoaded, isSignedIn } = useUser();
+  const location = useLocation();
 
   if (!isLoaded) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Loading your account…</div>
+      <div className="min-h-[60vh] flex items-center justify-center bg-gradient-subtle">
+        <div className="text-center space-y-4">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+          <p className="text-muted-foreground font-medium">Loading your account…</p>
+        </div>
       </div>
     );
   }
 
   if (!isSignedIn) {
-    return <Navigate to="/sign-in" replace />;
+    // Store intended destination for smart redirect after login
+    return <Navigate to="/sign-in" state={{ from: location.pathname }} replace />;
   }
 
   return <>{children}</>;
