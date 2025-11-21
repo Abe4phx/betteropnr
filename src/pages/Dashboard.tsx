@@ -5,13 +5,61 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Heart, Zap } from 'lucide-react';
 import { useUserPlan } from '@/hooks/useUserPlan';
+import { useUserProfile } from '@/hooks/useUserProfile';
+import { useIsNewUser } from '@/hooks/useIsNewUser';
 import { PaywallModal } from '@/components/PaywallModal';
+import { WelcomeFlow } from '@/components/WelcomeFlow';
+import { ProfileCompletionPrompt } from '@/components/ProfileCompletionPrompt';
+import { LoadingSkeleton } from '@/components/ui/LoadingSkeleton';
+import { motion } from 'framer-motion';
 
 const Dashboard = () => {
   const { user, isLoaded } = useUser();
-  const { plan } = useUserPlan();
+  const { plan, loading: planLoading } = useUserPlan();
+  const { profileText } = useUserProfile();
+  const { isNewUser, isChecking } = useIsNewUser();
   const navigate = useNavigate();
   const [showPaywall, setShowPaywall] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
+  const [showProfilePrompt, setShowProfilePrompt] = useState(false);
+  const [welcomeCompleted, setWelcomeCompleted] = useState(false);
+
+  // Check localStorage for welcome completion
+  useEffect(() => {
+    const hasSeenWelcome = localStorage.getItem('betteropnr_welcome_completed');
+    setWelcomeCompleted(!!hasSeenWelcome);
+  }, []);
+
+  // Show welcome flow for new users who haven't seen it
+  useEffect(() => {
+    if (isLoaded && user && !isChecking && isNewUser && !welcomeCompleted) {
+      setShowWelcome(true);
+    }
+  }, [isLoaded, user, isNewUser, isChecking, welcomeCompleted]);
+
+  // Show profile completion prompt if user hasn't set up profile
+  useEffect(() => {
+    if (isLoaded && user && !isChecking && !planLoading && !showWelcome) {
+      // Show prompt if profile is empty and user has completed welcome
+      if (!profileText && welcomeCompleted) {
+        const hasSeenProfilePrompt = localStorage.getItem('betteropnr_profile_prompt_dismissed');
+        if (!hasSeenProfilePrompt) {
+          setShowProfilePrompt(true);
+        }
+      }
+    }
+  }, [isLoaded, user, profileText, isChecking, planLoading, showWelcome, welcomeCompleted]);
+
+  const handleWelcomeComplete = () => {
+    localStorage.setItem('betteropnr_welcome_completed', 'true');
+    setShowWelcome(false);
+    setWelcomeCompleted(true);
+  };
+
+  const handleDismissProfilePrompt = () => {
+    localStorage.setItem('betteropnr_profile_prompt_dismissed', 'true');
+    setShowProfilePrompt(false);
+  };
 
   useEffect(() => {
     if (isLoaded && !user) {
@@ -19,18 +67,42 @@ const Dashboard = () => {
     }
   }, [isLoaded, user, navigate]);
 
-  if (!isLoaded || !user) {
+  if (!isLoaded || !user || isChecking || planLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-pulse">Loading...</div>
+      <div className="min-h-screen bg-muted">
+        <div className="bg-gradient-subtle border-b">
+          <div className="container mx-auto px-4 py-12">
+            <div className="text-center space-y-4">
+              <div className="h-12 w-64 mx-auto bg-muted/50 animate-pulse rounded-lg" />
+              <div className="h-6 w-96 mx-auto bg-muted/50 animate-pulse rounded-lg" />
+            </div>
+          </div>
+        </div>
+        <div className="container mx-auto px-4 py-12 max-w-6xl">
+          <LoadingSkeleton />
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-muted">
-      {/* Hero Greeting Section */}
-      <div className="bg-gradient-subtle border-b">
+    <>
+      {/* Welcome Flow for new users */}
+      {showWelcome && (
+        <WelcomeFlow 
+          userName={user.firstName || user.username || 'Friend'}
+          onComplete={handleWelcomeComplete}
+        />
+      )}
+
+      <div className="min-h-screen bg-muted">
+        {/* Hero Greeting Section */}
+        <motion.div 
+          className="bg-gradient-subtle border-b"
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
         <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 md:py-12">
           <div className="text-center space-y-2 sm:space-y-3 md:space-y-4">
             <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-foreground px-2">
@@ -40,13 +112,22 @@ const Dashboard = () => {
               Ready to spark some amazing conversations today?
             </p>
           </div>
-        </div>
-      </div>
+          </div>
+        </motion.div>
 
-      {/* Feature Cards */}
-      <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 md:py-12 max-w-6xl">
-        <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
-          <Card className="p-4 sm:p-5 md:p-6 space-y-3 sm:space-y-4 hover:shadow-elegant transition-all duration-300 hover:scale-[1.02]">
+        {/* Feature Cards */}
+        <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 md:py-12 max-w-6xl space-y-6">
+          {/* Profile Completion Prompt */}
+          {showProfilePrompt && (
+            <ProfileCompletionPrompt onDismiss={handleDismissProfilePrompt} />
+          )}
+          <motion.div 
+            className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-5 md:gap-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+          >
+            <Card className="p-4 sm:p-5 md:p-6 space-y-3 sm:space-y-4 hover:shadow-elegant transition-all duration-300 hover:scale-[1.02]">
             <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-full bg-primary/10 flex items-center justify-center">
               <Sparkles className="w-6 h-6 sm:w-7 sm:h-7 text-primary" />
             </div>
@@ -91,11 +172,12 @@ const Dashboard = () => {
               </Button>
             )}
           </Card>
+          </motion.div>
         </div>
-      </div>
 
-      <PaywallModal open={showPaywall} onOpenChange={setShowPaywall} />
-    </div>
+        <PaywallModal open={showPaywall} onOpenChange={setShowPaywall} />
+      </div>
+    </>
   );
 };
 
