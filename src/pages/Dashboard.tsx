@@ -12,6 +12,7 @@ import { WelcomeFlow } from '@/components/WelcomeFlow';
 import { ProfileCompletionPrompt } from '@/components/ProfileCompletionPrompt';
 import { LoadingSkeleton } from '@/components/ui/LoadingSkeleton';
 import { motion } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
 
 const Dashboard = () => {
   const { user, isLoaded } = useUser();
@@ -22,38 +23,42 @@ const Dashboard = () => {
   const [showPaywall, setShowPaywall] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [showProfilePrompt, setShowProfilePrompt] = useState(false);
-  const [welcomeCompleted, setWelcomeCompleted] = useState(false);
-
-  // Check localStorage for welcome completion
-  useEffect(() => {
-    const hasSeenWelcome = localStorage.getItem('betteropnr_welcome_completed');
-    setWelcomeCompleted(!!hasSeenWelcome);
-  }, []);
 
   // Show welcome flow for new users who haven't seen it
   useEffect(() => {
-    if (isLoaded && user && !isChecking && isNewUser && !welcomeCompleted) {
+    if (isLoaded && user && !isChecking && isNewUser) {
       setShowWelcome(true);
     }
-  }, [isLoaded, user, isNewUser, isChecking, welcomeCompleted]);
+  }, [isLoaded, user, isNewUser, isChecking]);
 
   // Show profile completion prompt if user hasn't set up profile
   useEffect(() => {
     if (isLoaded && user && !isChecking && !planLoading && !showWelcome) {
       // Show prompt if profile is empty and user has completed welcome
-      if (!profileText && welcomeCompleted) {
+      if (!profileText && !isNewUser) {
         const hasSeenProfilePrompt = localStorage.getItem('betteropnr_profile_prompt_dismissed');
         if (!hasSeenProfilePrompt) {
           setShowProfilePrompt(true);
         }
       }
     }
-  }, [isLoaded, user, profileText, isChecking, planLoading, showWelcome, welcomeCompleted]);
+  }, [isLoaded, user, isChecking, planLoading, showWelcome, profileText, isNewUser]);
 
-  const handleWelcomeComplete = () => {
+  const handleWelcomeComplete = async () => {
+    if (!user) return;
+    
+    // Mark welcome as completed in database
+    try {
+      await supabase
+        .from('users')
+        .update({ has_seen_welcome: true })
+        .eq('clerk_user_id', user.id);
+    } catch (error) {
+      console.error('Error updating welcome status:', error);
+    }
+    
     localStorage.setItem('betteropnr_welcome_completed', 'true');
     setShowWelcome(false);
-    setWelcomeCompleted(true);
   };
 
   const handleDismissProfilePrompt = () => {

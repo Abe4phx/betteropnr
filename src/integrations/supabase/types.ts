@@ -100,6 +100,7 @@ export type Database = {
           clerk_user_id: string
           created_at: string
           email: string
+          has_seen_welcome: boolean | null
           id: string
           plan: string
           plan_interval: string | null
@@ -110,6 +111,7 @@ export type Database = {
           clerk_user_id: string
           created_at?: string
           email: string
+          has_seen_welcome?: boolean | null
           id?: string
           plan?: string
           plan_interval?: string | null
@@ -120,6 +122,7 @@ export type Database = {
           clerk_user_id?: string
           created_at?: string
           email?: string
+          has_seen_welcome?: boolean | null
           id?: string
           plan?: string
           plan_interval?: string | null
