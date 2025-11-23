@@ -37,7 +37,7 @@ export const Navigation = () => {
     >
       <div className="container mx-auto px-4 py-3 sm:py-4">
         <div className="flex items-center justify-between gap-2 sm:gap-4">
-          <Link to="/" className="group">
+          <Link to={isLoaded && user ? "/generator" : "/"} className="group">
             <Logo />
           </Link>
 

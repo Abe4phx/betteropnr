@@ -96,22 +96,23 @@ const Dashboard = () => {
       )}
 
       <div className="min-h-screen bg-muted">
-        {/* Hero Greeting Section */}
+        {/* Compact Hero Greeting Section */}
         <motion.div 
           className="bg-gradient-subtle border-b"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-        <div className="container mx-auto px-3 sm:px-4 py-6 sm:py-8 md:py-12">
-          <div className="text-center space-y-2 sm:space-y-3 md:space-y-4">
-            <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-heading font-bold text-foreground px-2">
-              Welcome back, {user.firstName || user.username || 'Friend'}! 👋
-            </h1>
-            <p className="text-sm sm:text-base md:text-lg text-muted-foreground max-w-2xl mx-auto px-3">
-              Ready to spark some amazing conversations today?
-            </p>
-          </div>
+          <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-5">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
+              <h2 className="text-xl sm:text-2xl font-heading font-semibold text-foreground">
+                Hey {user.firstName || user.username || 'Friend'}! 👋
+              </h2>
+              <Button onClick={() => navigate('/generator')} size="sm" className="rounded-2xl shadow-sm">
+                <Sparkles className="w-4 h-4 mr-2" />
+                Quick Start
+              </Button>
+            </div>
           </div>
         </motion.div>
 
@@ -135,7 +136,7 @@ const Dashboard = () => {
             <p className="text-sm sm:text-base text-muted-foreground">
               Create personalized conversation starters that get replies
             </p>
-            <Button onClick={() => navigate('/')} className="w-full text-sm sm:text-base" size="sm">
+            <Button onClick={() => navigate('/generator')} className="w-full text-sm sm:text-base" size="sm">
               Start Creating
             </Button>
           </Card>
