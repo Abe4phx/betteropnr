@@ -1,6 +1,6 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Heart, Copy, RefreshCw, Star, Shield, Smile, Laugh, Minimize2, Sparkles } from "lucide-react";
+import { Heart, Copy, Check, RefreshCw, Star, Shield, Smile, Laugh, Minimize2, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -29,6 +29,7 @@ export const OpenerCard = ({ id, text, tone, matchName, onTryAgain, onVariation,
   const currentRating = getItemRating(id);
   const [showReminderCheckbox, setShowReminderCheckbox] = useState(false);
   const [remindIn24h, setRemindIn24h] = useState(false);
+  const [justCopied, setJustCopied] = useState(false);
   const heartControls = useAnimation();
 
   // Calculate active reminders
@@ -56,8 +57,10 @@ export const OpenerCard = ({ id, text, tone, matchName, onTryAgain, onVariation,
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(text);
+      setJustCopied(true);
       trackEvent('clicked_copy', { type: 'opener', tone });
       toast.success('Copied to clipboard!');
+      setTimeout(() => setJustCopied(false), 2000);
     } catch (err) {
       toast.error('Failed to copy');
     }
@@ -189,40 +192,51 @@ export const OpenerCard = ({ id, text, tone, matchName, onTryAgain, onVariation,
         </div>
       )}
       
-      <div className="flex gap-2">
+      <div className="space-y-2">
         <Button
-          variant="outline"
-          size="sm"
+          variant="default"
+          size="lg"
           onClick={handleCopy}
-          className="flex-1 rounded-xl"
+          className={`w-full rounded-2xl transition-all ${!justCopied ? 'animate-pulse-subtle' : ''}`}
         >
-          <Copy className="w-4 h-4 mr-2" />
-          Copy
+          {justCopied ? (
+            <>
+              <Check className="w-5 h-5 mr-2" />
+              Copied!
+            </>
+          ) : (
+            <>
+              <Copy className="w-5 h-5 mr-2" />
+              Copy to Clipboard
+            </>
+          )}
         </Button>
         
-        <Button
-          variant={favorite ? "default" : "outline"}
-          size="sm"
-          onClick={handleFavoriteClick}
-          className="flex-1 rounded-xl"
-        >
-          <motion.div animate={heartControls}>
-            <Heart className={`w-4 h-4 mr-2 ${favorite ? 'fill-current' : ''}`} />
-          </motion.div>
-          {favorite ? 'Saved' : 'Save'}
-        </Button>
-        
-        {onTryAgain && (
+        <div className="flex gap-2">
           <Button
-            variant="outline"
+            variant={favorite ? "default" : "outline"}
             size="sm"
-            onClick={onTryAgain}
+            onClick={handleFavoriteClick}
             className="flex-1 rounded-xl"
           >
-            <RefreshCw className="w-4 h-4 mr-2" />
-            Try Again
+            <motion.div animate={heartControls}>
+              <Heart className={`w-4 h-4 mr-2 ${favorite ? 'fill-current' : ''}`} />
+            </motion.div>
+            {favorite ? 'Saved' : 'Save'}
           </Button>
-        )}
+          
+          {onTryAgain && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onTryAgain}
+              className="flex-1 rounded-xl"
+            >
+              <RefreshCw className="w-4 h-4 mr-2" />
+              Try Again
+            </Button>
+          )}
+        </div>
       </div>
     </Card>
     </motion.div>
