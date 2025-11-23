@@ -11,6 +11,7 @@ import { isWebApp } from "@/lib/platformDetection";
 import Generator from "./pages/Generator";
 import Saved from "./pages/Saved";
 import Dashboard from "./pages/Dashboard";
+import Statistics from "./pages/Statistics";
 import Billing from "./pages/Billing";
 import SignIn from "./pages/SignIn";
 import SignUp from "./pages/SignUp";
@@ -93,6 +94,16 @@ const AnimatedRoutes = () => {
             <ProtectedRoute>
               <motion.div {...pageTransition}>
                 <Saved />
+              </motion.div>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/statistics"
+          element={
+            <ProtectedRoute>
+              <motion.div {...pageTransition}>
+                <Statistics />
               </motion.div>
             </ProtectedRoute>
           }
