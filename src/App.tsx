@@ -8,6 +8,7 @@ import { BetterOpnrProvider } from "@/contexts/TalkSparkContext";
 import { Navigation } from "@/components/Navigation";
 import { InstallBanner } from "@/components/InstallBanner";
 import { isWebApp } from "@/lib/platformDetection";
+import Landing from "./pages/Landing";
 import Generator from "./pages/Generator";
 import Saved from "./pages/Saved";
 import Dashboard from "./pages/Dashboard";
@@ -95,6 +96,11 @@ const AnimatedRoutes = () => {
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
         {/* Public routes */}
+        <Route path="/" element={
+          <motion.div {...pageTransition}>
+            <Landing />
+          </motion.div>
+        } />
         <Route path="/sign-in/*" element={<SignIn />} />
         <Route path="/sign-up/*" element={<SignUp />} />
         <Route path="/brand-preview" element={<BrandPreview />} />
@@ -107,7 +113,7 @@ const AnimatedRoutes = () => {
         
         {/* Protected routes with page transitions */}
         <Route
-          path="/"
+          path="/generator"
           element={
             <ProtectedRoute>
               <motion.div {...pageTransition}>
