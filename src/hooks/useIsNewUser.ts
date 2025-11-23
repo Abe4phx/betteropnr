@@ -15,15 +15,15 @@ export const useIsNewUser = () => {
       }
 
       try {
-        // Check if user has generated any openers or saved any favorites
-        const { data: usageData } = await supabase
-          .from('user_usage')
-          .select('openers_generated, favorites_count')
-          .eq('user_id', user.id)
+        // Check if user has seen the welcome flow before
+        const { data: userData } = await supabase
+          .from('users')
+          .select('has_seen_welcome')
+          .eq('clerk_user_id', user.id)
           .maybeSingle();
 
-        // User is "new" if they haven't generated any openers yet
-        const isNew = !usageData || usageData.openers_generated === 0;
+        // User is "new" if they haven't seen the welcome flow yet
+        const isNew = !userData || !userData.has_seen_welcome;
         
         setIsNewUser(isNew);
       } catch (error) {
