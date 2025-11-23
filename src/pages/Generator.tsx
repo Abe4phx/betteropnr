@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from "react";
 import { useUser } from "@clerk/clerk-react";
+import { Link } from "react-router-dom";
 import { ProfileInput } from "@/components/ProfileInput";
 import { UserProfileInput } from "@/components/UserProfileInput";
 import { TonePicker } from "@/components/TonePicker";
@@ -7,13 +8,15 @@ import { OpenerList } from "@/components/OpenerList";
 import { FollowUpList } from "@/components/FollowUpList";
 import { ReminderBanner } from "@/components/ReminderBanner";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { useBetterOpnr } from "@/contexts/TalkSparkContext";
 import { Opener } from "@/contexts/TalkSparkContext";
-import { Sparkles, Check } from "lucide-react";
+import { Sparkles, Check, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { trackEvent } from "@/lib/analytics";
 import { useUsageTracking } from "@/hooks/useUsageTracking";
 import { useUserPlan } from "@/hooks/useUserPlan";
+import { useIsNewUser } from "@/hooks/useIsNewUser";
 import { PaywallModal } from "@/components/PaywallModal";
 import { UpgradeSuccessModal } from "@/components/UpgradeSuccessModal";
 import { supabase } from "@/integrations/supabase/client";
@@ -39,6 +42,7 @@ const Generator = () => {
 
   const { plan } = useUserPlan();
   const { usage, loading: usageLoading, incrementOpeners } = useUsageTracking();
+  const { isNewUser, isChecking } = useIsNewUser();
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingFollowUpFor, setGeneratingFollowUpFor] = useState<string | null>(null);
   const [generatingVariationFor, setGeneratingVariationFor] = useState<string | null>(null);
@@ -294,45 +298,56 @@ const Generator = () => {
 
   return (
     <div className="min-h-screen bg-muted">
-      {/* Hero Section */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.6 }}
-        className="relative bg-bo-gradient text-white overflow-hidden"
-      >
-        <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-secondary/20 opacity-50" />
-        <div className="container mx-auto px-4 py-16 md:py-24 relative z-10">
-          <motion.div 
-            initial={{ y: 20, opacity: 0 }}
+      {/* Compact Greeting Bar */}
+      <div className="border-b border-border bg-background">
+        <div className="container mx-auto px-4 py-4 max-w-4xl">
+          <motion.div
+            initial={{ y: -10, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.2, duration: 0.6 }}
-            className="max-w-3xl mx-auto text-center space-y-6"
+            transition={{ duration: 0.4 }}
+            className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
           >
-            <h1 className="text-4xl md:text-6xl font-heading font-bold">
-              Start better conversations — get more replies.
-            </h1>
-            <p className="text-lg md:text-xl text-white/90">
-              Generate personalized conversation starters that actually work. No more awkward first messages.
-            </p>
-            <Button 
-              size="lg" 
-              variant="secondary"
-              className="bg-white text-primary hover:bg-white/90 shadow-lg hover:shadow-xl mt-4"
-              onClick={() => {
-                const inputSection = document.getElementById('input-section');
-                inputSection?.scrollIntoView({ behavior: 'smooth' });
-              }}
-            >
-              <Sparkles className="w-5 h-5 mr-2" />
-              Create Your First Opener
-            </Button>
+            {!isChecking && isNewUser ? (
+              <div className="flex items-center gap-2">
+                <h1 className="text-xl font-heading font-semibold text-foreground">
+                  Welcome! Let's create your first opener 🎉
+                </h1>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h1 className="text-xl font-heading font-semibold text-foreground">
+                    Hey {user?.firstName || 'there'}! 👋
+                  </h1>
+                  {!usageLoading && (
+                    <>
+                      <span className="hidden sm:inline text-muted-foreground">•</span>
+                      {plan === 'free' ? (
+                        <Badge variant="secondary" className="text-sm">
+                          {usage.openers_generated} / 5 openers used today
+                        </Badge>
+                      ) : (
+                        <Badge variant="default" className="text-sm">
+                          Unlimited openers
+                        </Badge>
+                      )}
+                    </>
+                  )}
+                </div>
+                <Link to="/dashboard">
+                  <Button variant="ghost" size="sm" className="gap-1">
+                    View Dashboard
+                    <ArrowRight className="w-4 h-4" />
+                  </Button>
+                </Link>
+              </>
+            )}
           </motion.div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-12 max-w-4xl" id="input-section">
+      <div className="container mx-auto px-4 py-8 max-w-4xl">
         <motion.div
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
@@ -388,12 +403,6 @@ const Generator = () => {
                 )}
               </Button>
             </div>
-
-            {plan === 'free' && (
-              <p className="text-sm text-center text-muted-foreground">
-                {usage.openers_generated} / 5 openers used today
-              </p>
-            )}
           </div>
 
           {/* Loading skeleton while generating */}
