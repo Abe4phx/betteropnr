@@ -2,7 +2,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Camera, X, Loader2, Upload, GripVertical, Heart } from "lucide-react";
+import { Camera, X, Loader2, Upload, GripVertical, Star } from "lucide-react";
 import { useImageTextExtraction } from "@/hooks/useImageTextExtraction";
 import { useRef, useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
@@ -236,7 +236,7 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
     <div className="space-y-3">
       <div className="flex items-center justify-between gap-2 p-4 rounded-2xl bg-muted/50 border-2 border-primary/30">
         <div className="flex items-center gap-3">
-          <Heart className="w-5 h-5 text-primary fill-primary/20" />
+          <Star className="w-5 h-5 text-primary fill-primary/20" />
           <div className="flex items-center gap-2">
             <Label htmlFor="profile" className="text-lg font-semibold">
               Tell us about them
