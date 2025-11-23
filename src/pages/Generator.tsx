@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { ProfileInput } from "@/components/ProfileInput";
 import { UserProfileInput } from "@/components/UserProfileInput";
@@ -9,7 +9,7 @@ import { ReminderBanner } from "@/components/ReminderBanner";
 import { Button } from "@/components/ui/button";
 import { useBetterOpnr } from "@/contexts/TalkSparkContext";
 import { Opener } from "@/contexts/TalkSparkContext";
-import { Sparkles } from "lucide-react";
+import { Sparkles, Check } from "lucide-react";
 import { toast } from "sonner";
 import { trackEvent } from "@/lib/analytics";
 import { useUsageTracking } from "@/hooks/useUsageTracking";
@@ -44,7 +44,9 @@ const Generator = () => {
   const [generatingVariationFor, setGeneratingVariationFor] = useState<string | null>(null);
   const [showPaywallModal, setShowPaywallModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showGenerateSuccess, setShowGenerateSuccess] = useState(false);
   const sparkControls = useAnimation();
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   // Extract match name from profile text
   const matchName = useMemo(() => extractMatchName(profileText), [profileText]);
@@ -153,6 +155,15 @@ const Generator = () => {
         tones: selectedTones.join(',') 
       });
       toast.success('Openers generated!');
+      
+      // Show success checkmark on button
+      setShowGenerateSuccess(true);
+      setTimeout(() => setShowGenerateSuccess(false), 3000);
+      
+      // Scroll to results after a brief delay
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 300);
     } catch (error) {
       console.error('Error generating openers:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to generate openers. Please try again.');
@@ -356,10 +367,25 @@ const Generator = () => {
                 onClick={() => generateOpeners()}
                 disabled={isGenerating || usageLoading}
                 size="lg"
-                className="w-full shadow-md"
+                className="w-full shadow-md transition-all"
               >
-                <Sparkles className="w-5 h-5 mr-2" />
-                {isGenerating ? 'Generating...' : 'Generate Openers'}
+                {showGenerateSuccess ? (
+                  <>
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                    >
+                      <Check className="w-5 h-5 mr-2" />
+                    </motion.div>
+                    Generated!
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-5 h-5 mr-2" />
+                    {isGenerating ? 'Generating...' : 'Generate Openers'}
+                  </>
+                )}
               </Button>
             </div>
 
@@ -375,6 +401,7 @@ const Generator = () => {
 
           {generatedOpeners.length > 0 && !isGenerating && (
             <motion.div
+              ref={resultsRef}
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.2, duration: 0.5 }}
