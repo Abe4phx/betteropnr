@@ -22,6 +22,7 @@ import NotFound from "./pages/NotFound";
 import Footer from "@/components/Footer";
 import { AnimatePresence, motion } from "framer-motion";
 import { pageTransition } from "@/lib/motionConfig";
+import { useState, useEffect } from "react";
 
 const CLERK_PUBLISHABLE_KEY = 'pk_live_Y2xlcmsuYmV0dGVyb3Buci5jb20k';
 
@@ -30,6 +31,43 @@ const queryClient = new QueryClient();
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isLoaded, isSignedIn } = useUser();
   const location = useLocation();
+  const [authTimeout, setAuthTimeout] = useState(false);
+
+  useEffect(() => {
+    // Set a timeout to detect if Clerk never loads (e.g., domain not authorized)
+    const timer = setTimeout(() => {
+      if (!isLoaded) {
+        setAuthTimeout(true);
+        if (import.meta.env.DEV) {
+          console.warn('⚠️ Auth timeout: Clerk did not load within 10 seconds. Check that this domain is authorized in your Clerk dashboard.');
+        }
+      }
+    }, 10000); // 10 second timeout
+
+    return () => clearTimeout(timer);
+  }, [isLoaded]);
+
+  if (authTimeout) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center bg-gradient-subtle px-4">
+        <div className="max-w-md text-center space-y-6">
+          <div className="text-destructive text-5xl">⚠️</div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold text-foreground">Authentication Timeout</h2>
+            <p className="text-muted-foreground">
+              We're having trouble loading your account. This can happen if the app is running on a domain that isn't authorized in your sign-in settings.
+            </p>
+          </div>
+          <button
+            onClick={() => window.location.href = '/sign-in'}
+            className="px-6 py-3 bg-primary text-primary-foreground rounded-2xl font-semibold hover:opacity-90 transition-opacity"
+          >
+            Go to Sign In
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (!isLoaded) {
     return (
