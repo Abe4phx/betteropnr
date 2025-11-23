@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { User, ChevronDown, Camera, X, Loader2 } from "lucide-react";
 import { useImageTextExtraction } from "@/hooks/useImageTextExtraction";
@@ -86,12 +87,18 @@ export const UserProfileInput = ({ value, onChange }: UserProfileInputProps) => 
   return (
     <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-3">
       <CollapsibleTrigger className="w-full">
-        <div className="flex items-center justify-between gap-2 p-4 rounded-2xl bg-muted/50 hover:bg-muted transition-colors">
-          <div className="flex items-center gap-2">
-            <User className="w-5 h-5 text-primary" />
-            <Label htmlFor="userProfile" className="text-lg font-semibold cursor-pointer">
-              Your Profile {value.trim() && <span className="text-sm text-muted-foreground font-normal ml-2">✓ Saved</span>}
-            </Label>
+        <div className="flex items-center justify-between gap-2 p-4 rounded-2xl bg-muted/50 hover:bg-muted transition-colors border-2 border-ts-teal/30 hover:border-ts-teal/50">
+          <div className="flex items-center gap-3">
+            <User className="w-5 h-5 text-ts-teal" />
+            <div className="flex items-center gap-2">
+              <Label htmlFor="userProfile" className="text-lg font-semibold cursor-pointer">
+                Your Profile
+              </Label>
+              <Badge variant="outline" className="bg-ts-teal/10 text-ts-teal border-ts-teal/30 text-xs font-bold">
+                YOU
+              </Badge>
+              {value.trim() && <span className="text-sm text-muted-foreground font-normal">✓ Saved</span>}
+            </div>
           </div>
           <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </div>
