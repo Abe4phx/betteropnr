@@ -33,10 +33,8 @@ export const UserProfileInput = ({ value, onChange }: UserProfileInputProps) => 
     }
   }, [value, profileText, setProfileText]);
 
-  // Auto-open if empty, stay collapsed if filled
-  useEffect(() => {
-    setIsOpen(!value.trim());
-  }, []);
+  // Always start collapsed since it's usually only used once
+  // Users can manually expand if needed
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
