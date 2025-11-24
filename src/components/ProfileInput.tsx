@@ -234,11 +234,11 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between gap-2 p-4 rounded-2xl bg-muted/50 border-2 border-primary/30">
-        <div className="flex items-center gap-3">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-2xl bg-muted/50 border-2 border-primary/30">
+        <div className="flex items-center gap-2 sm:gap-3">
           <Star className="w-5 h-5 text-primary fill-primary/20" />
-          <div className="flex items-center gap-2">
-            <Label htmlFor="profile" className="text-lg font-semibold">
+          <div className="flex items-center gap-2 flex-wrap">
+            <Label htmlFor="profile" className="text-base sm:text-lg font-semibold">
               Tell us about them
             </Label>
             <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 text-xs font-bold">
@@ -253,12 +253,13 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
             size="sm"
             onClick={() => fileInputRef.current?.click()}
             disabled={isExtracting}
-            className="gap-2"
+            className="gap-2 flex-1 sm:flex-none"
           >
             {isExtracting ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                Extracting...
+                <span className="hidden sm:inline">Extracting...</span>
+                <span className="sm:hidden">...</span>
               </>
             ) : (
               <>
@@ -274,6 +275,7 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
               size="sm"
               onClick={handleClearAll}
               disabled={isExtracting}
+              className="flex-shrink-0"
             >
               Clear All
             </Button>
