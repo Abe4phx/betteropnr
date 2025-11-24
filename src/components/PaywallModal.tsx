@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
+import { useSupabaseClient } from '@/hooks/useSupabaseClient';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Check, Sparkles, Zap, Crown } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { motion } from 'framer-motion';
@@ -22,6 +22,7 @@ const PRICE_IDS = {
 
 export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
   const { user } = useUser();
+  const supabase = useSupabaseClient();
   const [loading, setLoading] = useState(false);
   const [isYearly, setIsYearly] = useState(false);
 

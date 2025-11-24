@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { useSupabaseClient } from '@/hooks/useSupabaseClient';
 import { toast } from '@/hooks/use-toast';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -11,6 +11,7 @@ interface ImageData {
 }
 
 export const useImageTextExtraction = () => {
+  const supabase = useSupabaseClient();
   const [isExtracting, setIsExtracting] = useState(false);
   const [imageData, setImageData] = useState<ImageData[]>([]);
 
