@@ -48,18 +48,23 @@ const Dashboard = () => {
   const handleWelcomeComplete = async () => {
     if (!user) return;
     
+    setShowWelcome(false);
+    
     // Mark welcome as completed in database
     try {
-      await supabase
+      const { error } = await supabase
         .from('users')
         .update({ has_seen_welcome: true })
         .eq('clerk_user_id', user.id);
+      
+      if (error) {
+        console.error('Error updating welcome status:', error);
+      } else {
+        console.log('Welcome status updated successfully');
+      }
     } catch (error) {
       console.error('Error updating welcome status:', error);
     }
-    
-    localStorage.setItem('betteropnr_welcome_completed', 'true');
-    setShowWelcome(false);
   };
 
   const handleDismissProfilePrompt = () => {
