@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { useSupabaseClient } from '@/hooks/useSupabaseClient';
+import { useSupabase } from '@/contexts/SupabaseContext';
 import { useToast } from '@/hooks/use-toast';
 
 export const useUserProfile = () => {
   const { user, isLoaded } = useUser();
-  const supabase = useSupabaseClient();
+  const supabase = useSupabase();
   const [profileText, setProfileText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();

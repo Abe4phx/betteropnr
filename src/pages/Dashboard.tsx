@@ -1,7 +1,7 @@
 import { useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { useSupabaseClient } from '@/hooks/useSupabaseClient';
+import { useSupabase } from '@/contexts/SupabaseContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Heart, Zap } from 'lucide-react';
@@ -16,7 +16,7 @@ import { motion } from 'framer-motion';
 
 const Dashboard = () => {
   const { user, isLoaded } = useUser();
-  const supabase = useSupabaseClient();
+  const supabase = useSupabase();
   const { plan, loading: planLoading } = useUserPlan();
   const { profileText } = useUserProfile();
   const { isNewUser, isChecking } = useIsNewUser();

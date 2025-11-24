@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { useSupabaseClient } from '@/hooks/useSupabaseClient';
+import { useSupabase } from '@/contexts/SupabaseContext';
 import { useUserPlan } from '@/hooks/useUserPlan';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -18,7 +18,7 @@ interface DailyUsage {
 
 const Statistics = () => {
   const { user } = useUser();
-  const supabase = useSupabaseClient();
+  const supabase = useSupabase();
   const { plan, loading: planLoading } = useUserPlan();
   const { usage, loading: usageLoading } = useUsageTracking();
   const [historicalData, setHistoricalData] = useState<DailyUsage[]>([]);

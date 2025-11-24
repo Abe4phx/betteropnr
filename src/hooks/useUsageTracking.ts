@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { useSupabaseClient } from '@/hooks/useSupabaseClient';
+import { useSupabase } from '@/contexts/SupabaseContext';
 import { useUserPlan } from './useUserPlan';
 
 interface UsageData {
@@ -13,7 +13,7 @@ interface UsageData {
 export const useUsageTracking = () => {
   const { user } = useUser();
   const { plan } = useUserPlan();
-  const supabase = useSupabaseClient();
+  const supabase = useSupabase();
   const [usage, setUsage] = useState<UsageData>({
     openers_generated: 0,
     favorites_count: 0,
