@@ -1,6 +1,7 @@
 import { useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { useSupabaseClient } from '@/hooks/useSupabaseClient';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Heart, Zap } from 'lucide-react';
@@ -12,10 +13,10 @@ import { WelcomeFlow } from '@/components/WelcomeFlow';
 import { ProfileCompletionPrompt } from '@/components/ProfileCompletionPrompt';
 import { LoadingSkeleton } from '@/components/ui/LoadingSkeleton';
 import { motion } from 'framer-motion';
-import { supabase } from '@/integrations/supabase/client';
 
 const Dashboard = () => {
   const { user, isLoaded } = useUser();
+  const supabase = useSupabaseClient();
   const { plan, loading: planLoading } = useUserPlan();
   const { profileText } = useUserProfile();
   const { isNewUser, isChecking } = useIsNewUser();

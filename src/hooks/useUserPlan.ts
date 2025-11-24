@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { supabase } from '@/integrations/supabase/client';
+import { useSupabaseClient } from '@/hooks/useSupabaseClient';
 
 export const useUserPlan = () => {
   const { user } = useUser();
+  const supabase = useSupabaseClient();
   const [plan, setPlan] = useState<string>('free');
   const [loading, setLoading] = useState(true);
 
