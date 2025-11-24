@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ClerkProvider, useUser } from "@clerk/clerk-react";
+import { SupabaseProvider } from "@/contexts/SupabaseContext";
 import { BetterOpnrProvider } from "@/contexts/TalkSparkContext";
 import { Navigation } from "@/components/Navigation";
 import { InstallBanner } from "@/components/InstallBanner";
@@ -206,25 +207,27 @@ const App = () => {
 
   return (
     <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <BetterOpnrProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
-              <Navigation />
-              {isWebApp() && <InstallBanner />}
-              <main className="flex-1">
-                <AnimatedRoutes />
-              </main>
-              <Footer />
-            </div>
-          </BrowserRouter>
-        </BetterOpnrProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </ClerkProvider>
+      <SupabaseProvider>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <BetterOpnrProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
+                  <Navigation />
+                  {isWebApp() && <InstallBanner />}
+                  <main className="flex-1">
+                    <AnimatedRoutes />
+                  </main>
+                  <Footer />
+                </div>
+              </BrowserRouter>
+            </BetterOpnrProvider>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </SupabaseProvider>
+    </ClerkProvider>
   );
 };
 

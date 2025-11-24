@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
-import { useSupabaseClient } from '@/hooks/useSupabaseClient';
+import { useSupabase } from '@/contexts/SupabaseContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -13,7 +13,7 @@ import { UpgradeSuccessModal } from '@/components/UpgradeSuccessModal';
 const Billing = () => {
   const navigate = useNavigate();
   const { user, isLoaded } = useUser();
-  const supabase = useSupabaseClient();
+  const supabase = useSupabase();
   const { plan, loading } = useUserPlan();
   const [portalLoading, setPortalLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);

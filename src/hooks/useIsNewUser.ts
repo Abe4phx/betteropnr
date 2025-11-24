@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { useSupabaseClient } from '@/hooks/useSupabaseClient';
+import { useSupabase } from '@/contexts/SupabaseContext';
 
 export const useIsNewUser = () => {
   const { user, isLoaded } = useUser();
-  const supabase = useSupabaseClient();
+  const supabase = useSupabase();
   const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
   const [isChecking, setIsChecking] = useState(true);
 

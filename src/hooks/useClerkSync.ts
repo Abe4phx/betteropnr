@@ -1,10 +1,10 @@
 import { useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { useSupabaseClient } from '@/hooks/useSupabaseClient';
+import { useSupabase } from '@/contexts/SupabaseContext';
 
 export const useClerkSync = () => {
   const { user, isLoaded } = useUser();
-  const supabase = useSupabaseClient();
+  const supabase = useSupabase();
 
   useEffect(() => {
     const syncUserToSupabase = async () => {

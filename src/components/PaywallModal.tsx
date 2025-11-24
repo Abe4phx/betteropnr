@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { useSupabaseClient } from '@/hooks/useSupabaseClient';
+import { useSupabase } from '@/contexts/SupabaseContext';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -22,7 +22,7 @@ const PRICE_IDS = {
 
 export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
   const { user } = useUser();
-  const supabase = useSupabaseClient();
+  const supabase = useSupabase();
   const [loading, setLoading] = useState(false);
   const [isYearly, setIsYearly] = useState(false);
 
