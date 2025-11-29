@@ -38,6 +38,9 @@ export const ClerkSyncProvider = ({ children }: { children: ReactNode }) => {
 
         if (fetchError) {
           console.error('Error checking for existing user:', fetchError);
+          // Still mark as synced to prevent app from hanging
+          hasAttemptedSync.current = true;
+          setIsSynced(true);
           return;
         }
 
@@ -64,6 +67,9 @@ export const ClerkSyncProvider = ({ children }: { children: ReactNode }) => {
               return;
             }
             console.error('Error creating user:', insertError);
+            // Still mark as synced after max retries to prevent hanging
+            hasAttemptedSync.current = true;
+            setIsSynced(true);
           } else {
             console.log('User created successfully');
             hasAttemptedSync.current = true;
@@ -71,26 +77,31 @@ export const ClerkSyncProvider = ({ children }: { children: ReactNode }) => {
             setIsSynced(true);
           }
         } else {
-          // Update existing user
-          console.log('Updating existing user');
-          const { error: updateError } = await supabase
+          // User exists - mark as synced immediately, then update in background
+          console.log('Existing user found, marking as synced');
+          hasAttemptedSync.current = true;
+          retryCount.current = 0;
+          setIsSynced(true);
+          
+          // Update in background (non-blocking)
+          supabase
             .from('users')
             .update({
               email: userData.email,
               username: userData.username,
             })
-            .eq('clerk_user_id', user.id);
-          
-          if (updateError) {
-            console.error('Error updating user:', updateError);
-          } else {
-            hasAttemptedSync.current = true;
-            retryCount.current = 0;
-            setIsSynced(true);
-          }
+            .eq('clerk_user_id', user.id)
+            .then(({ error: updateError }) => {
+              if (updateError) {
+                console.error('Error updating user:', updateError);
+              }
+            });
         }
       } catch (error) {
         console.error('Error syncing user to Supabase:', error);
+        // Mark as synced even on error to prevent app from hanging
+        hasAttemptedSync.current = true;
+        setIsSynced(true);
       }
     };
 
