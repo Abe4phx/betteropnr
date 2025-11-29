@@ -1,18 +1,18 @@
 import { useEffect, useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { useSupabase } from '@/contexts/SupabaseContext';
+import { useSupabaseContext } from '@/contexts/SupabaseContext';
 
 export const useUserPlan = () => {
   const { user } = useUser();
-  const supabase = useSupabase();
+  const { client: supabase, isTokenReady } = useSupabaseContext();
   const [plan, setPlan] = useState<string>('free');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUserPlan = async () => {
-      if (!user) {
-        setLoading(false);
-        return;
+      // Wait for user AND token to be ready
+      if (!user || !isTokenReady) {
+        return; // Don't set loading to false yet - still waiting
       }
 
       try {
@@ -32,7 +32,7 @@ export const useUserPlan = () => {
     };
 
     fetchUserPlan();
-  }, [user]);
+  }, [user, isTokenReady, supabase]);
 
   return { plan, loading };
 };
