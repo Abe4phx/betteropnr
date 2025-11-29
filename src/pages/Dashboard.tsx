@@ -1,13 +1,14 @@
 import { useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { useSupabase } from '@/contexts/SupabaseContext';
+import { useSupabaseContext } from '@/contexts/SupabaseContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Heart, Zap } from 'lucide-react';
 import { useUserPlan } from '@/hooks/useUserPlan';
 import { useUserProfile } from '@/hooks/useUserProfile';
 import { useIsNewUser } from '@/hooks/useIsNewUser';
+import { useClerkSync } from '@/hooks/useClerkSync';
 import { PaywallModal } from '@/components/PaywallModal';
 import { WelcomeFlow } from '@/components/WelcomeFlow';
 import { ProfileCompletionPrompt } from '@/components/ProfileCompletionPrompt';
@@ -16,10 +17,11 @@ import { motion } from 'framer-motion';
 
 const Dashboard = () => {
   const { user, isLoaded } = useUser();
-  const supabase = useSupabase();
+  const { client: supabase, isTokenReady } = useSupabaseContext();
+  const { isSynced } = useClerkSync();
   const { plan, loading: planLoading } = useUserPlan();
   const { profileText } = useUserProfile();
-  const { isNewUser, isChecking } = useIsNewUser();
+  const { isNewUser, isChecking } = useIsNewUser(isSynced);
   const navigate = useNavigate();
   const [showPaywall, setShowPaywall] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
@@ -46,7 +48,7 @@ const Dashboard = () => {
   }, [isLoaded, user, isChecking, planLoading, showWelcome, profileText, isNewUser]);
 
   const handleWelcomeComplete = async () => {
-    if (!user) return;
+    if (!user || !isTokenReady) return;
     
     setShowWelcome(false);
     

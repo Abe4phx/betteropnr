@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { useSupabaseContext } from '@/contexts/SupabaseContext';
 
@@ -8,6 +8,7 @@ export const useClerkSync = () => {
   const hasAttemptedSync = useRef(false);
   const retryCount = useRef(0);
   const maxRetries = 3;
+  const [isSynced, setIsSynced] = useState(false);
 
   useEffect(() => {
     const syncUserToSupabase = async () => {
@@ -59,6 +60,7 @@ export const useClerkSync = () => {
             console.log('User created successfully');
             hasAttemptedSync.current = true;
             retryCount.current = 0;
+            setIsSynced(true);
           }
         } else {
           // Update existing user
@@ -76,6 +78,7 @@ export const useClerkSync = () => {
           } else {
             hasAttemptedSync.current = true;
             retryCount.current = 0;
+            setIsSynced(true);
           }
         }
       } catch (error) {
@@ -90,7 +93,8 @@ export const useClerkSync = () => {
   useEffect(() => {
     hasAttemptedSync.current = false;
     retryCount.current = 0;
+    setIsSynced(false);
   }, [user?.id]);
 
-  return { user, isLoaded };
+  return { user, isLoaded, isSynced };
 };
