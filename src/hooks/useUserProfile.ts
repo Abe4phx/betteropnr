@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { useSupabase } from '@/contexts/SupabaseContext';
+import { useSupabaseContext } from '@/contexts/SupabaseContext';
 import { useToast } from '@/hooks/use-toast';
 
 export const useUserProfile = () => {
   const { user, isLoaded } = useUser();
-  const supabase = useSupabase();
+  const { client: supabase, isTokenReady } = useSupabaseContext();
   const [profileText, setProfileText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -13,8 +13,10 @@ export const useUserProfile = () => {
   // Load profile when user logs in
   useEffect(() => {
     const loadProfile = async () => {
-      if (!isLoaded || !user) {
-        setIsLoading(false);
+      if (!isLoaded || !user || !isTokenReady) {
+        if (isLoaded && !user) {
+          setIsLoading(false);
+        }
         return;
       }
 
@@ -43,11 +45,11 @@ export const useUserProfile = () => {
     };
 
     loadProfile();
-  }, [user, isLoaded, toast]);
+  }, [user, isLoaded, isTokenReady, toast, supabase]);
 
   // Save profile with debouncing
   useEffect(() => {
-    if (!user || !isLoaded || isLoading) return;
+    if (!user || !isLoaded || isLoading || !isTokenReady) return;
 
     const timeoutId = setTimeout(async () => {
       try {
@@ -75,7 +77,7 @@ export const useUserProfile = () => {
     }, 1000); // Debounce for 1 second
 
     return () => clearTimeout(timeoutId);
-  }, [profileText, user, isLoaded, isLoading, toast]);
+  }, [profileText, user, isLoaded, isLoading, isTokenReady, toast, supabase]);
 
   return {
     profileText,

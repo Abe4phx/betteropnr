@@ -8,6 +8,7 @@ const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
 
 interface SupabaseContextType {
   client: SupabaseClient<Database>;
+  isTokenReady: boolean;
 }
 
 const SupabaseContext = createContext<SupabaseContextType | null>(null);
@@ -53,9 +54,12 @@ export const SupabaseProvider = ({ children }: { children: ReactNode }) => {
     );
   }, [supabaseAccessToken]);
 
+  const isTokenReady = !!supabaseAccessToken;
+
   const contextValue = useMemo(() => ({
     client: supabase,
-  }), [supabase]);
+    isTokenReady,
+  }), [supabase, isTokenReady]);
 
   return (
     <SupabaseContext.Provider value={contextValue}>
