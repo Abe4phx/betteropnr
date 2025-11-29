@@ -1,10 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { useSupabaseContext } from '@/contexts/SupabaseContext';
+import { useClerkSyncContext } from '@/contexts/ClerkSyncContext';
 
-export const useIsNewUser = (isSynced: boolean = false) => {
+export const useIsNewUser = (isSyncedOverride?: boolean) => {
   const { user, isLoaded } = useUser();
   const { client: supabase, isTokenReady } = useSupabaseContext();
+  const { isSynced: contextSynced } = useClerkSyncContext();
+  
+  // Use override if provided, otherwise use context
+  const isSynced = isSyncedOverride !== undefined ? isSyncedOverride : contextSynced;
+  
   const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
   const [isChecking, setIsChecking] = useState(true);
 

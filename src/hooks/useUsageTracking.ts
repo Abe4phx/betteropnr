@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { useSupabaseContext } from '@/contexts/SupabaseContext';
+import { useClerkSyncContext } from '@/contexts/ClerkSyncContext';
 import { useUserPlan } from './useUserPlan';
 
 interface UsageData {
@@ -14,6 +15,7 @@ export const useUsageTracking = () => {
   const { user } = useUser();
   const { plan } = useUserPlan();
   const { client: supabase, isTokenReady } = useSupabaseContext();
+  const { isSynced } = useClerkSyncContext();
   const [usage, setUsage] = useState<UsageData>({
     openers_generated: 0,
     favorites_count: 0,
@@ -23,7 +25,7 @@ export const useUsageTracking = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchUsage = async () => {
-    if (!user || !isTokenReady) {
+    if (!user || !isTokenReady || !isSynced) {
       if (!user) {
         setLoading(false);
       }
@@ -67,7 +69,7 @@ export const useUsageTracking = () => {
 
   useEffect(() => {
     fetchUsage();
-  }, [user, plan, isTokenReady]);
+  }, [user, plan, isTokenReady, isSynced]);
 
   const incrementOpeners = async () => {
     if (!user || !isTokenReady) return;

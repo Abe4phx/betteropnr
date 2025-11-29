@@ -17,6 +17,7 @@ import { trackEvent } from "@/lib/analytics";
 import { useUsageTracking } from "@/hooks/useUsageTracking";
 import { useUserPlan } from "@/hooks/useUserPlan";
 import { useIsNewUser } from "@/hooks/useIsNewUser";
+import { useClerkSyncContext } from "@/contexts/ClerkSyncContext";
 import { PaywallModal } from "@/components/PaywallModal";
 import { UpgradeSuccessModal } from "@/components/UpgradeSuccessModal";
 import { supabase } from "@/integrations/supabase/client";
@@ -42,7 +43,8 @@ const Generator = () => {
 
   const { plan } = useUserPlan();
   const { usage, loading: usageLoading, incrementOpeners } = useUsageTracking();
-  const { isNewUser, isChecking } = useIsNewUser();
+  const { isSynced } = useClerkSyncContext();
+  const { isNewUser, isChecking } = useIsNewUser(isSynced);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatingFollowUpFor, setGeneratingFollowUpFor] = useState<string | null>(null);
   const [generatingVariationFor, setGeneratingVariationFor] = useState<string | null>(null);
