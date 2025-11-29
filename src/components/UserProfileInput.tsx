@@ -18,21 +18,30 @@ export const UserProfileInput = ({ value, onChange }: UserProfileInputProps) => 
   const { isExtracting, imagePreviews, extractText, clearPreviews } = useImageTextExtraction();
   const { profileText, setProfileText, isLoading } = useUserProfile();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const hasInitializedRef = useRef(false);
 
-  // Sync profile text from database to parent component
+  // Sync profile text from database to parent component (only once on load)
   useEffect(() => {
-    if (!isLoading && profileText && !value) {
+    if (!isLoading && profileText && !hasInitializedRef.current) {
+      hasInitializedRef.current = true;
       onChange(profileText);
     }
-  }, [isLoading, profileText, value, onChange]);
+  }, [isLoading, profileText, onChange]);
 
-  // Save to database when value changes
+  // Also mark as initialized if loading finishes with no profile
   useEffect(() => {
-    if (value !== profileText) {
+    if (!isLoading && !hasInitializedRef.current) {
+      hasInitializedRef.current = true;
+    }
+  }, [isLoading]);
+
+  // Save to database when user changes value (not on initial sync)
+  useEffect(() => {
+    // Only save if we've initialized and value actually differs
+    if (hasInitializedRef.current && value !== profileText) {
       setProfileText(value);
     }
   }, [value, profileText, setProfileText]);
-
   // Always start collapsed since it's usually only used once
   // Users can manually expand if needed
 
