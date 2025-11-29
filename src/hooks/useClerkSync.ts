@@ -1,15 +1,21 @@
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { useSupabaseContext } from '@/contexts/SupabaseContext';
 
 export const useClerkSync = () => {
   const { user, isLoaded } = useUser();
   const { client: supabase, isTokenReady } = useSupabaseContext();
+  const hasAttemptedSync = useRef(false);
+  const retryCount = useRef(0);
+  const maxRetries = 3;
 
   useEffect(() => {
     const syncUserToSupabase = async () => {
       // Wait for both user to be loaded AND token to be ready
       if (!isLoaded || !user || !isTokenReady) return;
+
+      // Only attempt sync once per session (unless retrying due to error)
+      if (hasAttemptedSync.current && retryCount.current === 0) return;
 
       try {
         console.log('Syncing user to Supabase:', user.id);
@@ -41,9 +47,18 @@ export const useClerkSync = () => {
             .insert(userData);
           
           if (insertError) {
+            // If RLS error, retry after a short delay (token might not be fully propagated)
+            if (insertError.message?.includes('row-level security') && retryCount.current < maxRetries) {
+              console.log(`RLS error on insert, retrying... (attempt ${retryCount.current + 1}/${maxRetries})`);
+              retryCount.current += 1;
+              setTimeout(syncUserToSupabase, 500 * retryCount.current);
+              return;
+            }
             console.error('Error creating user:', insertError);
           } else {
             console.log('User created successfully');
+            hasAttemptedSync.current = true;
+            retryCount.current = 0;
           }
         } else {
           // Update existing user
@@ -58,6 +73,9 @@ export const useClerkSync = () => {
           
           if (updateError) {
             console.error('Error updating user:', updateError);
+          } else {
+            hasAttemptedSync.current = true;
+            retryCount.current = 0;
           }
         }
       } catch (error) {
@@ -67,6 +85,12 @@ export const useClerkSync = () => {
 
     syncUserToSupabase();
   }, [user, isLoaded, isTokenReady, supabase]);
+
+  // Reset sync flag when user changes
+  useEffect(() => {
+    hasAttemptedSync.current = false;
+    retryCount.current = 0;
+  }, [user?.id]);
 
   return { user, isLoaded };
 };
