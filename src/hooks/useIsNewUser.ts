@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
 import { useSupabaseContext } from '@/contexts/SupabaseContext';
 
-export const useIsNewUser = () => {
+export const useIsNewUser = (isSynced: boolean = false) => {
   const { user, isLoaded } = useUser();
   const { client: supabase, isTokenReady } = useSupabaseContext();
   const [isNewUser, setIsNewUser] = useState<boolean | null>(null);
@@ -10,8 +10,8 @@ export const useIsNewUser = () => {
 
   useEffect(() => {
     const checkIfNewUser = async () => {
-      // Wait for user to be loaded AND token to be ready
-      if (!isLoaded || !user || !isTokenReady) {
+      // Wait for user to be loaded, token to be ready, AND user to be synced to database
+      if (!isLoaded || !user || !isTokenReady || !isSynced) {
         return; // Don't set isChecking to false yet - still waiting
       }
 
@@ -36,7 +36,7 @@ export const useIsNewUser = () => {
     };
 
     checkIfNewUser();
-  }, [user, isLoaded, isTokenReady, supabase]);
+  }, [user, isLoaded, isTokenReady, isSynced, supabase]);
 
   return { isNewUser, isChecking };
 };
