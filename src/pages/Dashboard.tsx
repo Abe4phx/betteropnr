@@ -1,7 +1,7 @@
 import { useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { useSupabase, useSupabaseContext } from '@/contexts/SupabaseContext';
+import { useSupabase } from '@/contexts/SupabaseContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Heart, Zap } from 'lucide-react';
@@ -17,7 +17,6 @@ import { motion } from 'framer-motion';
 const Dashboard = () => {
   const { user, isLoaded } = useUser();
   const supabase = useSupabase();
-  const { jwtError } = useSupabaseContext();
   const { plan, loading: planLoading } = useUserPlan();
   const { profileText } = useUserProfile();
   const { isNewUser, isChecking } = useIsNewUser();
@@ -26,12 +25,12 @@ const Dashboard = () => {
   const [showWelcome, setShowWelcome] = useState(false);
   const [showProfilePrompt, setShowProfilePrompt] = useState(false);
 
-  // Show welcome flow for new users who haven't seen it (but not if JWT is misconfigured)
+  // Show welcome flow for new users who haven't seen it
   useEffect(() => {
-    if (isLoaded && user && !isChecking && isNewUser && !jwtError) {
+    if (isLoaded && user && !isChecking && isNewUser) {
       setShowWelcome(true);
     }
-  }, [isLoaded, user, isNewUser, isChecking, jwtError]);
+  }, [isLoaded, user, isNewUser, isChecking]);
 
   // Show profile completion prompt if user hasn't set up profile
   useEffect(() => {
