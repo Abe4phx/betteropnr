@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo, ReactNode } from 'react';
+import { createContext, useContext, useMemo, ReactNode, useEffect, useState } from 'react';
 import { useSession } from '@clerk/clerk-react';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/integrations/supabase/types';
@@ -14,22 +14,36 @@ const SupabaseContext = createContext<SupabaseContextType | null>(null);
 
 export const SupabaseProvider = ({ children }: { children: ReactNode }) => {
   const { session } = useSession();
+  const [supabaseAccessToken, setSupabaseAccessToken] = useState<string | null>(null);
+
+  useEffect(() => {
+    const getToken = async () => {
+      if (!session) {
+        setSupabaseAccessToken(null);
+        return;
+      }
+      
+      try {
+        const token = await session.getToken({ template: 'supabase' });
+        setSupabaseAccessToken(token);
+      } catch (error) {
+        console.error('Error getting Clerk token for Supabase:', error);
+        setSupabaseAccessToken(null);
+      }
+    };
+
+    getToken();
+  }, [session]);
 
   const supabase = useMemo(() => {
     return createClient<Database>(
       SUPABASE_URL,
       SUPABASE_PUBLISHABLE_KEY,
       {
-        accessToken: async () => {
-          if (!session) return null;
-          try {
-            // Use getToken without template - works with third-party auth
-            const token = await session.getToken();
-            return token;
-          } catch (error) {
-            console.error('Error getting Clerk token:', error);
-            return null;
-          }
+        global: {
+          headers: supabaseAccessToken
+            ? { Authorization: `Bearer ${supabaseAccessToken}` }
+            : {},
         },
         auth: {
           persistSession: false,
@@ -37,7 +51,7 @@ export const SupabaseProvider = ({ children }: { children: ReactNode }) => {
         },
       }
     );
-  }, [session]);
+  }, [supabaseAccessToken]);
 
   const contextValue = useMemo(() => ({
     client: supabase,
