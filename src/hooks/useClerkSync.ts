@@ -1,14 +1,15 @@
 import { useEffect } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { useSupabase } from '@/contexts/SupabaseContext';
+import { useSupabaseContext } from '@/contexts/SupabaseContext';
 
 export const useClerkSync = () => {
   const { user, isLoaded } = useUser();
-  const supabase = useSupabase();
+  const { client: supabase, isTokenReady } = useSupabaseContext();
 
   useEffect(() => {
     const syncUserToSupabase = async () => {
-      if (!isLoaded || !user) return;
+      // Wait for both user to be loaded AND token to be ready
+      if (!isLoaded || !user || !isTokenReady) return;
 
       try {
         console.log('Syncing user to Supabase:', user.id);
@@ -65,7 +66,7 @@ export const useClerkSync = () => {
     };
 
     syncUserToSupabase();
-  }, [user, isLoaded]);
+  }, [user, isLoaded, isTokenReady, supabase]);
 
   return { user, isLoaded };
 };

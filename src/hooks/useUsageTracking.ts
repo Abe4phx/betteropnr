@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { useSupabase } from '@/contexts/SupabaseContext';
+import { useSupabaseContext } from '@/contexts/SupabaseContext';
 import { useUserPlan } from './useUserPlan';
 
 interface UsageData {
@@ -13,7 +13,7 @@ interface UsageData {
 export const useUsageTracking = () => {
   const { user } = useUser();
   const { plan } = useUserPlan();
-  const supabase = useSupabase();
+  const { client: supabase, isTokenReady } = useSupabaseContext();
   const [usage, setUsage] = useState<UsageData>({
     openers_generated: 0,
     favorites_count: 0,
@@ -23,8 +23,10 @@ export const useUsageTracking = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchUsage = async () => {
-    if (!user) {
-      setLoading(false);
+    if (!user || !isTokenReady) {
+      if (!user) {
+        setLoading(false);
+      }
       return;
     }
 
@@ -65,10 +67,10 @@ export const useUsageTracking = () => {
 
   useEffect(() => {
     fetchUsage();
-  }, [user, plan]);
+  }, [user, plan, isTokenReady]);
 
   const incrementOpeners = async () => {
-    if (!user) return;
+    if (!user || !isTokenReady) return;
 
     try {
       const today = new Date().toISOString().split('T')[0];
@@ -103,7 +105,7 @@ export const useUsageTracking = () => {
   };
 
   const incrementFavorites = async () => {
-    if (!user) return;
+    if (!user || !isTokenReady) return;
 
     try {
       const today = new Date().toISOString().split('T')[0];
