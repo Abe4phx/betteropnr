@@ -35,15 +35,14 @@ export const UserProfileInput = ({ value, onChange }: UserProfileInputProps) => 
     }
   }, [isLoading]);
 
-  // Save to database when user changes value (not on initial sync)
-  useEffect(() => {
-    // Only save if we've initialized and value actually differs
-    if (hasInitializedRef.current && value !== profileText) {
-      setProfileText(value);
+  // Handle local value changes - sync to hook for persistence
+  const handleValueChange = (newValue: string) => {
+    onChange(newValue);
+    // Only sync to database after initialization
+    if (hasInitializedRef.current) {
+      setProfileText(newValue);
     }
-  }, [value, profileText, setProfileText]);
-  // Always start collapsed since it's usually only used once
-  // Users can manually expand if needed
+  };
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -51,13 +50,11 @@ export const UserProfileInput = ({ value, onChange }: UserProfileInputProps) => 
 
     try {
       const extractedText = await extractText(file);
-      // Replace previous profile data with new image data
-      onChange(extractedText);
+      handleValueChange(extractedText);
     } catch (error) {
       // Error handling is done in the hook
     }
 
-    // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -77,8 +74,7 @@ export const UserProfileInput = ({ value, onChange }: UserProfileInputProps) => 
 
         try {
           const extractedText = await extractText(file);
-          // Replace previous profile data with new image data
-          onChange(extractedText);
+          handleValueChange(extractedText);
         } catch (error) {
           // Error handling is done in the hook
         }
@@ -165,7 +161,7 @@ export const UserProfileInput = ({ value, onChange }: UserProfileInputProps) => 
           id="userProfile"
           placeholder="Your interests, hobbies, favorites... (e.g., 'Love hiking, coffee enthusiast, watch sci-fi, play guitar')"
           value={value}
-          onChange={(e) => onChange(e.target.value)}
+          onChange={(e) => handleValueChange(e.target.value)}
           onPaste={handlePaste}
           maxLength={3000}
           className="min-h-[100px] resize-none text-base rounded-2xl shadow-sm focus:shadow-md transition-shadow"
