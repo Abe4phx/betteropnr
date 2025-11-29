@@ -1,20 +1,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { useSupabaseContext } from '@/contexts/SupabaseContext';
-import { useClerkSyncContext } from '@/contexts/ClerkSyncContext';
+import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export const useUserProfile = () => {
   const { user, isLoaded } = useUser();
-  const { client: supabase, isTokenReady } = useSupabaseContext();
-  const { isSynced } = useClerkSyncContext();
   const [profileText, setProfileText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
   const hasLoadedProfile = useRef(false);
   const saveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const lastSavedText = useRef('');
 
-  // Load profile when user logs in
+  // Load profile when user logs in - using edge function to bypass RLS
   useEffect(() => {
     const loadProfile = async () => {
       // If no user after Clerk loads, stop loading
@@ -23,8 +21,8 @@ export const useUserProfile = () => {
         return;
       }
 
-      // Wait for all conditions to be met
-      if (!isLoaded || !user || !isTokenReady || !isSynced) {
+      // Wait for user to be loaded
+      if (!isLoaded || !user) {
         return;
       }
 
@@ -34,20 +32,21 @@ export const useUserProfile = () => {
       }
 
       try {
-        console.log('Loading user profile for:', user.id);
-        const { data, error } = await supabase
-          .from('user_profiles')
-          .select('profile_text')
-          .eq('clerk_user_id', user.id)
-          .maybeSingle();
+        console.log('Loading user profile via edge function for:', user.id);
+        const { data, error } = await supabase.functions.invoke('user-profile', {
+          body: {
+            action: 'get',
+            userId: user.id,
+          },
+        });
 
         if (error) {
           console.error('Error loading profile:', error);
-          // Don't show toast for first load - profile might not exist yet
-          // Just mark as loaded so the user can save
-        } else if (data?.profile_text) {
+          // Don't show toast - profile might not exist yet
+        } else if (data?.profileText) {
           console.log('Profile loaded successfully');
-          setProfileText(data.profile_text);
+          setProfileText(data.profileText);
+          lastSavedText.current = data.profileText;
         } else {
           console.log('No existing profile found');
         }
@@ -61,7 +60,7 @@ export const useUserProfile = () => {
     };
 
     loadProfile();
-  }, [user, isLoaded, isTokenReady, isSynced, supabase]);
+  }, [user, isLoaded]);
 
   // Fallback: if loading takes too long, stop anyway
   useEffect(() => {
@@ -70,15 +69,20 @@ export const useUserProfile = () => {
         console.log('Profile loading timeout - proceeding without profile');
         setIsLoading(false);
       }
-    }, 5000); // 5 second timeout
+    }, 5000);
 
     return () => clearTimeout(timeout);
   }, [isLoading]);
 
-  // Save profile with debouncing
+  // Save profile with debouncing - using edge function to bypass RLS
   useEffect(() => {
-    // Don't save if still loading or conditions not met
-    if (!user || !isLoaded || isLoading || !isTokenReady || !isSynced) {
+    // Don't save if still loading or no user
+    if (!user || !isLoaded || isLoading) {
+      return;
+    }
+
+    // Don't save if text hasn't changed from last save
+    if (profileText === lastSavedText.current) {
       return;
     }
 
@@ -89,18 +93,14 @@ export const useUserProfile = () => {
 
     saveTimeoutRef.current = setTimeout(async () => {
       try {
-        console.log('Saving profile for:', user.id);
-        const { error } = await supabase
-          .from('user_profiles')
-          .upsert(
-            {
-              clerk_user_id: user.id,
-              profile_text: profileText,
-            },
-            {
-              onConflict: 'clerk_user_id',
-            }
-          );
+        console.log('Saving profile via edge function for:', user.id);
+        const { data, error } = await supabase.functions.invoke('user-profile', {
+          body: {
+            action: 'save',
+            userId: user.id,
+            profileText: profileText,
+          },
+        });
 
         if (error) {
           console.error('Error saving profile:', error);
@@ -109,8 +109,9 @@ export const useUserProfile = () => {
             description: "Your changes might not be saved. Please try again.",
             variant: "destructive",
           });
-        } else {
+        } else if (data?.success) {
           console.log('Profile saved successfully');
+          lastSavedText.current = profileText;
         }
       } catch (error) {
         console.error('Error saving profile:', error);
@@ -120,18 +121,19 @@ export const useUserProfile = () => {
           variant: "destructive",
         });
       }
-    }, 1500); // Debounce for 1.5 seconds
+    }, 1500);
 
     return () => {
       if (saveTimeoutRef.current) {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [profileText, user, isLoaded, isLoading, isTokenReady, isSynced, toast, supabase]);
+  }, [profileText, user, isLoaded, isLoading, toast]);
 
   // Reset on user change
   useEffect(() => {
     hasLoadedProfile.current = false;
+    lastSavedText.current = '';
     setProfileText('');
     setIsLoading(true);
   }, [user?.id]);
