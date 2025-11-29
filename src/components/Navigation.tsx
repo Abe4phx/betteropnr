@@ -5,10 +5,8 @@ import { Button } from "@/components/ui/button";
 import { UserButton, useUser, useClerk } from "@clerk/clerk-react";
 import Logo from "@/components/Logo";
 import { useUserPlan } from "@/hooks/useUserPlan";
-import { useClerkSync } from "@/hooks/useClerkSync";
 import { PaywallModal } from "@/components/PaywallModal";
 import { motion } from "framer-motion";
-import { pageTransition } from "@/lib/motionConfig";
 
 export const Navigation = () => {
   const location = useLocation();
@@ -17,9 +15,6 @@ export const Navigation = () => {
   const { signOut } = useClerk();
   const { plan } = useUserPlan();
   const [showPaywallModal, setShowPaywallModal] = useState(false);
-  
-  // Sync user with Supabase
-  useClerkSync();
 
   const handleSignOut = async () => {
     // Clear localStorage cache
