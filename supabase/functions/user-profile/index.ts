@@ -76,6 +76,27 @@ serve(async (req) => {
       );
     }
 
+    if (action === "markWelcomeSeen") {
+      // Mark welcome as seen in users table
+      const { error } = await supabase
+        .from("users")
+        .update({ has_seen_welcome: true })
+        .eq("clerk_user_id", userId);
+
+      if (error) {
+        console.error("Error marking welcome seen:", error);
+        return new Response(
+          JSON.stringify({ error: "Failed to mark welcome seen" }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      return new Response(
+        JSON.stringify({ success: true }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     return new Response(
       JSON.stringify({ error: "Invalid action" }),
       { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
