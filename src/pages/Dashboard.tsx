@@ -60,6 +60,8 @@ const Dashboard = () => {
           body: JSON.stringify({
             action: 'markWelcomeSeen',
             userId: user.id,
+            email: user.primaryEmailAddress?.emailAddress || '',
+            username: user.username || user.firstName || 'User',
           }),
         }
       );
