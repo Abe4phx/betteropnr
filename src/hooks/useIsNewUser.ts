@@ -1,11 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { useSupabaseContext } from '@/contexts/SupabaseContext';
 import { useClerkSyncContext } from '@/contexts/ClerkSyncContext';
 
 export const useIsNewUser = (isSyncedOverride?: boolean) => {
   const { user, isLoaded } = useUser();
-  const { client: supabase, isTokenReady } = useSupabaseContext();
   const { isSynced: contextSynced } = useClerkSyncContext();
   
   // Use override if provided, otherwise use context
@@ -16,23 +14,32 @@ export const useIsNewUser = (isSyncedOverride?: boolean) => {
 
   useEffect(() => {
     const checkIfNewUser = async () => {
-      // Wait for user to be loaded, token to be ready, AND user to be synced to database
-      if (!isLoaded || !user || !isTokenReady || !isSynced) {
+      // Wait for user to be loaded AND user to be synced to database
+      if (!isLoaded || !user || !isSynced) {
         return; // Don't set isChecking to false yet - still waiting
       }
 
       try {
-        // Check if user has seen the welcome flow before
-        const { data: userData } = await supabase
-          .from('users')
-          .select('has_seen_welcome')
-          .eq('clerk_user_id', user.id)
-          .maybeSingle();
+        // Use edge function to bypass RLS issues
+        const response = await fetch(
+          `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/user-profile`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              action: 'checkNewUser',
+              userId: user.id,
+            }),
+          }
+        );
 
-        // User is "new" if they haven't seen the welcome flow yet
-        const isNew = !userData || !userData.has_seen_welcome;
-        
-        setIsNewUser(isNew);
+        if (response.ok) {
+          const data = await response.json();
+          setIsNewUser(data.isNewUser);
+        } else {
+          console.error('Error checking new user status');
+          setIsNewUser(false);
+        }
       } catch (error) {
         console.error('Error checking user status:', error);
         setIsNewUser(false);
@@ -42,7 +49,7 @@ export const useIsNewUser = (isSyncedOverride?: boolean) => {
     };
 
     checkIfNewUser();
-  }, [user, isLoaded, isTokenReady, isSynced, supabase]);
+  }, [user, isLoaded, isSynced]);
 
   return { isNewUser, isChecking };
 };

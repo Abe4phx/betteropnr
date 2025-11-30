@@ -27,6 +27,32 @@ serve(async (req) => {
       );
     }
 
+    if (action === "checkNewUser") {
+      // Check if user has seen welcome - bypasses RLS
+      const { data, error } = await supabase
+        .from("users")
+        .select("has_seen_welcome")
+        .eq("clerk_user_id", userId)
+        .maybeSingle();
+
+      if (error) {
+        console.error("Error checking new user:", error);
+        return new Response(
+          JSON.stringify({ isNewUser: false }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
+      // User is "new" if record doesn't exist OR hasn't seen welcome
+      const isNewUser = !data || !data.has_seen_welcome;
+      console.log(`Check new user for ${userId}: isNewUser=${isNewUser}, data=`, data);
+      
+      return new Response(
+        JSON.stringify({ isNewUser }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     if (action === "get") {
       // Get profile
       const { data, error } = await supabase
