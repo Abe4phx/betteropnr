@@ -1,7 +1,6 @@
 import { useUser } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { useSupabaseContext } from '@/contexts/SupabaseContext';
 import { useClerkSyncContext } from '@/contexts/ClerkSyncContext';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -17,7 +16,6 @@ import { motion } from 'framer-motion';
 
 const Dashboard = () => {
   const { user, isLoaded } = useUser();
-  const { client: supabase, isTokenReady } = useSupabaseContext();
   const { isSynced } = useClerkSyncContext();
   const { plan, loading: planLoading } = useUserPlan();
   const { profileText } = useUserProfile();
@@ -48,19 +46,27 @@ const Dashboard = () => {
   }, [isLoaded, user, isChecking, planLoading, showWelcome, profileText, isNewUser]);
 
   const handleWelcomeComplete = async () => {
-    if (!user || !isTokenReady) return;
+    if (!user) return;
     
     setShowWelcome(false);
     
-    // Mark welcome as completed in database
+    // Mark welcome as completed via edge function (bypasses RLS)
     try {
-      const { error } = await supabase
-        .from('users')
-        .update({ has_seen_welcome: true })
-        .eq('clerk_user_id', user.id);
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/user-profile`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'markWelcomeSeen',
+            userId: user.id,
+          }),
+        }
+      );
       
-      if (error) {
-        console.error('Error updating welcome status:', error);
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Error updating welcome status:', errorData);
       } else {
         console.log('Welcome status updated successfully');
       }
