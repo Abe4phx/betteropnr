@@ -18,7 +18,7 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    const { action, userId, profileText } = await req.json();
+    const { action, userId, profileText, email, username } = await req.json();
 
     if (!userId) {
       return new Response(
@@ -77,18 +77,46 @@ serve(async (req) => {
     }
 
     if (action === "markWelcomeSeen") {
-      // Mark welcome as seen in users table
-      const { error } = await supabase
+      // First check if user exists
+      const { data: existingUser } = await supabase
         .from("users")
-        .update({ has_seen_welcome: true })
-        .eq("clerk_user_id", userId);
+        .select("id")
+        .eq("clerk_user_id", userId)
+        .maybeSingle();
 
-      if (error) {
-        console.error("Error marking welcome seen:", error);
-        return new Response(
-          JSON.stringify({ error: "Failed to mark welcome seen" }),
-          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
+      if (existingUser) {
+        // User exists, just update
+        const { error } = await supabase
+          .from("users")
+          .update({ has_seen_welcome: true })
+          .eq("clerk_user_id", userId);
+
+        if (error) {
+          console.error("Error marking welcome seen:", error);
+          return new Response(
+            JSON.stringify({ error: "Failed to mark welcome seen" }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      } else {
+        // User doesn't exist, create with welcome marked as seen
+        const { error } = await supabase
+          .from("users")
+          .insert({
+            clerk_user_id: userId,
+            email: email || `${userId}@placeholder.com`,
+            username: username || "User",
+            has_seen_welcome: true,
+            plan: "free",
+          });
+
+        if (error) {
+          console.error("Error creating user with welcome seen:", error);
+          return new Response(
+            JSON.stringify({ error: "Failed to create user" }),
+            { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
       }
 
       return new Response(
