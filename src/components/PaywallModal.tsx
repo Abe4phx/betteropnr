@@ -4,10 +4,11 @@ import { useSupabase } from '@/contexts/SupabaseContext';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Check, Sparkles, Zap, Crown } from 'lucide-react';
+import { Check, Sparkles, Zap, Crown, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { motion } from 'framer-motion';
+import { isNativeApp, getPlatform } from '@/lib/platformDetection';
 
 interface PaywallModalProps {
   open: boolean;
@@ -25,8 +26,23 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
   const supabase = useSupabase();
   const [loading, setLoading] = useState(false);
   const [isYearly, setIsYearly] = useState(false);
+  
+  // Check if running on iOS native app (Apple IAP required)
+  const isIOSNative = isNativeApp() && getPlatform() === 'ios';
 
   const handleUpgrade = async (priceId: string, planName: string) => {
+    // On iOS native, show message to upgrade via web
+    if (isIOSNative) {
+      toast.info('To upgrade, please visit betteropnr.com in your browser', {
+        duration: 5000,
+        action: {
+          label: 'Open',
+          onClick: () => window.open('https://betteropnr.com/billing', '_blank'),
+        },
+      });
+      return;
+    }
+    
     if (!user?.emailAddresses?.[0]?.emailAddress) {
       toast.error('User email not found. Please try again.');
       return;
@@ -93,9 +109,31 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
               Upgrade to Unlimited Sparks! ✨
             </DialogTitle>
             <DialogDescription className="text-center text-base">
-              Choose the perfect plan for your conversation needs
+              {isIOSNative 
+                ? 'Manage your subscription through our website'
+                : 'Choose the perfect plan for your conversation needs'}
             </DialogDescription>
           </DialogHeader>
+
+          {/* iOS Native Notice */}
+          {isIOSNative && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="bg-primary/10 border border-primary/20 rounded-2xl p-4 mx-4 mt-4 text-center"
+            >
+              <p className="text-sm text-foreground mb-3">
+                To subscribe or manage your plan, please visit our website:
+              </p>
+              <Button
+                onClick={() => window.open('https://betteropnr.com/billing', '_blank')}
+                className="bg-bo-gradient"
+              >
+                <ExternalLink className="w-4 h-4 mr-2" />
+                Open betteropnr.com
+              </Button>
+            </motion.div>
+          )}
 
           <Tabs defaultValue="pro" className="w-full mt-6">
             <TabsList className="grid w-full grid-cols-3 bg-muted/50 rounded-2xl p-1">

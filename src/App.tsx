@@ -21,6 +21,7 @@ import SignUp from "./pages/SignUp";
 import BrandPreview from "./pages/BrandPreview";
 import Install from "./pages/Install";
 import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
 import Footer from "@/components/Footer";
 import { AnimatePresence, motion } from "framer-motion";
@@ -110,6 +111,11 @@ const AnimatedRoutes = () => {
         <Route path="/privacy" element={
           <motion.div {...pageTransition}>
             <Privacy />
+          </motion.div>
+        } />
+        <Route path="/terms" element={
+          <motion.div {...pageTransition}>
+            <Terms />
           </motion.div>
         } />
         
