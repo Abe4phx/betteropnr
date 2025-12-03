@@ -13,10 +13,16 @@ const Footer = () => {
           
           <nav className="flex items-center gap-4 sm:gap-6">
             <Link 
+              to="/terms" 
+              className="hover:text-foreground transition-colors"
+            >
+              Terms
+            </Link>
+            <Link 
               to="/privacy" 
               className="hover:text-foreground transition-colors"
             >
-              Privacy Policy
+              Privacy
             </Link>
             <a 
               href="mailto:support@betteropnr.com" 

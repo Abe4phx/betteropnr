@@ -5,10 +5,11 @@ import { useSupabase } from '@/contexts/SupabaseContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Crown, Sparkles, Zap, ExternalLink } from 'lucide-react';
+import { Check, Crown, Sparkles, Zap, ExternalLink, Info } from 'lucide-react';
 import { useUserPlan } from '@/hooks/useUserPlan';
 import { toast } from 'sonner';
 import { UpgradeSuccessModal } from '@/components/UpgradeSuccessModal';
+import { isNativeApp, getPlatform } from '@/lib/platformDetection';
 
 const Billing = () => {
   const navigate = useNavigate();
@@ -17,6 +18,9 @@ const Billing = () => {
   const { plan, loading } = useUserPlan();
   const [portalLoading, setPortalLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  
+  // Check if running on iOS native app
+  const isIOSNative = isNativeApp() && getPlatform() === 'ios';
 
   useEffect(() => {
     // Check if user just completed checkout
@@ -35,6 +39,13 @@ const Billing = () => {
   }, [user, isLoaded, navigate]);
 
   const handleManageSubscription = async () => {
+    // On iOS native, redirect to web for subscription management
+    if (isIOSNative) {
+      toast.info('Opening subscription management in browser...', { duration: 3000 });
+      window.open('https://betteropnr.com/billing', '_blank');
+      return;
+    }
+    
     setPortalLoading(true);
     try {
       const { data, error } = await supabase.functions.invoke('create-portal-session');
@@ -139,23 +150,42 @@ const Billing = () => {
                   {portalLoading ? 'Loading...' : 'Manage Subscription'}
                 </Button>
                 <p className="text-sm text-muted-foreground mt-2">
-                  Update payment method, view invoices, or cancel your subscription
+                  {isIOSNative 
+                    ? 'Opens in your web browser for subscription management'
+                    : 'Update payment method, view invoices, or cancel your subscription'}
                 </p>
               </div>
             )}
 
             {plan === 'free' && (
               <div className="pt-4 border-t">
-                <Button
-                  onClick={() => navigate('/')}
-                  className="w-full sm:w-auto"
-                >
-                  <Zap className="w-4 h-4 mr-2" />
-                  Upgrade Now
-                </Button>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Get unlimited access to all features
-                </p>
+                {isIOSNative ? (
+                  <>
+                    <Button
+                      onClick={() => window.open('https://betteropnr.com/billing', '_blank')}
+                      className="w-full sm:w-auto"
+                    >
+                      <ExternalLink className="w-4 h-4 mr-2" />
+                      Upgrade via Web
+                    </Button>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Subscriptions are managed through our website
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <Button
+                      onClick={() => navigate('/')}
+                      className="w-full sm:w-auto"
+                    >
+                      <Zap className="w-4 h-4 mr-2" />
+                      Upgrade Now
+                    </Button>
+                    <p className="text-sm text-muted-foreground mt-2">
+                      Get unlimited access to all features
+                    </p>
+                  </>
+                )}
               </div>
             )}
           </CardContent>
