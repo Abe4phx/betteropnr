@@ -15,6 +15,9 @@ interface PaywallModalProps {
   onOpenChange: (open: boolean) => void;
 }
 
+// Feature flag - set to true when ready to launch Creator tier
+const SHOW_CREATOR_TIER = false;
+
 const PRICE_IDS = {
   pro_monthly: 'price_1SQiGI7GxpG0bh7WRavu0K4M',
   pro_yearly: 'price_1SQiGb7GxpG0bh7WVHyvR74d',
@@ -136,7 +139,7 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
           )}
 
           <Tabs defaultValue="pro" className="w-full mt-6">
-            <TabsList className="grid w-full grid-cols-3 bg-muted/50 rounded-2xl p-1">
+            <TabsList className={`grid w-full ${SHOW_CREATOR_TIER ? 'grid-cols-3' : 'grid-cols-2'} bg-muted/50 rounded-2xl p-1`}>
               <TabsTrigger value="free" className="rounded-xl">Free</TabsTrigger>
               <TabsTrigger value="pro" className="relative rounded-xl">
                 Pro
@@ -144,7 +147,9 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
                   Popular
                 </span>
               </TabsTrigger>
-              <TabsTrigger value="creator" className="rounded-xl">Creator</TabsTrigger>
+              {SHOW_CREATOR_TIER && (
+                <TabsTrigger value="creator" className="rounded-xl">Creator</TabsTrigger>
+              )}
             </TabsList>
 
           {/* Free Plan */}
@@ -240,49 +245,51 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
           </TabsContent>
 
           {/* Creator Plan */}
-          <TabsContent value="creator" className="space-y-6 mt-6">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.1 }}
-              className="text-center py-8 bg-white rounded-3xl shadow-soft p-8"
-            >
-              <div className="bg-gradient-to-br from-ts-teal to-ts-teal/80 w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-md">
-                <Crown className="w-8 h-8 text-white" />
-              </div>
-              <h3 className="text-3xl font-bold mb-2 text-ts-navy">Creator</h3>
-              <p className="text-4xl font-bold mb-2 text-ts-navy">$9.99/month</p>
-              <p className="text-muted-foreground mb-6">For power users and professionals</p>
-              <Button 
-                onClick={() => handleUpgrade(PRICE_IDS.creator_monthly, 'Creator')}
-                disabled={loading}
-                size="lg"
-                className="w-full shadow-md hover:shadow-lg relative overflow-hidden"
-                variant="accent"
-                style={{
-                  background: 'linear-gradient(90deg, hsl(var(--accent)) 0%, hsl(var(--accent-foreground)) 50%, hsl(var(--accent)) 100%)',
-                  backgroundSize: '200% 100%',
-                  animation: 'shimmer 8s linear infinite',
-                }}
+          {SHOW_CREATOR_TIER && (
+            <TabsContent value="creator" className="space-y-6 mt-6">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.1 }}
+                className="text-center py-8 bg-white rounded-3xl shadow-soft p-8"
               >
-                {loading ? 'Processing...' : 'Upgrade to Creator'}
-              </Button>
-            </motion.div>
-            <ul className="space-y-4 px-2">
-              {features.creator.map((feature, i) => (
-                <motion.li
-                  key={i}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.2 + i * 0.05 }}
-                  className="flex items-start gap-3"
+                <div className="bg-gradient-to-br from-ts-teal to-ts-teal/80 w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-md">
+                  <Crown className="w-8 h-8 text-white" />
+                </div>
+                <h3 className="text-3xl font-bold mb-2 text-ts-navy">Creator</h3>
+                <p className="text-4xl font-bold mb-2 text-ts-navy">$9.99/month</p>
+                <p className="text-muted-foreground mb-6">For power users and professionals</p>
+                <Button 
+                  onClick={() => handleUpgrade(PRICE_IDS.creator_monthly, 'Creator')}
+                  disabled={loading}
+                  size="lg"
+                  className="w-full shadow-md hover:shadow-lg relative overflow-hidden"
+                  variant="accent"
+                  style={{
+                    background: 'linear-gradient(90deg, hsl(var(--accent)) 0%, hsl(var(--accent-foreground)) 50%, hsl(var(--accent)) 100%)',
+                    backgroundSize: '200% 100%',
+                    animation: 'shimmer 8s linear infinite',
+                  }}
                 >
-                  <Check className="w-5 h-5 text-ts-teal mt-0.5 flex-shrink-0" />
-                  <span className="text-ts-ink font-medium">{feature}</span>
-                </motion.li>
-              ))}
-            </ul>
-          </TabsContent>
+                  {loading ? 'Processing...' : 'Upgrade to Creator'}
+                </Button>
+              </motion.div>
+              <ul className="space-y-4 px-2">
+                {features.creator.map((feature, i) => (
+                  <motion.li
+                    key={i}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.2 + i * 0.05 }}
+                    className="flex items-start gap-3"
+                  >
+                    <Check className="w-5 h-5 text-ts-teal mt-0.5 flex-shrink-0" />
+                    <span className="text-ts-ink font-medium">{feature}</span>
+                  </motion.li>
+                ))}
+              </ul>
+            </TabsContent>
+          )}
         </Tabs>
         </motion.div>
       </DialogContent>
