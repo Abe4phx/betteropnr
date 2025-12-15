@@ -222,7 +222,7 @@ const App = () => {
                 <Toaster />
                 <Sonner />
                 <BrowserRouter>
-                  <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
+                  <div className="min-h-screen flex flex-col w-full overflow-x-hidden pt-safe-top pb-safe-bottom px-safe">
                     <Navigation />
                     {isWebApp() && <InstallBanner />}
                     <main className="flex-1">
