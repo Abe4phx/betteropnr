@@ -155,29 +155,37 @@
   border-radius: .75rem;
 }
 
+/* iOS Safe Area Inset Variables */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+
 /* iOS Safe Area Inset Utilities */
 @layer utilities {
   .pt-safe-top {
-    padding-top: env(safe-area-inset-top, 0px);
+    padding-top: var(--safe-top);
   }
   .pb-safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-bottom: var(--safe-bottom);
   }
   .pl-safe-left {
-    padding-left: env(safe-area-inset-left, 0px);
+    padding-left: var(--safe-left);
   }
   .pr-safe-right {
-    padding-right: env(safe-area-inset-right, 0px);
+    padding-right: var(--safe-right);
   }
   .px-safe {
-    padding-left: env(safe-area-inset-left, 0px);
-    padding-right: env(safe-area-inset-right, 0px);
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
   }
   .py-safe {
-    padding-top: env(safe-area-inset-top, 0px);
-    padding-bottom: env(safe-area-inset-bottom, 0px);
+    padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bottom);
   }
   .min-h-screen-safe {
-    min-height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+    min-height: calc(100vh - var(--safe-top) - var(--safe-bottom));
   }
 }
