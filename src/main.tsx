@@ -4,6 +4,7 @@ import "./index.css";
 import { initializeNotifications } from "@/lib/notifications";
 import { SplashScreen } from '@capacitor/splash-screen';
 import { isNativeApp } from '@/lib/platformDetection';
+import { configureNativeStatusBar } from '@/lib/nativeStatusBar';
 
 // Extend Window interface for Capacitor
 declare global {
@@ -14,6 +15,9 @@ declare global {
 
 // Initialize notification system
 initializeNotifications();
+
+// Configure native status bar for iOS (prevents overlay on webview)
+configureNativeStatusBar();
 
 // Configure splash screen for native apps
 if (isNativeApp()) {
