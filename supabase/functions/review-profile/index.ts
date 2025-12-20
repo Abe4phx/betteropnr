@@ -27,13 +27,13 @@ interface ProfileReviewResult {
   suggestedRewrite?: string;
   // Pro extras
   fullBreakdown?: {
-    firstImpression: string;
-    personalityClarity: string;
-    engagementPotential: string;
-    authenticity: string;
-    matchability: string;
+    firstImpression: { score: number; explanation: string; feedback: string };
+    personalityClarity: { score: number; explanation: string; feedback: string };
+    engagementPotential: { score: number; explanation: string; feedback: string };
+    toneWarmth: { score: number; explanation: string; feedback: string };
+    distinctiveness: { score: number; explanation: string; feedback: string };
   };
-  rewrites?: { tone: string; text: string }[];
+  rewrites?: { tone: string; text: string; intent?: string }[];
   lineFeedback?: { original: string; suggestion: string; reason: string }[];
   photoGuidance?: string[];
 }
@@ -162,27 +162,49 @@ Respond in JSON format:
   "suggestedRewrite": "string"
 }`;
     } else if (tier === 'pro') {
-      userPrompt = `Review this dating profile bio comprehensively using the following weighted scoring model.
+      userPrompt = `Review this dating profile bio comprehensively for a Premium user.
 
-SCORING MODEL (expose all sub-scores for Pro users):
-1) First Impression Clarity (0–25): How quickly a stranger understands who they are. Higher if interests/lifestyle are clear, concise. Lower if vague, abstract, or unclear intent.
-2) Personality & Authenticity (0–20): How human and specific. Higher if concrete details, natural language. Lower if buzzwords without examples, generic.
-3) Engagement Potential (0–25, highest priority): How easily someone could start a conversation. Higher if questions/hooks exist, second-person language. Lower if statements only, no response path.
-4) Tone & Warmth (0–15): Emotional openness and positivity. Higher if friendly, light, humorous. Lower if defensive, negative, guarded.
-5) Distinctiveness (0–15): How memorable. Higher if unique phrasing, specific combinations. Lower if generic lists, trend phrases.
+SCORING MODEL (expose ALL sub-scores for Premium):
+1) First Impression Clarity (0–25): How quickly a stranger understands who they are.
+2) Personality & Authenticity (0–20): How human and specific the bio feels.
+3) Engagement Potential (0–25, highest priority): How easily someone could start a conversation.
+4) Tone & Warmth (0–15): Emotional openness and positivity.
+5) Distinctiveness (0–15): How memorable the bio is.
 
-Calculate and expose ALL sub-scores AND total score (0-100).
+OUTPUT REQUIREMENTS:
 
-Provide:
-1. Total score (0-100) AND all 5 individual sub-scores
-2. A short supportive label for the score
-3. 2-3 key observations about what stands out
-4. One actionable quick tip
-5. 2-3 deeper insights about tone, engagement potential, and conversational hooks
-6. Full breakdown with explanations for each scoring dimension
-7. 4 bio rewrites in different tones: Playful, Warm, Confident, Direct
-8. Line-level feedback: identify 2-3 phrases that could be improved, with alternatives and explanations
-9. Photo guidance: 3-4 text-based tips about photo order, missing types, and traits to reinforce
+1. SECTION-BY-SECTION BREAKDOWN
+For each of the 5 dimensions, provide:
+- The numeric sub-score
+- A brief explanation of what it measures
+- Supportive feedback tied to the user's actual bio text (quote specific phrases)
+
+2. MULTIPLE REWRITES (4 total)
+Generate 4 rewritten bios, each with a distinct tone:
+- Playful: Light, fun, shows humor
+- Warm: Friendly, approachable, emotionally open
+- Confident: Self-assured, direct about qualities
+- Direct: Clear, no-nonsense, efficient
+Each rewrite must:
+- Be 2-4 sentences max
+- Improve engagement and clarity
+- Stay authentic to original content
+- Include a one-line explanation of the rewrite's intent
+
+3. LINE-LEVEL FEEDBACK (2-3 items)
+- Identify specific phrases that feel generic or self-focused
+- Suggest alternative phrasing
+- Explain WHY the change improves replies
+
+4. PHOTO GUIDANCE (3-4 tips, text-based only)
+- Recommend which type of photo should be first
+- Identify missing photo types (action shots, with friends, travel, etc.)
+- Suggest what traits photos should reinforce based on the bio
+
+DO NOT:
+- Suggest deception or exaggeration
+- Use attractiveness judgments
+- Compare to other profiles
 
 Bio to review:
 "${bioText}"
@@ -198,27 +220,26 @@ Respond in JSON format:
     "distinctiveness": number
   },
   "scoreLabel": "string",
-  "keyObservations": ["string", "string"],
+  "keyObservations": ["string", "string", "string"],
   "quickTip": "string",
   "deeperInsights": ["string", "string", "string"],
-  "suggestedRewrite": "string",
   "fullBreakdown": {
-    "firstImpression": "string",
-    "personalityClarity": "string",
-    "engagementPotential": "string",
-    "authenticity": "string",
-    "matchability": "string"
+    "firstImpression": { "score": number, "explanation": "string", "feedback": "string" },
+    "personalityClarity": { "score": number, "explanation": "string", "feedback": "string" },
+    "engagementPotential": { "score": number, "explanation": "string", "feedback": "string" },
+    "toneWarmth": { "score": number, "explanation": "string", "feedback": "string" },
+    "distinctiveness": { "score": number, "explanation": "string", "feedback": "string" }
   },
   "rewrites": [
-    { "tone": "Playful", "text": "string" },
-    { "tone": "Warm", "text": "string" },
-    { "tone": "Confident", "text": "string" },
-    { "tone": "Direct", "text": "string" }
+    { "tone": "Playful", "text": "string", "intent": "string" },
+    { "tone": "Warm", "text": "string", "intent": "string" },
+    { "tone": "Confident", "text": "string", "intent": "string" },
+    { "tone": "Direct", "text": "string", "intent": "string" }
   ],
   "lineFeedback": [
     { "original": "string", "suggestion": "string", "reason": "string" }
   ],
-  "photoGuidance": ["string", "string", "string"]
+  "photoGuidance": ["string", "string", "string", "string"]
 }`;
     }
 
