@@ -12,6 +12,13 @@ interface ReviewRequest {
 
 interface ProfileReviewResult {
   score: number;
+  subScores?: {
+    firstImpressionClarity: number;
+    personalityAuthenticity: number;
+    engagementPotential: number;
+    toneWarmth: number;
+    distinctiveness: number;
+  };
   scoreLabel: string;
   keyObservations: string[];
   quickTip: string;
@@ -83,8 +90,19 @@ Primary evaluation focus:
     let userPrompt = '';
 
     if (tier === 'free') {
-      userPrompt = `Review this dating profile bio and provide:
-1. A score from 0-100 for "First Impression Score"
+      userPrompt = `Review this dating profile bio using the following weighted scoring model.
+
+SCORING MODEL (calculate internally, sum for total):
+1) First Impression Clarity (0–25): How quickly a stranger understands who they are. Higher if interests/lifestyle are clear, concise. Lower if vague, abstract, or unclear intent.
+2) Personality & Authenticity (0–20): How human and specific. Higher if concrete details, natural language. Lower if buzzwords without examples, generic.
+3) Engagement Potential (0–25, highest priority): How easily someone could start a conversation. Higher if questions/hooks exist, second-person language. Lower if statements only, no response path.
+4) Tone & Warmth (0–15): Emotional openness and positivity. Higher if friendly, light, humorous. Lower if defensive, negative, guarded.
+5) Distinctiveness (0–15): How memorable. Higher if unique phrasing, specific combinations. Lower if generic lists, trend phrases.
+
+Calculate all sub-scores internally, then sum them for the total score (0-100).
+
+Provide:
+1. The total score (0-100) - DO NOT expose individual sub-scores
 2. A short supportive label for the score (e.g., "Friendly and genuine, but not very distinctive yet")
 3. 2-3 key observations about what stands out (reference specific parts of the bio)
 4. One actionable quick tip they can implement immediately
@@ -100,8 +118,19 @@ Respond in JSON format:
   "quickTip": "string"
 }`;
     } else if (tier === 'video') {
-      userPrompt = `Review this dating profile bio and provide:
-1. A score from 0-100 for "First Impression Score"
+      userPrompt = `Review this dating profile bio using the following weighted scoring model.
+
+SCORING MODEL (calculate internally, sum for total):
+1) First Impression Clarity (0–25): How quickly a stranger understands who they are. Higher if interests/lifestyle are clear, concise. Lower if vague, abstract, or unclear intent.
+2) Personality & Authenticity (0–20): How human and specific. Higher if concrete details, natural language. Lower if buzzwords without examples, generic.
+3) Engagement Potential (0–25, highest priority): How easily someone could start a conversation. Higher if questions/hooks exist, second-person language. Lower if statements only, no response path.
+4) Tone & Warmth (0–15): Emotional openness and positivity. Higher if friendly, light, humorous. Lower if defensive, negative, guarded.
+5) Distinctiveness (0–15): How memorable. Higher if unique phrasing, specific combinations. Lower if generic lists, trend phrases.
+
+Calculate all sub-scores internally, then sum them for the total score (0-100).
+
+Provide:
+1. The total score (0-100) - DO NOT expose individual sub-scores
 2. A short supportive label for the score
 3. 2-3 key observations about what stands out
 4. One actionable quick tip
@@ -121,13 +150,24 @@ Respond in JSON format:
   "suggestedRewrite": "string"
 }`;
     } else if (tier === 'pro') {
-      userPrompt = `Review this dating profile bio comprehensively and provide:
-1. A score from 0-100 for "First Impression Score"
+      userPrompt = `Review this dating profile bio comprehensively using the following weighted scoring model.
+
+SCORING MODEL (expose all sub-scores for Pro users):
+1) First Impression Clarity (0–25): How quickly a stranger understands who they are. Higher if interests/lifestyle are clear, concise. Lower if vague, abstract, or unclear intent.
+2) Personality & Authenticity (0–20): How human and specific. Higher if concrete details, natural language. Lower if buzzwords without examples, generic.
+3) Engagement Potential (0–25, highest priority): How easily someone could start a conversation. Higher if questions/hooks exist, second-person language. Lower if statements only, no response path.
+4) Tone & Warmth (0–15): Emotional openness and positivity. Higher if friendly, light, humorous. Lower if defensive, negative, guarded.
+5) Distinctiveness (0–15): How memorable. Higher if unique phrasing, specific combinations. Lower if generic lists, trend phrases.
+
+Calculate and expose ALL sub-scores AND total score (0-100).
+
+Provide:
+1. Total score (0-100) AND all 5 individual sub-scores
 2. A short supportive label for the score
 3. 2-3 key observations about what stands out
 4. One actionable quick tip
 5. 2-3 deeper insights about tone, engagement potential, and conversational hooks
-6. Full breakdown with explanations for: First Impression, Personality Clarity, Engagement Potential, Authenticity, Matchability
+6. Full breakdown with explanations for each scoring dimension
 7. 4 bio rewrites in different tones: Playful, Warm, Confident, Direct
 8. Line-level feedback: identify 2-3 phrases that could be improved, with alternatives and explanations
 9. Photo guidance: 3-4 text-based tips about photo order, missing types, and traits to reinforce
@@ -138,6 +178,13 @@ Bio to review:
 Respond in JSON format:
 {
   "score": number,
+  "subScores": {
+    "firstImpressionClarity": number,
+    "personalityAuthenticity": number,
+    "engagementPotential": number,
+    "toneWarmth": number,
+    "distinctiveness": number
+  },
   "scoreLabel": "string",
   "keyObservations": ["string", "string"],
   "quickTip": "string",
