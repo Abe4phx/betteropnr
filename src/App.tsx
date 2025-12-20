@@ -23,6 +23,7 @@ import Install from "./pages/Install";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import NotFound from "./pages/NotFound";
+import ProfileReview from "./pages/ProfileReview";
 import Footer from "@/components/Footer";
 import { AnimatePresence, motion } from "framer-motion";
 import { pageTransition } from "@/lib/motionConfig";
@@ -166,6 +167,16 @@ const AnimatedRoutes = () => {
             <ProtectedRoute>
               <motion.div {...pageTransition}>
                 <Billing />
+              </motion.div>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile-review"
+          element={
+            <ProtectedRoute>
+              <motion.div {...pageTransition}>
+                <ProfileReview />
               </motion.div>
             </ProtectedRoute>
           }
