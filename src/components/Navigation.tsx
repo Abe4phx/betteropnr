@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Heart, Zap, LogOut, BarChart3 } from "lucide-react";
+import { Heart, Zap, LogOut, BarChart3, UserCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserButton, useUser, useClerk } from "@clerk/clerk-react";
 import Logo from "@/components/Logo";
@@ -48,6 +48,18 @@ export const Navigation = () => {
                   <Link to="/saved">
                     <Heart className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
                     <span className="hidden sm:inline">Saved</span>
+                  </Link>
+                </Button>
+
+                <Button
+                  variant={location.pathname === "/profile-review" ? "default" : "outline"}
+                  asChild
+                  className="rounded-xl shadow-sm text-xs sm:text-sm"
+                  size="sm"
+                >
+                  <Link to="/profile-review">
+                    <UserCircle className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Review</span>
                   </Link>
                 </Button>
 

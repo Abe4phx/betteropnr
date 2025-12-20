@@ -7,7 +7,8 @@ type AnalyticsEvent =
   | 'saved_opener'
   | 'generated_followup'
   | 'rated_item'
-  | 'generated_variation';
+  | 'generated_variation'
+  | 'profile_reviewed';
 
 interface EventData {
   [key: string]: string | number | boolean | undefined;
