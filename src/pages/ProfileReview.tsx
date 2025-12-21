@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Lock, Play, Zap, Check, Eye, MessageSquare, Camera, RefreshCw, Lightbulb } from "lucide-react";
@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { useUserPlan } from "@/hooks/useUserPlan";
+import { useUserProfile } from "@/hooks/useUserProfile";
 import { PaywallModal } from "@/components/PaywallModal";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -37,6 +38,7 @@ const ProfileReview = () => {
   const { user } = useUser();
   const { plan } = useUserPlan();
   const isPro = plan === 'pro' || plan === 'creator';
+  const { profileText, isLoading: isProfileLoading } = useUserProfile();
   
   const [bioText, setBioText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -44,6 +46,17 @@ const ProfileReview = () => {
   const [currentTier, setCurrentTier] = useState<'free' | 'video' | 'pro'>('free');
   const [hasUsedVideoUnlock, setHasUsedVideoUnlock] = useState(false);
   const [showPaywallModal, setShowPaywallModal] = useState(false);
+  const [hasInitialized, setHasInitialized] = useState(false);
+
+  // Pre-populate bio with saved profile text
+  useEffect(() => {
+    if (!hasInitialized && !isProfileLoading && profileText) {
+      setBioText(profileText);
+      setHasInitialized(true);
+    } else if (!isProfileLoading && !profileText) {
+      setHasInitialized(true);
+    }
+  }, [profileText, isProfileLoading, hasInitialized]);
 
   const handleReview = async (tier: 'free' | 'video' | 'pro' = 'free') => {
     if (!bioText.trim()) {
