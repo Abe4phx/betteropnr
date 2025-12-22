@@ -9,7 +9,7 @@ const AffiliateDisclosureInline = ({
 }: AffiliateDisclosureInlineProps) => {
   const text = variant === 'long' 
     ? 'Optional recommendation. BetterOpnr may earn a commission at no extra cost to you.'
-    : 'Optional recommendation (affiliate)';
+    : 'Recommended tool (affiliate)';
 
   return (
     <span 
