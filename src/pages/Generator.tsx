@@ -25,6 +25,7 @@ import { motion, useAnimation } from "framer-motion";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { sparkBurst } from "@/lib/motionConfig";
 import { extractMatchName } from "@/lib/extractMatchName";
+import WritingAffiliateBlock from "@/components/WritingAffiliateBlock";
 
 const Generator = () => {
   const { user } = useUser();
@@ -442,6 +443,9 @@ const Generator = () => {
                   openerId={opener.id}
                 />
               ))}
+
+              {/* Optional affiliate recommendation */}
+              <WritingAffiliateBlock className="mt-6" />
             </motion.div>
           )}
         </motion.div>
