@@ -22,6 +22,7 @@ import BrandPreview from "./pages/BrandPreview";
 import Install from "./pages/Install";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
+import AffiliateDisclosure from "./pages/AffiliateDisclosure";
 import NotFound from "./pages/NotFound";
 import ProfileReview from "./pages/ProfileReview";
 import Footer from "@/components/Footer";
@@ -117,6 +118,11 @@ const AnimatedRoutes = () => {
         <Route path="/terms" element={
           <motion.div {...pageTransition}>
             <Terms />
+          </motion.div>
+        } />
+        <Route path="/affiliate-disclosure" element={
+          <motion.div {...pageTransition}>
+            <AffiliateDisclosure />
           </motion.div>
         } />
         
