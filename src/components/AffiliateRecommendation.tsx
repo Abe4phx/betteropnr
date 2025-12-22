@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react';
 import { ExternalLink } from 'lucide-react';
 import { 
+  Affiliate,
   AffiliateCategory, 
   getAffiliateForCategory, 
   getCategoryForScreen,
@@ -32,19 +34,32 @@ const AffiliateRecommendation = ({
   className = '',
   disclosureVariant = 'short',
 }: AffiliateRecommendationProps) => {
+  const [affiliate, setAffiliate] = useState<Affiliate | null>(null);
+  const [loading, setLoading] = useState(true);
+
   // Determine category from explicit prop or screen name
   const resolvedCategory = category || (screen ? getCategoryForScreen(screen) : null);
   
-  if (!resolvedCategory) return null;
-  
-  // Get affiliate for this category
-  const affiliate = getAffiliateForCategory(resolvedCategory, country);
-  
-  // No affiliate available? Show nothing (no fallback)
-  if (!affiliate) return null;
+  useEffect(() => {
+    const fetchAffiliate = async () => {
+      if (!resolvedCategory) {
+        setLoading(false);
+        return;
+      }
+      
+      const result = await getAffiliateForCategory(resolvedCategory, country);
+      setAffiliate(result);
+      setLoading(false);
+    };
+    
+    fetchAffiliate();
+  }, [resolvedCategory, country]);
+
+  // Don't render anything while loading or if no category
+  if (loading || !resolvedCategory || !affiliate) return null;
   
   const handleClick = () => {
-    openAffiliateLink(affiliate.url);
+    openAffiliateLink(affiliate.affiliate_url);
   };
   
   return (
@@ -55,13 +70,15 @@ const AffiliateRecommendation = ({
         className="group flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
       >
         <span className="underline underline-offset-2 decoration-muted-foreground/50 group-hover:decoration-foreground/50">
-          {affiliate.name}
+          {affiliate.brand}
         </span>
         <ExternalLink className="h-3 w-3 opacity-60 group-hover:opacity-100" />
       </button>
-      <p className="text-xs text-muted-foreground/80 leading-relaxed">
-        {affiliate.description}
-      </p>
+      {affiliate.description && (
+        <p className="text-xs text-muted-foreground/80 leading-relaxed">
+          {affiliate.description}
+        </p>
+      )}
       <AffiliateDisclosureInline variant={disclosureVariant} className="mt-0.5" />
     </div>
   );

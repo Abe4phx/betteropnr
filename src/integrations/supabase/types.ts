@@ -14,6 +14,48 @@ export type Database = {
   }
   public: {
     Tables: {
+      affiliates: {
+        Row: {
+          affiliate_id: string
+          affiliate_url: string
+          brand: string
+          category: string
+          countries_supported: string[] | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          priority: number
+          updated_at: string
+        }
+        Insert: {
+          affiliate_id: string
+          affiliate_url: string
+          brand: string
+          category: string
+          countries_supported?: string[] | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          priority?: number
+          updated_at?: string
+        }
+        Update: {
+          affiliate_id?: string
+          affiliate_url?: string
+          brand?: string
+          category?: string
+          countries_supported?: string[] | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          priority?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       stripe_customers: {
         Row: {
           created_at: string

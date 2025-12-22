@@ -1,3 +1,5 @@
+import { supabase } from "@/integrations/supabase/client";
+
 export type AffiliateCategory = 
   | 'writing' 
   | 'photos' 
@@ -7,58 +9,74 @@ export type AffiliateCategory =
 
 export interface Affiliate {
   id: string;
-  name: string;
-  description: string;
-  url: string;
-  category: AffiliateCategory;
-  countries?: string[]; // If empty/undefined, available everywhere
+  affiliate_id: string;
+  category: string;
+  brand: string;
+  countries_supported: string[];
+  priority: number;
+  is_active: boolean;
+  affiliate_url: string;
+  description: string | null;
 }
-
-// Configure affiliates here - add real affiliates as needed
-const affiliates: Affiliate[] = [
-  // Example structure (uncomment and add real affiliates):
-  // {
-  //   id: 'grammarly',
-  //   name: 'Grammarly',
-  //   description: 'Improve your writing clarity and grammar',
-  //   url: 'https://grammarly.com/?ref=betteropnr',
-  //   category: 'writing',
-  // },
-  // {
-  //   id: 'photofeeler',
-  //   name: 'Photofeeler',
-  //   description: 'Get feedback on your profile photos',
-  //   url: 'https://photofeeler.com/?ref=betteropnr',
-  //   category: 'photos',
-  // },
-];
 
 /**
  * Get a single affiliate for a category and optional country
- * Returns null if no affiliate is available (shows nothing, no fallback)
+ * Returns null if no affiliate is available
+ * 
+ * Logic:
+ * - Filter by category
+ * - Filter by country (if provided, check if country is in countries_supported or if countries_supported is empty)
+ * - Filter is_active = true
+ * - Sort by priority descending
+ * - Return the first result only
  */
-export function getAffiliateForCategory(
+export async function getAffiliateForCategory(
   category: AffiliateCategory, 
   country?: string
-): Affiliate | null {
-  const categoryAffiliates = affiliates.filter(a => a.category === category);
+): Promise<Affiliate | null> {
+  let query = supabase
+    .from('affiliates')
+    .select('*')
+    .eq('category', category)
+    .eq('is_active', true)
+    .order('priority', { ascending: false })
+    .limit(1);
+
+  const { data, error } = await query;
   
-  if (categoryAffiliates.length === 0) return null;
-  
-  // If country is specified, try to find a country-specific affiliate first
-  if (country) {
-    const countrySpecific = categoryAffiliates.find(
-      a => a.countries?.includes(country)
-    );
-    if (countrySpecific) return countrySpecific;
+  if (error || !data || data.length === 0) {
+    return null;
   }
+
+  // Filter by country if specified
+  const affiliate = data[0];
   
-  // Return first affiliate without country restriction, or null
-  const globalAffiliate = categoryAffiliates.find(
-    a => !a.countries || a.countries.length === 0
-  );
-  
-  return globalAffiliate || null;
+  if (country) {
+    const countriesSupported = affiliate.countries_supported || [];
+    // If countries_supported is empty, it's available everywhere
+    // Otherwise, check if the country is in the list
+    if (countriesSupported.length > 0 && !countriesSupported.includes(country)) {
+      // This affiliate doesn't support the user's country, try to find another
+      const { data: allAffiliates } = await supabase
+        .from('affiliates')
+        .select('*')
+        .eq('category', category)
+        .eq('is_active', true)
+        .order('priority', { ascending: false });
+      
+      if (!allAffiliates) return null;
+      
+      // Find first affiliate that supports the country or is globally available
+      const matchingAffiliate = allAffiliates.find(a => {
+        const countries = a.countries_supported || [];
+        return countries.length === 0 || countries.includes(country);
+      });
+      
+      return matchingAffiliate as Affiliate || null;
+    }
+  }
+
+  return affiliate as Affiliate;
 }
 
 /**
