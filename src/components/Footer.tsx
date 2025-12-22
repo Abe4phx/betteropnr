@@ -24,6 +24,12 @@ const Footer = () => {
             >
               Privacy
             </Link>
+            <Link 
+              to="/affiliate-disclosure" 
+              className="hover:text-foreground transition-colors"
+            >
+              Affiliates
+            </Link>
             <a 
               href="mailto:support@betteropnr.com" 
               className="hover:text-foreground transition-colors"
