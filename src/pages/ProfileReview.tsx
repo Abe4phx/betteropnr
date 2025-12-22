@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Lock, Play, Zap, Check, Eye, MessageSquare, Camera, RefreshCw, Lightbulb } from "lucide-react";
 import PhotoAffiliateBlock from "@/components/PhotoAffiliateBlock";
 import ConfidenceAffiliateBlock from "@/components/ConfidenceAffiliateBlock";
+import GroomingAffiliateBlock from "@/components/GroomingAffiliateBlock";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
@@ -391,6 +392,7 @@ const ProfileReview = () => {
                 {/* Optional affiliate recommendations */}
                 <PhotoAffiliateBlock />
                 <ConfidenceAffiliateBlock />
+                <GroomingAffiliateBlock />
 
                 {/* Locked Teaser (Free tier only) */}
                 {currentTier === 'free' && (
