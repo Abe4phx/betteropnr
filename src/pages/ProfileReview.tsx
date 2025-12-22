@@ -38,7 +38,7 @@ const ProfileReview = () => {
   const { user } = useUser();
   const { plan } = useUserPlan();
   const isPro = plan === 'pro' || plan === 'creator';
-  const { profileText, isLoading: isProfileLoading } = useUserProfile();
+  const { profileText, setProfileText, isLoading: isProfileLoading } = useUserProfile();
   
   const [bioText, setBioText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -57,6 +57,13 @@ const ProfileReview = () => {
       setHasInitialized(true);
     }
   }, [profileText, isProfileLoading, hasInitialized]);
+
+  // Sync bio text back to user profile when it changes
+  useEffect(() => {
+    if (hasInitialized && bioText !== profileText) {
+      setProfileText(bioText);
+    }
+  }, [bioText, hasInitialized, setProfileText]);
 
   const handleReview = async (tier: 'free' | 'video' | 'pro' = 'free') => {
     if (!bioText.trim()) {
