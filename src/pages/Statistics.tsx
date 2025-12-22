@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend } from 'recharts';
 import { TrendingUp, Heart, Zap, Calendar } from 'lucide-react';
 import { motion } from 'framer-motion';
+import LearningAffiliateBlock from '@/components/LearningAffiliateBlock';
 
 interface DailyUsage {
   date: string;
@@ -335,6 +336,9 @@ const Statistics = () => {
           </Card>
         </motion.div>
       )}
+
+      {/* Optional affiliate recommendation */}
+      <LearningAffiliateBlock />
     </div>
   );
 };

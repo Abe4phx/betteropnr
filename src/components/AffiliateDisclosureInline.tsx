@@ -1,5 +1,5 @@
 interface AffiliateDisclosureInlineProps {
-  variant?: 'short' | 'long' | 'optional';
+  variant?: 'short' | 'long' | 'optional' | 'commission';
   className?: string;
 }
 
@@ -13,6 +13,8 @@ const AffiliateDisclosureInline = ({
         return 'Optional recommendation. BetterOpnr may earn a commission at no extra cost to you.';
       case 'optional':
         return 'Optional recommendation (affiliate)';
+      case 'commission':
+        return 'BetterOpnr may earn a commission';
       default:
         return 'Recommended tool (affiliate)';
     }
