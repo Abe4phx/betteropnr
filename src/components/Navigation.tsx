@@ -59,7 +59,7 @@ export const Navigation = () => {
                 >
                   <Link to="/profile-review">
                     <UserCircle className="w-3 h-3 sm:w-4 sm:h-4 sm:mr-2" />
-                    <span className="hidden sm:inline">Review</span>
+                    <span className="hidden sm:inline">Profile</span>
                   </Link>
                 </Button>
 
