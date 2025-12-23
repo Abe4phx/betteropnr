@@ -15,7 +15,7 @@ serve(async (req) => {
     // Verify JWT - this function requires authentication
     const authResult = await verifyClerkJWT(req);
     
-    if ('error' in authResult) {
+    if (!authResult.success) {
       console.error('Auth failed:', authResult.error);
       return createAuthErrorResponse(authResult.error, authResult.status, corsHeaders);
     }
