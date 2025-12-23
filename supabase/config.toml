@@ -1,7 +1,4 @@
 project_id = "vvhrzznaowjxpgbgyyim"
 
-[functions.generate]
-verify_jwt = false
-
-[functions.extract-profile-text]
-verify_jwt = false
+# All functions now require JWT verification (removed verify_jwt = false)
+# The edge functions verify Clerk JWTs themselves using the _shared/clerkAuth.ts helper

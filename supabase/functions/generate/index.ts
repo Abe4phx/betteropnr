@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.77.0';
+import { verifyClerkJWT, createAuthErrorResponse } from '../_shared/clerkAuth.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -74,22 +75,24 @@ serve(async (req) => {
   }
 
   try {
+    // Verify JWT and extract user ID
+    const authResult = await verifyClerkJWT(req);
+    
+    if ('error' in authResult) {
+      console.error('Auth failed:', authResult.error);
+      return createAuthErrorResponse(authResult.error, authResult.status, corsHeaders);
+    }
+
+    const userId = authResult.userId;
+    console.log('Authenticated user:', userId);
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     const requestBody = await req.json();
-    const { userId } = requestBody;
 
-    // Verify user ID is provided
-    if (!userId) {
-      return new Response(
-        JSON.stringify({ error: 'User ID is required' }),
-        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Rate limiting
+    // Rate limiting using verified userId
     const now = Date.now();
     const userRateLimit = rateLimitStore.get(userId);
     
@@ -128,13 +131,14 @@ serve(async (req) => {
     let userPlan = 'free';
     if (!userData) {
       console.warn('User not found in database. Creating a new user record with free plan:', userId);
+      const emailFromAuth = authResult.email;
       const emailFromClient = (requestBody && typeof requestBody.userEmail === 'string') ? requestBody.userEmail : undefined;
       const fallbackEmail = `unknown+${userId}@placeholder.invalid`;
       const { data: inserted, error: insertError } = await supabase
         .from('users')
         .insert({
           clerk_user_id: userId,
-          email: emailFromClient || fallbackEmail,
+          email: emailFromAuth || emailFromClient || fallbackEmail,
           username: 'User',
           plan: 'free',
         })
@@ -421,68 +425,51 @@ function fallbackGeneration(
       // Re-engagement templates for stalled conversations
       const reEngagementTemplates = [
         "Hey! Just remembered our chat about that. How'd it go?",
-        "Random thought: we never finished that conversation! Still curious...",
-        "Been thinking about what you said. Quick question...",
-        "No pressure, but I'm still curious about that thing you mentioned!",
-        "Hope you're doing well! Still want to hear more about that sometime.",
-        "Hey! Did you ever figure out that thing we were talking about?",
+        "Random thought: still thinking about what you said. Any updates?",
+        "Okay but I need to know the verdict on that thing we discussed 👀",
+        "Plot twist: I'm back. What's new with you?",
       ];
-      
       return new Response(
-        JSON.stringify({ results: reEngagementTemplates.slice(0, 3) }),
+        JSON.stringify({ results: reEngagementTemplates }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
     
-    // Standard follow-up templates with acknowledgment and next steps
+    // Follow-up templates when they replied
     const followUpTemplates = [
-      "That's fascinating! I actually have some experience with that too. What do you love most about it?",
-      "Oh interesting! I've been wanting to try that. What would you recommend for a beginner?",
-      "That sounds amazing! I'm curious — how did you first get into that?",
-      "Love that! I find it interesting too. Want to grab coffee sometime and chat more about it?",
-      "That's cool! I have a friend who's into that as well. What's been your biggest surprise so far?",
-      "Nice! I've always wondered about that. Any fun stories you can share?",
+      "Ha! That's actually really interesting. What made you think of that?",
+      "Wait, tell me more about that part!",
+      "Okay now I'm curious - what's the story behind that?",
+      "Love that take. So what's next on your radar?",
+      "That tracks honestly. Wanna grab coffee and discuss?",
     ];
-    
     return new Response(
-      JSON.stringify({ results: followUpTemplates.slice(0, 3) }),
+      JSON.stringify({ results: followUpTemplates }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   }
-
-  // Extract interests from profile
-  const interests = profileText
-    .toLowerCase()
-    .split(/[,;.\n]/)
+  
+  // Extract interests from profile text
+  const interests = profileText.toLowerCase()
+    .split(/[,.\n]/)
     .map(s => s.trim())
-    .filter(s => s.length > 3 && s.length < 30);
+    .filter(s => s.length > 3 && s.length < 30)
+    .slice(0, 3);
   
-  const primaryInterest = interests[0] || "your interests";
+  const interest = interests[0] || 'that';
+  const primaryTone = tones[0] || 'playful';
+  const adjectives = toneAdjectives[primaryTone] || toneAdjectives.playful;
+  const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
   
-  const results: string[] = [];
+  const results = conversationTemplates.slice(0, 4).map(template => {
+    return template
+      .replace('{interest}', interest)
+      .replace('{adjective}', adjective)
+      .replace('{quirkyEitherOr}', quirkyEitherOr[Math.floor(Math.random() * quirkyEitherOr.length)]);
+  });
   
-  for (let i = 0; i < Math.min(4, tones.length); i++) {
-    const tone = tones[i];
-    const template = conversationTemplates[Math.floor(Math.random() * conversationTemplates.length)];
-    const adjectives = toneAdjectives[tone] || toneAdjectives.playful;
-    const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
-    const eitherOr = quirkyEitherOr[Math.floor(Math.random() * quirkyEitherOr.length)];
-    
-    const result = template
-      .replace(/{interest}/g, primaryInterest)
-      .replace(/{adjective}/g, adjective)
-      .replace(/{quirkyEitherOr}/g, eitherOr);
-    
-    results.push(result);
-  }
-
-  // Apply max length and content filtering to fallback results
-  const filteredResults = results
-    .map(text => enforceMaxLength(text))
-    .filter(text => !containsBlockedContent(text));
-
   return new Response(
-    JSON.stringify({ results: filteredResults }),
+    JSON.stringify({ results }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
   );
 }
