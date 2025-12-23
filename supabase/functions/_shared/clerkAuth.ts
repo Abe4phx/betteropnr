@@ -64,33 +64,33 @@ export async function verifyClerkJWT(req: Request): Promise<VerifyResult> {
   
   if (!authHeader) {
     console.warn('No Authorization header provided');
-    return { error: 'No authorization header provided', status: 401 };
+    return { success: false, error: 'No authorization header provided', status: 401 };
   }
 
   if (!authHeader.startsWith('Bearer ')) {
     console.warn('Invalid Authorization header format');
-    return { error: 'Invalid authorization header format', status: 401 };
+    return { success: false, error: 'Invalid authorization header format', status: 401 };
   }
 
   const token = authHeader.substring(7); // Remove 'Bearer ' prefix
   
   if (!token) {
     console.warn('Empty token in Authorization header');
-    return { error: 'No token provided', status: 401 };
+    return { success: false, error: 'No token provided', status: 401 };
   }
 
   // Parse the JWT
   const payload = parseJWT(token);
   
   if (!payload) {
-    return { error: 'Invalid token format', status: 401 };
+    return { success: false, error: 'Invalid token format', status: 401 };
   }
 
   // Check expiration
   const now = Math.floor(Date.now() / 1000);
   if (payload.exp && payload.exp < now) {
     console.warn('Token expired:', { exp: payload.exp, now });
-    return { error: 'Token expired', status: 401 };
+    return { success: false, error: 'Token expired', status: 401 };
   }
 
   // Verify issuer matches Clerk
@@ -99,19 +99,20 @@ export async function verifyClerkJWT(req: Request): Promise<VerifyResult> {
     // Clerk issuer format: https://xxx.clerk.accounts.dev or custom domain
     if (!payload.iss.includes('clerk') && payload.iss !== clerkIssuer) {
       console.warn('Invalid issuer:', { expected: clerkIssuer, got: payload.iss });
-      return { error: 'Invalid token issuer', status: 401 };
+      return { success: false, error: 'Invalid token issuer', status: 401 };
     }
   }
 
   // Extract user ID from 'sub' claim (Clerk user ID)
   if (!payload.sub) {
     console.warn('No sub claim in token');
-    return { error: 'Invalid token: missing user ID', status: 401 };
+    return { success: false, error: 'Invalid token: missing user ID', status: 401 };
   }
 
   console.log('JWT verified successfully:', { userId: payload.sub });
   
   return {
+    success: true,
     userId: payload.sub,
     email: payload.email,
   };

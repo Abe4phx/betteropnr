@@ -23,7 +23,7 @@ serve(async (req) => {
     // Verify JWT and extract user ID
     const authResult = await verifyClerkJWT(req);
     
-    if ('error' in authResult) {
+    if (!authResult.success) {
       logStep('Auth failed', { error: authResult.error });
       return createAuthErrorResponse(authResult.error, authResult.status, corsHeaders);
     }
