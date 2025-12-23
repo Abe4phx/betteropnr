@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { verifyClerkJWT, createAuthErrorResponse } from '../_shared/clerkAuth.ts';
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -13,19 +14,22 @@ serve(async (req) => {
   }
 
   try {
+    // Verify JWT and extract user ID
+    const authResult = await verifyClerkJWT(req);
+    
+    if ('error' in authResult) {
+      console.error('Auth failed:', authResult.error);
+      return createAuthErrorResponse(authResult.error, authResult.status, corsHeaders);
+    }
+
+    const userId = authResult.userId;
+    console.log('Authenticated user:', userId);
+
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     
-    const { action, userId, profileText, email, username } = await req.json();
-
-    if (!userId) {
-      return new Response(
-        JSON.stringify({ error: "User ID is required" }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+    const { action, profileText, email, username } = await req.json();
 
     if (action === "checkNewUser") {
       // Check if user has seen welcome - bypasses RLS

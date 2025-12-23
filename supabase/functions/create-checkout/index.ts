@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import Stripe from "https://esm.sh/stripe@18.5.0";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.57.2";
+import { verifyClerkJWT, createAuthErrorResponse } from '../_shared/clerkAuth.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,11 +20,25 @@ serve(async (req) => {
   try {
     logStep('Function started');
 
-    const { priceId, userEmail, userId } = await req.json();
+    // Verify JWT and extract user ID
+    const authResult = await verifyClerkJWT(req);
+    
+    if ('error' in authResult) {
+      logStep('Auth failed', { error: authResult.error });
+      return createAuthErrorResponse(authResult.error, authResult.status, corsHeaders);
+    }
+
+    const userId = authResult.userId;
+    logStep('User authenticated', { userId });
+
+    const { priceId, userEmail } = await req.json();
     if (!priceId) throw new Error('Price ID is required');
-    if (!userEmail) throw new Error('User email is required');
-    if (!userId) throw new Error('User ID is required');
-    logStep('Request data received', { priceId, userEmail, userId });
+    
+    // Use email from JWT if available, otherwise from request body
+    const email = authResult.email || userEmail;
+    if (!email) throw new Error('User email is required');
+    
+    logStep('Request data received', { priceId, email, userId });
 
     const stripeKey = Deno.env.get('STRIPE_SECRET_KEY');
     if (!stripeKey) throw new Error('STRIPE_SECRET_KEY is not set');
@@ -32,7 +46,7 @@ serve(async (req) => {
     const stripe = new Stripe(stripeKey, { apiVersion: '2025-08-27.basil' });
 
     // Check if customer already exists
-    const customers = await stripe.customers.list({ email: userEmail, limit: 1 });
+    const customers = await stripe.customers.list({ email: email, limit: 1 });
     let customerId: string;
 
     if (customers.data.length > 0) {
@@ -40,7 +54,7 @@ serve(async (req) => {
       logStep('Existing customer found', { customerId });
     } else {
       const customer = await stripe.customers.create({
-        email: userEmail,
+        email: email,
         metadata: { clerk_user_id: userId },
       });
       customerId = customer.id;

@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { verifyClerkJWT, createAuthErrorResponse } from '../_shared/clerkAuth.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -44,6 +45,16 @@ serve(async (req) => {
   }
 
   try {
+    // Verify JWT - this function requires authentication
+    const authResult = await verifyClerkJWT(req);
+    
+    if ('error' in authResult) {
+      console.error('Auth failed:', authResult.error);
+      return createAuthErrorResponse(authResult.error, authResult.status, corsHeaders);
+    }
+
+    console.log('Authenticated user for profile review:', authResult.userId);
+
     const { bioText, tier }: ReviewRequest = await req.json();
 
     if (!bioText || bioText.trim().length < 10) {
