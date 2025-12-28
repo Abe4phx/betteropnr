@@ -5,6 +5,7 @@ import { Sparkles, Lock, Play, Zap, Check, Eye, MessageSquare, Camera, RefreshCw
 import PhotoAffiliateBlock from "@/components/PhotoAffiliateBlock";
 import ConfidenceAffiliateBlock from "@/components/ConfidenceAffiliateBlock";
 import GroomingAffiliateBlock from "@/components/GroomingAffiliateBlock";
+import WritingAffiliateBlock from "@/components/WritingAffiliateBlock";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
@@ -390,6 +391,7 @@ const ProfileReview = () => {
                 )}
 
                 {/* Optional affiliate recommendations */}
+                <WritingAffiliateBlock />
                 <PhotoAffiliateBlock />
                 <ConfidenceAffiliateBlock />
                 <GroomingAffiliateBlock />
