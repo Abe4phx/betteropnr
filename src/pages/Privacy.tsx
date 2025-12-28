@@ -123,7 +123,7 @@ const Privacy = () => {
                   <p className="mt-2">When you leave BetterOpnr to visit a third-party website, that website's privacy policy and terms apply.</p>
                   <p className="mt-2">Learn more in our <a href="/affiliate-disclosure" className="text-ts-teal hover:underline">Affiliate Disclosure</a>.</p>
                 </div>
-                <p>We do not use advertising networks or third-party tracking for marketing purposes.</p>
+                <p>We do not use advertising networks or third-party tracking for marketing purposes at this time. If we introduce advertising or additional tracking in the future, we will update this Privacy Policy before those changes take effect.</p>
               </div>
             </section>
 
