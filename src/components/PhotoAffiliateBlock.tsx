@@ -52,7 +52,7 @@ const PhotoAffiliateBlock = ({ className = '' }: PhotoAffiliateBlockProps) => {
             Improve profile photos
             <ExternalLink className="h-3.5 w-3.5" />
           </Button>
-          <AffiliateDisclosureInline variant="short" />
+          <AffiliateDisclosureInline variant="optional" />
         </div>
       </div>
     </Card>
