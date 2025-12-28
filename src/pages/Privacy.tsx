@@ -27,7 +27,7 @@ const Privacy = () => {
               <Shield className="w-12 h-12 text-ts-coral" />
             </div>
             <h1 className="text-4xl font-bold text-foreground mb-2">Privacy Policy</h1>
-            <p className="text-muted-foreground">Last Updated: January 2025</p>
+            <p className="text-muted-foreground">Last Updated: December 2025</p>
           </div>
 
           {/* Table of Contents */}
@@ -114,6 +114,14 @@ const Privacy = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-foreground mb-2">Lovable AI</h3>
                   <p>Powers our AI conversation generation using Google Gemini models. Profile data is sent to the AI service only when generating openers and is not permanently stored by the AI provider.</p>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">Affiliate Links & External Recommendations</h3>
+                  <p>BetterOpnr may include optional recommendations to third-party tools, services, or products that help improve messaging, profile presentation, or confidence.</p>
+                  <p className="mt-2">Some recommendations may include affiliate links, which means BetterOpnr may earn a commission if you choose to sign up or make a purchase — at no additional cost to you.</p>
+                  <p className="mt-2">Affiliate recommendations are optional, do not unlock or block any core features, and open in your device's external browser.</p>
+                  <p className="mt-2">When you leave BetterOpnr to visit a third-party website, that website's privacy policy and terms apply.</p>
+                  <p className="mt-2">Learn more in our <a href="/affiliate-disclosure" className="text-ts-teal hover:underline">Affiliate Disclosure</a>.</p>
                 </div>
                 <p>We do not use advertising networks or third-party tracking for marketing purposes.</p>
               </div>
