@@ -8,12 +8,13 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Trusted domains for return_url (add production domain when deployed)
+// Trusted domains for return_url
 const TRUSTED_DOMAINS = [
   'localhost',
   '127.0.0.1',
   'lovableproject.com',
   'lovable.app',
+  'betteropnr.com',
 ];
 
 const logStep = (step: string, details?: any) => {
@@ -94,12 +95,12 @@ serve(async (req) => {
       );
     }
 
-    // Abuse protection: Reject if no customer record found
+    // Reject if no customer record found
     if (!stripeCustomerData?.stripe_customer_id) {
       logStep('No Stripe customer found for user', { userId });
       return new Response(
-        JSON.stringify({ error: 'No active subscription found. Please subscribe first.' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: 'No Stripe customer found for user' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
