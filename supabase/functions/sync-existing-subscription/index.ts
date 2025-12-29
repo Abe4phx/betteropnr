@@ -81,8 +81,9 @@ serve(async (req) => {
 
     // Map price ID to plan
     const priceIdToPlan: Record<string, { plan: string; interval: string }> = {
-      "price_1SQHtY7GxpG0bh7WIeEYLjgD": { plan: "pro", interval: "month" },
-      "price_1SQHtY7GxpG0bh7WYLYHBr6U": { plan: "pro", interval: "year" },
+      "price_1SQiGI7GxpG0bh7WRavu0K4M": { plan: "pro", interval: "monthly" },
+      "price_1SQiGb7GxpG0bh7WVHyvR74d": { plan: "pro", interval: "yearly" },
+      "price_1SQiGr7GxpG0bh7Woot7ZPqs": { plan: "creator", interval: "monthly" },
     };
 
     const planInfo = priceIdToPlan[priceId] || { plan: "pro", interval: "month" };
