@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useAuth } from '@clerk/clerk-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
 export const useUserProfile = () => {
   const { user, isLoaded } = useUser();
+  const { getToken } = useAuth();
   const [profileText, setProfileText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -33,11 +34,14 @@ export const useUserProfile = () => {
 
       try {
         console.log('Loading user profile via edge function for:', user.id);
+        const token = await getToken();
+
         const { data, error } = await supabase.functions.invoke('user-profile', {
           body: {
             action: 'get',
             userId: user.id,
           },
+          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         });
 
         if (error) {
@@ -93,14 +97,17 @@ export const useUserProfile = () => {
 
     saveTimeoutRef.current = setTimeout(async () => {
       try {
-        console.log('Saving profile via edge function for:', user.id);
-        const { data, error } = await supabase.functions.invoke('user-profile', {
-          body: {
-            action: 'save',
-            userId: user.id,
-            profileText: profileText,
-          },
-        });
+          console.log('Saving profile via edge function for:', user.id);
+          const token = await getToken();
+
+          const { data, error } = await supabase.functions.invoke('user-profile', {
+            body: {
+              action: 'save',
+              userId: user.id,
+              profileText: profileText,
+            },
+            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+          });
 
         if (error) {
           console.error('Error saving profile:', error);
