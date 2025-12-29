@@ -28,8 +28,14 @@ export type VerifyResult = { success: true } & AuthResult | { success: false } &
 const SUPPORTED_ALGORITHMS = ['RS256', 'RS384', 'RS512', 'ES256', 'ES384', 'ES512'];
 
 // Cache for fetched and filtered JWKS
+interface KeyInfo {
+  key: CryptoKey;
+  alg: string;
+}
+
 interface JWKSCache {
-  keys: Map<string, CryptoKey>;
+  keys: Map<string, KeyInfo>;
+  keysList: KeyInfo[];  // For iteration when no kid is present
   expiry: number;
 }
 
@@ -39,12 +45,12 @@ const JWKS_CACHE_TTL = 3600000; // 1 hour in milliseconds
 /**
  * Fetch JWKS from Clerk and filter to only supported algorithms
  */
-async function fetchAndFilterJWKS(clerkIssuerUrl: string): Promise<Map<string, CryptoKey>> {
+async function fetchAndFilterJWKS(clerkIssuerUrl: string): Promise<JWKSCache> {
   const now = Date.now();
   
   // Return cached keys if still valid
   if (jwksCache && now < jwksCache.expiry) {
-    return jwksCache.keys;
+    return jwksCache;
   }
   
   const jwksUrl = new URL('/.well-known/jwks.json', clerkIssuerUrl);
@@ -56,41 +62,82 @@ async function fetchAndFilterJWKS(clerkIssuerUrl: string): Promise<Map<string, C
   }
   
   const jwks = await response.json();
-  const keys = new Map<string, CryptoKey>();
+  const keys = new Map<string, KeyInfo>();
+  const keysList: KeyInfo[] = [];
+  
+  console.log(`JWKS contains ${jwks.keys?.length || 0} keys`);
   
   // Filter and import only supported algorithm keys
-  for (const jwk of jwks.keys) {
-    if (!jwk.alg || !SUPPORTED_ALGORITHMS.includes(jwk.alg)) {
-      console.log(`Skipping key with unsupported algorithm: ${jwk.alg || 'none'}`);
-      continue;
-    }
+  for (const jwk of jwks.keys || []) {
+    const alg = jwk.alg || 'RS256'; // Default to RS256 if not specified
     
-    if (!jwk.kid) {
-      console.log('Skipping key without kid');
+    if (!SUPPORTED_ALGORITHMS.includes(alg)) {
+      console.log(`Skipping key with unsupported algorithm: ${alg}`);
       continue;
     }
     
     try {
-      const cryptoKey = await importJWK(jwk, jwk.alg);
-      keys.set(jwk.kid, cryptoKey as CryptoKey);
-      console.log(`Imported key: ${jwk.kid} (${jwk.alg})`);
+      const cryptoKey = await importJWK(jwk, alg);
+      const keyInfo: KeyInfo = { key: cryptoKey as CryptoKey, alg };
+      
+      if (jwk.kid) {
+        keys.set(jwk.kid, keyInfo);
+        console.log(`Imported key with kid: ${jwk.kid} (${alg})`);
+      }
+      
+      keysList.push(keyInfo);
+      console.log(`Imported key (${alg})`);
     } catch (err) {
-      console.warn(`Failed to import key ${jwk.kid}:`, err);
+      console.warn(`Failed to import key:`, err);
     }
   }
   
-  if (keys.size === 0) {
+  if (keysList.length === 0) {
     throw new Error('No valid keys found in JWKS');
   }
   
   // Cache the keys
   jwksCache = {
     keys,
+    keysList,
     expiry: now + JWKS_CACHE_TTL
   };
   
-  console.log(`Cached ${keys.size} valid keys`);
-  return keys;
+  console.log(`Cached ${keysList.length} valid keys`);
+  return jwksCache;
+}
+
+/**
+ * Try to verify the token with each available key until one works
+ */
+async function verifyWithKeys(
+  token: string, 
+  cache: JWKSCache, 
+  kid: string | undefined,
+  issuer: string
+): Promise<{ payload: JWTPayload }> {
+  // If we have a kid, try that key first
+  if (kid && cache.keys.has(kid)) {
+    const keyInfo = cache.keys.get(kid)!;
+    try {
+      return await jwtVerify(token, keyInfo.key, { issuer });
+    } catch (err) {
+      console.log(`Key ${kid} failed, trying other keys...`);
+    }
+  }
+  
+  // Try all keys
+  let lastError: Error | null = null;
+  for (const keyInfo of cache.keysList) {
+    try {
+      return await jwtVerify(token, keyInfo.key, { issuer });
+    } catch (err) {
+      lastError = err as Error;
+      // Continue to next key
+    }
+  }
+  
+  throw lastError || new Error('No keys could verify the token');
 }
 
 /**
@@ -125,40 +172,21 @@ export async function verifyClerkJWT(req: Request): Promise<VerifyResult> {
   }
 
   try {
-    // Decode the JWT header to get the key ID (kid)
-    const header = decodeProtectedHeader(token);
-    const kid = header.kid;
-    
-    if (!kid) {
-      console.warn('No kid in JWT header');
-      return { success: false, error: 'Invalid token: missing key ID', status: 401 };
+    // Decode the JWT header to get the key ID (kid) if present
+    let kid: string | undefined;
+    try {
+      const header = decodeProtectedHeader(token);
+      kid = header.kid;
+      console.log('JWT header:', { alg: header.alg, kid: kid || 'none' });
+    } catch (err) {
+      console.log('Could not decode JWT header, will try all keys');
     }
     
     // Fetch and filter JWKS
-    const keys = await fetchAndFilterJWKS(clerkIssuerUrl);
+    const cache = await fetchAndFilterJWKS(clerkIssuerUrl);
     
-    // Find the key matching the JWT's kid
-    const key = keys.get(kid);
-    if (!key) {
-      console.warn(`No matching key found for kid: ${kid}`);
-      // Clear cache and retry once in case keys were rotated
-      jwksCache = null;
-      const freshKeys = await fetchAndFilterJWKS(clerkIssuerUrl);
-      const freshKey = freshKeys.get(kid);
-      if (!freshKey) {
-        return { success: false, error: 'Token signing key not found', status: 401 };
-      }
-    }
-    
-    const verificationKey = keys.get(kid) || (await fetchAndFilterJWKS(clerkIssuerUrl)).get(kid);
-    if (!verificationKey) {
-      return { success: false, error: 'Token signing key not found', status: 401 };
-    }
-    
-    // Verify the JWT signature and claims
-    const { payload } = await jwtVerify(token, verificationKey, {
-      issuer: clerkIssuerUrl,
-    });
+    // Verify the JWT with available keys
+    const { payload } = await verifyWithKeys(token, cache, kid, clerkIssuerUrl);
 
     const clerkPayload = payload as ClerkJWTPayload;
 
