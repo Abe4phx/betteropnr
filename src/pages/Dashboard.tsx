@@ -1,4 +1,4 @@
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useAuth } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useClerkSyncContext } from '@/contexts/ClerkSyncContext';
@@ -13,9 +13,11 @@ import { WelcomeFlow } from '@/components/WelcomeFlow';
 import { ProfileCompletionPrompt } from '@/components/ProfileCompletionPrompt';
 import { LoadingSkeleton } from '@/components/ui/LoadingSkeleton';
 import { motion } from 'framer-motion';
+import { supabase } from '@/integrations/supabase/client';
 
 const Dashboard = () => {
   const { user, isLoaded } = useUser();
+  const { getToken } = useAuth();
   const { isSynced } = useClerkSyncContext();
   const { plan, loading: planLoading } = useUserPlan();
   const { profileText } = useUserProfile();
@@ -50,25 +52,27 @@ const Dashboard = () => {
     
     setShowWelcome(false);
     
-    // Mark welcome as completed via edge function (bypasses RLS)
+    // Mark welcome as completed via edge function with auth
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/user-profile`,
-        {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            action: 'markWelcomeSeen',
-            userId: user.id,
-            email: user.primaryEmailAddress?.emailAddress || '',
-            username: user.username || user.firstName || 'User',
-          }),
-        }
-      );
+      const token = await getToken();
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Error updating welcome status:', errorData);
+      if (!token) {
+        console.error('No auth token available for markWelcomeSeen');
+        return;
+      }
+
+      const { data, error } = await supabase.functions.invoke('user-profile', {
+        body: {
+          action: 'markWelcomeSeen',
+          userId: user.id,
+          email: user.primaryEmailAddress?.emailAddress || '',
+          username: user.username || user.firstName || 'User',
+        },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      
+      if (error) {
+        console.error('Error updating welcome status:', error);
       } else {
         console.log('Welcome status updated successfully');
       }

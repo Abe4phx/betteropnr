@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { useSupabase } from '@/contexts/SupabaseContext';
+import { useAuth } from '@clerk/clerk-react';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -11,7 +12,7 @@ interface ImageData {
 }
 
 export const useImageTextExtraction = () => {
-  const supabase = useSupabase();
+  const { getToken } = useAuth();
   const [isExtracting, setIsExtracting] = useState(false);
   const [imageData, setImageData] = useState<ImageData[]>([]);
 
@@ -73,9 +74,15 @@ export const useImageTextExtraction = () => {
 
     try {
       const base64Image = await convertToBase64(file);
+      const token = await getToken();
+
+      if (!token) {
+        throw new Error('Not authenticated');
+      }
 
       const { data, error } = await supabase.functions.invoke('extract-profile-text', {
         body: { image: base64Image },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (error) {
@@ -140,9 +147,20 @@ export const useImageTextExtraction = () => {
         }
 
         const base64Image = await convertToBase64(file);
+        const token = await getToken();
+
+        if (!token) {
+          toast({
+            title: 'Authentication required',
+            description: 'Please sign in to extract text from images.',
+            variant: 'destructive',
+          });
+          throw new Error('Not authenticated');
+        }
 
         const { data, error } = await supabase.functions.invoke('extract-profile-text', {
           body: { image: base64Image },
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         if (error) {

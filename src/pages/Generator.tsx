@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useUser } from "@clerk/clerk-react";
+import { useUser, useAuth } from "@clerk/clerk-react";
 import { Link } from "react-router-dom";
 import { ProfileInput } from "@/components/ProfileInput";
 import { UserProfileInput } from "@/components/UserProfileInput";
@@ -29,6 +29,7 @@ import WritingAffiliateBlock from "@/components/WritingAffiliateBlock";
 
 const Generator = () => {
   const { user } = useUser();
+  const { getToken } = useAuth();
   const {
     profileText,
     setProfileText,
@@ -100,6 +101,12 @@ const Generator = () => {
         return;
       }
 
+      const token = await getToken();
+      if (!token) {
+        toast.error('Authentication required');
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('generate', {
         body: {
           profileText,
@@ -110,6 +117,7 @@ const Generator = () => {
           userId: user.id,
           userEmail: user.primaryEmailAddress?.emailAddress,
         },
+        headers: { Authorization: `Bearer ${token}` },
       });
       
       if (error) {
@@ -184,6 +192,13 @@ const Generator = () => {
     toast.info(`Generating ${style} variation...`);
     
     try {
+      const token = await getToken();
+      if (!token) {
+        toast.error('Authentication required');
+        setGeneratingVariationFor(null);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('generate', {
         body: {
           profileText,
@@ -194,6 +209,7 @@ const Generator = () => {
           userId: user?.id,
           userEmail: user?.primaryEmailAddress?.emailAddress,
         },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (error) {
@@ -244,6 +260,13 @@ const Generator = () => {
     setGeneratingFollowUpFor(openerId);
     
     try {
+      const token = await getToken();
+      if (!token) {
+        toast.error('Authentication required');
+        setGeneratingFollowUpFor(null);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('generate', {
         body: {
           profileText,
@@ -254,6 +277,7 @@ const Generator = () => {
           userId: user?.id,
           userEmail: user?.primaryEmailAddress?.emailAddress,
         },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (error) {

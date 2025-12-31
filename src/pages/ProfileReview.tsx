@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useUser } from "@clerk/clerk-react";
+import { useUser, useAuth } from "@clerk/clerk-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Sparkles, Lock, Play, Zap, Check, Eye, MessageSquare, Camera, RefreshCw, Lightbulb } from "lucide-react";
 import PhotoAffiliateBlock from "@/components/PhotoAffiliateBlock";
@@ -40,6 +40,7 @@ interface ProfileReviewResult {
 
 const ProfileReview = () => {
   const { user } = useUser();
+  const { getToken } = useAuth();
   const { plan } = useUserPlan();
   const isPro = plan === 'pro' || plan === 'creator';
   const { profileText, setProfileText, isLoading: isProfileLoading } = useUserProfile();
@@ -84,8 +85,16 @@ const ProfileReview = () => {
     setCurrentTier(tier);
 
     try {
+      const token = await getToken();
+      if (!token) {
+        toast.error("Authentication required");
+        setIsLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase.functions.invoke('review-profile', {
-        body: { bioText: bioText.trim(), tier }
+        body: { bioText: bioText.trim(), tier },
+        headers: { Authorization: `Bearer ${token}` },
       });
 
       if (error) {
