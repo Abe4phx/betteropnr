@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { useUser, useAuth } from '@clerk/clerk-react';
-import { supabase } from '@/integrations/supabase/client';
+import { useUser } from '@clerk/clerk-react';
 import { useToast } from '@/hooks/use-toast';
+import { useAuthedFunctionInvoke } from '@/hooks/useAuthedFunctionInvoke';
 
 export const useUserProfile = () => {
   const { user, isLoaded } = useUser();
-  const { getToken } = useAuth();
+  const { invoke } = useAuthedFunctionInvoke();
   const [profileText, setProfileText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -34,14 +34,12 @@ export const useUserProfile = () => {
 
       try {
         console.log('Loading user profile via edge function for:', user.id);
-        const token = await getToken();
 
-        const { data, error } = await supabase.functions.invoke('user-profile', {
+        const { data, error } = await invoke<{ profileText?: string; success?: boolean }>('user-profile', {
           body: {
             action: 'get',
             userId: user.id,
           },
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
         });
 
         if (error) {
@@ -64,7 +62,7 @@ export const useUserProfile = () => {
     };
 
     loadProfile();
-  }, [user, isLoaded]);
+  }, [user, isLoaded, invoke]);
 
   // Fallback: if loading takes too long, stop anyway
   useEffect(() => {
@@ -97,23 +95,21 @@ export const useUserProfile = () => {
 
     saveTimeoutRef.current = setTimeout(async () => {
       try {
-          console.log('Saving profile via edge function for:', user.id);
-          const token = await getToken();
+        console.log('Saving profile via edge function for:', user.id);
 
-          const { data, error } = await supabase.functions.invoke('user-profile', {
-            body: {
-              action: 'save',
-              userId: user.id,
-              profileText: profileText,
-            },
-            headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-          });
+        const { data, error } = await invoke<{ success?: boolean }>('user-profile', {
+          body: {
+            action: 'save',
+            userId: user.id,
+            profileText: profileText,
+          },
+        });
 
         if (error) {
           console.error('Error saving profile:', error);
           toast({
             title: "Couldn't save profile",
-            description: "Your changes might not be saved. Please try again.",
+            description: error.message || "Your changes might not be saved. Please try again.",
             variant: "destructive",
           });
         } else if (data?.success) {
@@ -124,7 +120,7 @@ export const useUserProfile = () => {
         console.error('Error saving profile:', error);
         toast({
           title: "Couldn't save profile",
-          description: "Your changes might not be saved. Please try again.",
+          description: error instanceof Error ? error.message : "Your changes might not be saved. Please try again.",
           variant: "destructive",
         });
       }
@@ -135,7 +131,7 @@ export const useUserProfile = () => {
         clearTimeout(saveTimeoutRef.current);
       }
     };
-  }, [profileText, user, isLoaded, isLoading, toast]);
+  }, [profileText, user, isLoaded, isLoading, toast, invoke]);
 
   // Reset on user change
   useEffect(() => {
