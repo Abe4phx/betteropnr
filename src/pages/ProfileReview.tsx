@@ -125,8 +125,6 @@ const ProfileReview = () => {
   };
 
   const handleVideoUnlock = () => {
-    // For now, simulate video watch - in production, integrate with a video player
-    toast.info("Video unlocking feature coming soon! For now, enjoy the preview.", { duration: 3000 });
     handleReview('video');
   };
 
