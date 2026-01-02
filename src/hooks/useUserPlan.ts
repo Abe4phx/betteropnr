@@ -1,31 +1,40 @@
 import { useEffect, useState } from 'react';
-import { useUser } from '@clerk/clerk-react';
-import { useSupabaseContext } from '@/contexts/SupabaseContext';
+import { useUser, useAuth } from '@clerk/clerk-react';
 import { useClerkSyncContext } from '@/contexts/ClerkSyncContext';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useUserPlan = () => {
   const { user } = useUser();
-  const { client: supabase, isTokenReady } = useSupabaseContext();
+  const { getToken } = useAuth();
   const { isSynced } = useClerkSyncContext();
   const [plan, setPlan] = useState<string>('free');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUserPlan = async () => {
-      // Wait for user, token, AND sync to be ready
-      if (!user || !isTokenReady || !isSynced) {
-        return; // Don't set loading to false yet - still waiting
+      // Wait for user AND sync to be ready
+      if (!user || !isSynced) {
+        return;
       }
 
       try {
-        const { data, error } = await supabase
-          .from('users')
-          .select('plan')
-          .eq('clerk_user_id', user.id)
-          .maybeSingle();
+        const token = await getToken();
+        if (!token) {
+          console.error('No auth token available for getPlan');
+          setLoading(false);
+          return;
+        }
 
-        if (error) throw error;
-        if (data) setPlan(data.plan);
+        const { data, error } = await supabase.functions.invoke('user-profile', {
+          body: { action: 'getPlan' },
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (error) {
+          console.error('Error fetching user plan:', error);
+        } else if (data?.plan) {
+          setPlan(data.plan);
+        }
       } catch (error) {
         console.error('Error fetching user plan:', error);
       } finally {
@@ -34,7 +43,7 @@ export const useUserPlan = () => {
     };
 
     fetchUserPlan();
-  }, [user, isTokenReady, isSynced, supabase]);
+  }, [user, isSynced, getToken]);
 
   return { plan, loading };
 };

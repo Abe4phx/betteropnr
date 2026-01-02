@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { useUser } from '@clerk/clerk-react';
-import { useSupabase } from '@/contexts/SupabaseContext';
+import { useUser, useAuth } from '@clerk/clerk-react';
 import { useUserPlan } from '@/hooks/useUserPlan';
 import { useUsageTracking } from '@/hooks/useUsageTracking';
+import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -19,7 +19,7 @@ interface DailyUsage {
 
 const Statistics = () => {
   const { user } = useUser();
-  const supabase = useSupabase();
+  const { getToken } = useAuth();
   const { plan, loading: planLoading } = useUserPlan();
   const { usage, loading: usageLoading } = useUsageTracking();
   const [historicalData, setHistoricalData] = useState<DailyUsage[]>([]);
@@ -31,38 +31,25 @@ const Statistics = () => {
       if (!user) return;
 
       try {
-        // Fetch last 30 days of usage data
-        const thirtyDaysAgo = new Date();
-        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const token = await getToken();
+        if (!token) {
+          setDataLoading(false);
+          return;
+        }
 
-        const { data, error } = await supabase
-          .from('user_usage')
-          .select('date, openers_generated, favorites_count')
-          .eq('user_id', user.id)
-          .gte('date', thirtyDaysAgo.toISOString().split('T')[0])
-          .order('date', { ascending: true });
+        const { data, error } = await supabase.functions.invoke('user-usage', {
+          body: { action: 'getStats' },
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-        if (error) throw error;
+        if (error) {
+          console.error('Error fetching stats:', error);
+          setDataLoading(false);
+          return;
+        }
 
-        setHistoricalData(data || []);
-
-        // Calculate total stats from all time
-        const { data: allTimeData, error: allTimeError } = await supabase
-          .from('user_usage')
-          .select('openers_generated, favorites_count')
-          .eq('user_id', user.id);
-
-        if (allTimeError) throw allTimeError;
-
-        const totals = (allTimeData || []).reduce(
-          (acc, curr) => ({
-            totalOpeners: acc.totalOpeners + curr.openers_generated,
-            totalFavorites: acc.totalFavorites + curr.favorites_count,
-          }),
-          { totalOpeners: 0, totalFavorites: 0 }
-        );
-
-        setTotalStats(totals);
+        setHistoricalData(data?.historicalData || []);
+        setTotalStats(data?.totalStats || { totalOpeners: 0, totalFavorites: 0 });
       } catch (error) {
         console.error('Error fetching historical data:', error);
       } finally {
@@ -71,7 +58,7 @@ const Statistics = () => {
     };
 
     fetchHistoricalData();
-  }, [user]);
+  }, [user, getToken]);
 
   // Calculate plan limits
   const openerLimit = plan === 'free' ? 5 : 999;
