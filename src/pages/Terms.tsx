@@ -35,7 +35,7 @@ const Terms = () => {
             Terms of Service
           </h1>
           <p className="text-muted-foreground mt-2">
-            Last updated: December 3, 2024
+            Last updated: January 2, 2025
           </p>
         </div>
       </div>
