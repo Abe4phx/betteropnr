@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useRef, useState, ReactNode } from 'react';
-import { useUser } from '@clerk/clerk-react';
-import { useSupabaseContext } from '@/contexts/SupabaseContext';
+import { useUser, useAuth } from '@clerk/clerk-react';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ClerkSyncContextType {
   isSynced: boolean;
@@ -12,106 +12,55 @@ const ClerkSyncContext = createContext<ClerkSyncContextType | null>(null);
 
 export const ClerkSyncProvider = ({ children }: { children: ReactNode }) => {
   const { user, isLoaded } = useUser();
-  const { client: supabase, isTokenReady } = useSupabaseContext();
+  const { getToken } = useAuth();
   const hasAttemptedSync = useRef(false);
-  const retryCount = useRef(0);
-  const maxRetries = 3;
   const [isSynced, setIsSynced] = useState(false);
 
   useEffect(() => {
     const syncUserToSupabase = async () => {
-      // Wait for both user to be loaded AND token to be ready
-      if (!isLoaded || !user || !isTokenReady) return;
+      if (!isLoaded || !user) return;
 
-      // Only attempt sync once per session (unless retrying due to error)
-      if (hasAttemptedSync.current && retryCount.current === 0) return;
+      // Only attempt sync once per session
+      if (hasAttemptedSync.current) return;
 
       try {
-        console.log('Syncing user to Supabase:', user.id);
+        console.log('Syncing user to Supabase via edge function:', user.id);
+        hasAttemptedSync.current = true;
         
-        // Check if user exists using maybeSingle to avoid errors when not found
-        const { data: existingUser, error: fetchError } = await supabase
-          .from('users')
-          .select('*')
-          .eq('clerk_user_id', user.id)
-          .maybeSingle();
-
-        if (fetchError) {
-          console.error('Error checking for existing user:', fetchError);
-          // Still mark as synced to prevent app from hanging
-          hasAttemptedSync.current = true;
-          setIsSynced(true);
+        const token = await getToken();
+        if (!token) {
+          console.error('No auth token available for sync');
+          setIsSynced(true); // Mark as synced to prevent hanging
           return;
         }
 
-        const userData = {
-          clerk_user_id: user.id,
-          email: user.primaryEmailAddress?.emailAddress || '',
-          username: user.username || user.firstName || 'User',
-          plan: existingUser?.plan || 'free',
-        };
+        const { data, error } = await supabase.functions.invoke('user-profile', {
+          body: {
+            action: 'sync',
+            username: user.username || user.firstName || 'User',
+          },
+          headers: { Authorization: `Bearer ${token}` },
+        });
 
-        if (!existingUser) {
-          // Insert new user
-          console.log('Creating new user in database');
-          const { error: insertError } = await supabase
-            .from('users')
-            .insert(userData);
-          
-          if (insertError) {
-            // If RLS error, retry after a short delay (token might not be fully propagated)
-            if (insertError.message?.includes('row-level security') && retryCount.current < maxRetries) {
-              console.log(`RLS error on insert, retrying... (attempt ${retryCount.current + 1}/${maxRetries})`);
-              retryCount.current += 1;
-              setTimeout(syncUserToSupabase, 500 * retryCount.current);
-              return;
-            }
-            console.error('Error creating user:', insertError);
-            // Still mark as synced after max retries to prevent hanging
-            hasAttemptedSync.current = true;
-            setIsSynced(true);
-          } else {
-            console.log('User created successfully');
-            hasAttemptedSync.current = true;
-            retryCount.current = 0;
-            setIsSynced(true);
-          }
+        if (error) {
+          console.error('Error syncing user:', error);
         } else {
-          // User exists - mark as synced immediately, then update in background
-          console.log('Existing user found, marking as synced');
-          hasAttemptedSync.current = true;
-          retryCount.current = 0;
-          setIsSynced(true);
-          
-          // Update in background (non-blocking)
-          supabase
-            .from('users')
-            .update({
-              email: userData.email,
-              username: userData.username,
-            })
-            .eq('clerk_user_id', user.id)
-            .then(({ error: updateError }) => {
-              if (updateError) {
-                console.error('Error updating user:', updateError);
-              }
-            });
+          console.log('User sync result:', data);
         }
+
+        setIsSynced(true);
       } catch (error) {
         console.error('Error syncing user to Supabase:', error);
-        // Mark as synced even on error to prevent app from hanging
-        hasAttemptedSync.current = true;
-        setIsSynced(true);
+        setIsSynced(true); // Mark as synced even on error to prevent hanging
       }
     };
 
     syncUserToSupabase();
-  }, [user, isLoaded, isTokenReady, supabase]);
+  }, [user, isLoaded, getToken]);
 
   // Reset sync flag when user changes
   useEffect(() => {
     hasAttemptedSync.current = false;
-    retryCount.current = 0;
     setIsSynced(false);
   }, [user?.id]);
 

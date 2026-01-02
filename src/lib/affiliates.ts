@@ -1,5 +1,3 @@
-import { supabase } from "@/integrations/supabase/client";
-
 export type AffiliateCategory = 
   | 'writing' 
   | 'photos' 
@@ -19,64 +17,40 @@ export interface Affiliate {
   description: string | null;
 }
 
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
+
 /**
  * Get a single affiliate for a category and optional country
  * Returns null if no affiliate is available
- * 
- * Logic:
- * - Filter by category
- * - Filter by country (if provided, check if country is in countries_supported or if countries_supported is empty)
- * - Filter is_active = true
- * - Sort by priority descending
- * - Return the first result only
  */
 export async function getAffiliateForCategory(
   category: AffiliateCategory, 
   country?: string
 ): Promise<Affiliate | null> {
-  let query = supabase
-    .from('affiliates')
-    .select('*')
-    .eq('category', category)
-    .eq('is_active', true)
-    .order('priority', { ascending: false })
-    .limit(1);
+  try {
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/affiliates`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'getForCategory',
+        category,
+        country,
+      }),
+    });
 
-  const { data, error } = await query;
-  
-  if (error || !data || data.length === 0) {
+    if (!response.ok) {
+      console.error('Failed to fetch affiliate:', response.statusText);
+      return null;
+    }
+
+    const data = await response.json();
+    return data.affiliate || null;
+  } catch (error) {
+    console.error('Error fetching affiliate:', error);
     return null;
   }
-
-  // Filter by country if specified
-  const affiliate = data[0];
-  
-  if (country) {
-    const countriesSupported = affiliate.countries_supported || [];
-    // If countries_supported is empty, it's available everywhere
-    // Otherwise, check if the country is in the list
-    if (countriesSupported.length > 0 && !countriesSupported.includes(country)) {
-      // This affiliate doesn't support the user's country, try to find another
-      const { data: allAffiliates } = await supabase
-        .from('affiliates')
-        .select('*')
-        .eq('category', category)
-        .eq('is_active', true)
-        .order('priority', { ascending: false });
-      
-      if (!allAffiliates) return null;
-      
-      // Find first affiliate that supports the country or is globally available
-      const matchingAffiliate = allAffiliates.find(a => {
-        const countries = a.countries_supported || [];
-        return countries.length === 0 || countries.includes(country);
-      });
-      
-      return matchingAffiliate as Affiliate || null;
-    }
-  }
-
-  return affiliate as Affiliate;
 }
 
 /**

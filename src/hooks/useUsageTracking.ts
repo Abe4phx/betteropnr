@@ -1,8 +1,8 @@
-import { useEffect, useState } from 'react';
-import { useUser } from '@clerk/clerk-react';
-import { useSupabaseContext } from '@/contexts/SupabaseContext';
+import { useEffect, useState, useCallback } from 'react';
+import { useUser, useAuth } from '@clerk/clerk-react';
 import { useClerkSyncContext } from '@/contexts/ClerkSyncContext';
 import { useUserPlan } from './useUserPlan';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UsageData {
   openers_generated: number;
@@ -13,8 +13,8 @@ interface UsageData {
 
 export const useUsageTracking = () => {
   const { user } = useUser();
+  const { getToken } = useAuth();
   const { plan } = useUserPlan();
-  const { client: supabase, isTokenReady } = useSupabaseContext();
   const { isSynced } = useClerkSyncContext();
   const [usage, setUsage] = useState<UsageData>({
     openers_generated: 0,
@@ -24,8 +24,8 @@ export const useUsageTracking = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  const fetchUsage = async () => {
-    if (!user || !isTokenReady || !isSynced) {
+  const fetchUsage = useCallback(async () => {
+    if (!user || !isSynced) {
       if (!user) {
         setLoading(false);
       }
@@ -33,22 +33,26 @@ export const useUsageTracking = () => {
     }
 
     try {
-      const today = new Date().toISOString().split('T')[0];
-      
-      // Fetch today's usage
-      const { data: usageData, error: usageError } = await supabase
-        .from('user_usage')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('date', today)
-        .maybeSingle();
-
-      if (usageError && usageError.code !== 'PGRST116') {
-        throw usageError;
+      const token = await getToken();
+      if (!token) {
+        console.error('No auth token available for usage');
+        setLoading(false);
+        return;
       }
 
-      const openers = usageData?.openers_generated || 0;
-      const favorites = usageData?.favorites_count || 0;
+      const { data, error } = await supabase.functions.invoke('user-usage', {
+        body: { action: 'get' },
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (error) {
+        console.error('Error fetching usage:', error);
+        setLoading(false);
+        return;
+      }
+
+      const openers = data?.openers_generated || 0;
+      const favorites = data?.favorites_count || 0;
 
       // Free plan limits: 5 openers per day, 5 favorites total
       const hasExceededOpenerLimit = plan === 'free' && openers >= 5;
@@ -65,40 +69,23 @@ export const useUsageTracking = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [user, isSynced, plan, getToken]);
 
   useEffect(() => {
     fetchUsage();
-  }, [user, plan, isTokenReady, isSynced]);
+  }, [fetchUsage]);
 
   const incrementOpeners = async () => {
-    if (!user || !isTokenReady) return;
+    if (!user) return;
 
     try {
-      const today = new Date().toISOString().split('T')[0];
-      
-      const { data: existing } = await supabase
-        .from('user_usage')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('date', today)
-        .maybeSingle();
+      const token = await getToken();
+      if (!token) return;
 
-      if (existing) {
-        await supabase
-          .from('user_usage')
-          .update({ openers_generated: existing.openers_generated + 1 })
-          .eq('id', existing.id);
-      } else {
-        await supabase
-          .from('user_usage')
-          .insert({
-            user_id: user.id,
-            date: today,
-            openers_generated: 1,
-            favorites_count: 0,
-          });
-      }
+      await supabase.functions.invoke('user-usage', {
+        body: { action: 'incrementOpeners' },
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       await fetchUsage();
     } catch (error) {
@@ -107,33 +94,16 @@ export const useUsageTracking = () => {
   };
 
   const incrementFavorites = async () => {
-    if (!user || !isTokenReady) return;
+    if (!user) return;
 
     try {
-      const today = new Date().toISOString().split('T')[0];
-      
-      const { data: existing } = await supabase
-        .from('user_usage')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('date', today)
-        .maybeSingle();
+      const token = await getToken();
+      if (!token) return;
 
-      if (existing) {
-        await supabase
-          .from('user_usage')
-          .update({ favorites_count: existing.favorites_count + 1 })
-          .eq('id', existing.id);
-      } else {
-        await supabase
-          .from('user_usage')
-          .insert({
-            user_id: user.id,
-            date: today,
-            openers_generated: 0,
-            favorites_count: 1,
-          });
-      }
+      await supabase.functions.invoke('user-usage', {
+        body: { action: 'incrementFavorites' },
+        headers: { Authorization: `Bearer ${token}` },
+      });
 
       await fetchUsage();
     } catch (error) {
