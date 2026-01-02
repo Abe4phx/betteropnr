@@ -1,20 +1,20 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '@clerk/clerk-react';
-import { useSupabase } from '@/contexts/SupabaseContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Crown, Sparkles, Zap, ExternalLink, Info } from 'lucide-react';
+import { Check, Crown, Sparkles, Zap, ExternalLink } from 'lucide-react';
 import { useUserPlan } from '@/hooks/useUserPlan';
 import { toast } from 'sonner';
 import { UpgradeSuccessModal } from '@/components/UpgradeSuccessModal';
 import { isNativeApp, getPlatform } from '@/lib/platformDetection';
+import { useAuthedFunctionInvoke } from '@/hooks/useAuthedFunctionInvoke';
 
 const Billing = () => {
   const navigate = useNavigate();
   const { user, isLoaded } = useUser();
-  const supabase = useSupabase();
+  const { invoke } = useAuthedFunctionInvoke();
   const { plan, loading } = useUserPlan();
   const [portalLoading, setPortalLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
@@ -48,7 +48,7 @@ const Billing = () => {
     
     setPortalLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('create-portal-session');
+      const { data, error } = await invoke<{ url?: string }>('create-portal-session');
 
       if (error) throw error;
 
@@ -57,7 +57,7 @@ const Billing = () => {
       }
     } catch (error) {
       console.error('Error creating portal session:', error);
-      toast.error('Failed to open billing portal. Please try again.');
+      toast.error(error instanceof Error ? `Failed: ${error.message}` : 'Failed to open billing portal. Please try again.');
     } finally {
       setPortalLoading(false);
     }

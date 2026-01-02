@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useUser } from '@clerk/clerk-react';
-import { useSupabase } from '@/contexts/SupabaseContext';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -9,6 +8,7 @@ import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { motion } from 'framer-motion';
 import { isNativeApp, getPlatform } from '@/lib/platformDetection';
+import { useAuthedFunctionInvoke } from '@/hooks/useAuthedFunctionInvoke';
 
 interface PaywallModalProps {
   open: boolean;
@@ -26,7 +26,7 @@ const PRICE_IDS = {
 
 export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
   const { user } = useUser();
-  const supabase = useSupabase();
+  const { invoke } = useAuthedFunctionInvoke();
   const [loading, setLoading] = useState(false);
   const [isYearly, setIsYearly] = useState(false);
   
@@ -53,7 +53,7 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
+      const { data, error } = await invoke<{ url?: string }>('create-checkout', {
         body: { 
           priceId,
           userEmail: user.emailAddresses[0].emailAddress,
@@ -68,7 +68,7 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
       }
     } catch (error) {
       console.error('Error creating checkout:', error);
-      toast.error('Failed to start checkout. Please try again.');
+      toast.error(error instanceof Error ? `Checkout failed: ${error.message}` : 'Failed to start checkout. Please try again.');
     } finally {
       setLoading(false);
     }
