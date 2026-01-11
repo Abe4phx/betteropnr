@@ -44,7 +44,7 @@ const Landing = () => {
             
             {/* Left Column - Text Content */}
             <motion.div 
-              className="text-center md:text-left space-y-8 relative z-10"
+              className="text-center space-y-8 relative z-10"
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.2 }}
@@ -52,7 +52,7 @@ const Landing = () => {
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-heading font-bold text-foreground leading-tight">
                 Start better conversations — get more replies
               </h1>
-              <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto md:mx-0">
+              <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto">
                 AI-powered conversation starters that feel authentic and get responses. No more ghosting.
               </p>
               
