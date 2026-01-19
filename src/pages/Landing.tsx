@@ -44,16 +44,19 @@ const Landing = () => {
             
             {/* Left Column - Text Content */}
             <motion.div 
-              className="text-center space-y-8 relative z-10"
+              className="text-center md:text-left space-y-6 relative z-10"
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.6, delay: 0.2 }}
             >
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-heading font-bold text-foreground leading-tight">
-                Start better conversations — get more replies
+                BetterOpnr: AI Dating Openers That Actually Sound Human
               </h1>
-              <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto">
-                AI-powered conversation starters that feel authentic and get responses. No more ghosting.
+              <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto md:mx-0">
+                BetterOpnr helps you create confident conversation starters, improve your dating profile, and avoid awkward first messages using AI designed for real dating conversations.
+              </p>
+              <p className="text-base text-muted-foreground max-w-xl mx-auto md:mx-0">
+                Starting a conversation on dating apps is harder than it should be. BetterOpnr uses AI to generate dating openers and conversation starters based on real profiles, real situations, and natural language — not cheesy pickup lines.
               </p>
               
               {/* CTA - Desktop only */}
