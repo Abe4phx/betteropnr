@@ -139,7 +139,7 @@ const Landing = () => {
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-foreground text-center mb-8">
           AI Dating Openers Built for Real Conversations
         </h2>
-        <div className="space-y-6 text-base sm:text-lg text-muted-foreground leading-relaxed">
+        <div className="space-y-6 text-base sm:text-lg text-muted-foreground leading-relaxed text-center">
           <p>
             Starting a conversation on dating apps is harder than it should be. A strong photo or profile doesn't always translate into replies if the first message falls flat.
           </p>
