@@ -53,12 +53,12 @@ const Landing = () => {
           
           {/* Left Column - Text Content */}
           <motion.div 
-            className="text-center md:text-left space-y-8 relative z-10 flex flex-col justify-center h-full"
+            className="text-center space-y-8 relative z-10 flex flex-col items-center justify-center h-full"
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.3 }}
           >
-            <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto md:mx-0">
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-xl">
               BetterOpnr helps you create confident conversation starters and better first messages using AI designed for real dating conversations — not generic pickup lines.
             </p>
             
