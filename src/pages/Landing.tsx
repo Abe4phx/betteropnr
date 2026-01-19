@@ -53,7 +53,7 @@ const Landing = () => {
           
           {/* Left Column - Text Content */}
           <motion.div 
-            className="text-center md:text-left space-y-8 relative z-10"
+            className="text-center md:text-left space-y-8 relative z-10 flex flex-col justify-center h-full"
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.3 }}
