@@ -20,7 +20,7 @@ const Landing = () => {
 
   return (
     <div className="min-h-screen bg-muted">
-      {/* Hero Section */}
+      {/* Header Banner - Headline */}
       <motion.div 
         className="relative bg-gradient-subtle border-b overflow-hidden"
         initial={{ opacity: 0 }}
@@ -28,101 +28,106 @@ const Landing = () => {
         transition={{ duration: 0.6 }}
       >
         {/* Decorative Sparks */}
-        <div className="absolute top-20 left-[10%] opacity-60 hidden md:block">
+        <div className="absolute top-10 left-[10%] opacity-60 hidden md:block">
           <Spark size={32} animate="float" duration={7} />
         </div>
-        <div className="absolute top-40 right-[15%] opacity-70 hidden md:block">
+        <div className="absolute top-16 right-[15%] opacity-70 hidden md:block">
           <Spark size={28} animate="pulse" duration={5} />
         </div>
-        <div className="absolute bottom-20 left-[20%] opacity-50 hidden md:block">
-          <Spark size={24} animate="drift" duration={8} />
-        </div>
 
-        <div className="container mx-auto px-4 py-12 sm:py-16 md:py-20 lg:py-24">
-          {/* Two-column grid on desktop, stacked on mobile */}
-          <div className="grid md:grid-cols-2 gap-10 md:gap-12 items-center">
+        <div className="container mx-auto px-4 py-10 sm:py-12 md:py-16">
+          <motion.h1 
+            className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-heading font-bold text-foreground leading-tight text-center max-w-4xl mx-auto"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            BetterOpnr: AI Dating Openers That Actually Sound Human
+          </motion.h1>
+        </div>
+      </motion.div>
+
+      {/* Content Section - Text + Video side by side */}
+      <div className="container mx-auto px-4 py-10 sm:py-12 md:py-16">
+        <div className="grid md:grid-cols-2 gap-10 md:gap-12 items-center">
+          
+          {/* Left Column - Text Content */}
+          <motion.div 
+            className="text-center md:text-left space-y-8 relative z-10"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
+            <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto md:mx-0">
+              BetterOpnr helps you create confident conversation starters and better first messages using AI designed for real dating conversations — not generic pickup lines.
+            </p>
             
-            {/* Left Column - Text Content */}
+            {/* CTA - Desktop only */}
             <motion.div 
-              className="text-center md:text-left space-y-8 relative z-10"
+              className="hidden md:block"
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-            >
-              <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-heading font-bold text-foreground leading-tight">
-                BetterOpnr: AI Dating Openers That Actually Sound Human
-              </h1>
-              <p className="text-lg sm:text-xl text-muted-foreground max-w-xl mx-auto md:mx-0">
-                BetterOpnr helps you create confident conversation starters and better first messages using AI designed for real dating conversations — not generic pickup lines.
-              </p>
-              
-              {/* CTA - Desktop only */}
-              <motion.div 
-                className="hidden md:block pt-2"
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-              >
-                <Button 
-                  onClick={() => navigate('/sign-up')}
-                  size="lg"
-                  className="bg-bo-gradient shadow-elegant hover:shadow-lg text-lg px-8 py-6 rounded-2xl"
-                >
-                  <Sparkles className="w-5 h-5 mr-2" />
-                  Try BetterOpnr Free
-                </Button>
-              </motion.div>
-            </motion.div>
-            
-            {/* Right Column - Video */}
-            <motion.div 
-              className="space-y-3"
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.3 }}
-            >
-              {/* Caption */}
-              <p className="text-sm text-muted-foreground text-center">
-                See how BetterOpnr works in 40 seconds
-              </p>
-              
-              {/* Video Container */}
-              <div className="relative aspect-video rounded-2xl overflow-hidden shadow-lg border border-border/50 bg-muted">
-                <iframe
-                  src="https://www.youtube.com/embed/I8td-YqJSd4?autoplay=1&mute=1&loop=1&playlist=I8td-YqJSd4&controls=0&modestbranding=1&rel=0"
-                  loading="lazy"
-                  allow="autoplay; encrypted-media"
-                  allowFullScreen
-                  title="BetterOpnr Demo Video"
-                  className="absolute inset-0 w-full h-full"
-                />
-              </div>
-              
-              {/* Audio hint */}
-              <p className="text-xs text-muted-foreground text-center">
-                🔊 Tap to hear audio
-              </p>
-            </motion.div>
-            
-            {/* CTA - Mobile only (after video) */}
-            <motion.div 
-              className="md:hidden text-center"
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ duration: 0.6, delay: 0.5 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
             >
               <Button 
                 onClick={() => navigate('/sign-up')}
                 size="lg"
-                className="w-full sm:w-auto bg-bo-gradient shadow-elegant hover:shadow-lg text-lg px-8 py-6 rounded-2xl"
+                className="bg-bo-gradient shadow-elegant hover:shadow-lg text-lg px-8 py-6 rounded-2xl"
               >
                 <Sparkles className="w-5 h-5 mr-2" />
                 Try BetterOpnr Free
               </Button>
             </motion.div>
-          </div>
+          </motion.div>
+          
+          {/* Right Column - Video */}
+          <motion.div 
+            className="space-y-3"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.4 }}
+          >
+            {/* Caption */}
+            <p className="text-sm text-muted-foreground text-center">
+              See how BetterOpnr works in 40 seconds
+            </p>
+            
+            {/* Video Container */}
+            <div className="relative aspect-video rounded-2xl overflow-hidden shadow-lg border border-border/50 bg-muted">
+              <iframe
+                src="https://www.youtube.com/embed/I8td-YqJSd4?autoplay=1&mute=1&loop=1&playlist=I8td-YqJSd4&controls=0&modestbranding=1&rel=0"
+                loading="lazy"
+                allow="autoplay; encrypted-media"
+                allowFullScreen
+                title="BetterOpnr Demo Video"
+                className="absolute inset-0 w-full h-full"
+              />
+            </div>
+            
+            {/* Audio hint */}
+            <p className="text-xs text-muted-foreground text-center">
+              🔊 Tap to hear audio
+            </p>
+          </motion.div>
+          
+          {/* CTA - Mobile only (after video) */}
+          <motion.div 
+            className="md:hidden text-center"
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.5 }}
+          >
+            <Button 
+              onClick={() => navigate('/sign-up')}
+              size="lg"
+              className="w-full sm:w-auto bg-bo-gradient shadow-elegant hover:shadow-lg text-lg px-8 py-6 rounded-2xl"
+            >
+              <Sparkles className="w-5 h-5 mr-2" />
+              Try BetterOpnr Free
+            </Button>
+          </motion.div>
         </div>
-      </motion.div>
+      </div>
 
       {/* Features Section */}
       <div className="container mx-auto px-4 py-16 sm:py-20 md:py-24 max-w-6xl">
