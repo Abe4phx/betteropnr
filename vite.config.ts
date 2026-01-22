@@ -43,6 +43,11 @@ export default defineConfig(({ mode }) => ({
       },
       workbox: {
         globPatterns: ["**/*.{js,css,html,ico,png,svg,woff,woff2}"],
+        // Prevent service worker from intercepting these static files
+        navigateFallbackDenylist: [
+          /^\/sitemap\.xml$/,
+          /^\/robots\.txt$/,
+        ],
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
