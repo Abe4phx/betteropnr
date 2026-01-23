@@ -135,18 +135,59 @@ const Landing = () => {
         </div>
       </div>
 
-      {/* Features Section - Why BetterOpnr */}
+      {/* Bridge Section - AI Dating Openers */}
+      <motion.section 
+        className="container mx-auto px-4 py-12 sm:py-16 md:py-20 max-w-3xl"
+        initial={{ y: 30, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.3 }}
+      >
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-foreground text-center mb-8">
+          AI Dating Openers Built for Real Conversations
+        </h2>
+        <div className="space-y-6 text-base sm:text-lg text-muted-foreground leading-relaxed text-center">
+          <p>
+            Starting a conversation on dating apps is harder than it should be. A strong photo or profile doesn't always translate into replies if the first message falls flat.
+          </p>
+          <p>
+            BetterOpnr is an AI-powered dating tool designed to help users write better openers, start conversations naturally, and improve how their dating messages are received. It focuses on real profiles, real context, and real language — not scripted pickup lines.
+          </p>
+          <p>
+            Whether you're unsure what to say first or how to keep a conversation going, BetterOpnr gives you practical suggestions you can edit, personalize, and send.
+          </p>
+        </div>
+      </motion.section>
+
+      {/* Why BetterOpnr Exists Section */}
+      <section className="container mx-auto px-4 py-12 sm:py-16 md:py-20 max-w-3xl">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-foreground text-center mb-8">
+          Why BetterOpnr Exists
+        </h2>
+        <div className="space-y-6 text-base sm:text-lg text-muted-foreground leading-relaxed text-center">
+          <p>
+            Most dating apps give you unlimited profiles but no guidance on what to say. A great photo or bio doesn't matter if your first message never gets a reply. Many people struggle with what to say, how to stand out, or how to sound confident without trying too hard.
+          </p>
+          <p>
+            BetterOpnr exists to remove that friction. Instead of guessing, you get AI-powered dating openers and conversation starters that fit your personality, the other person's profile, and the situation.
+          </p>
+          <p>
+            Unlike generic AI chat tools, BetterOpnr focuses on dating-specific scenarios — from first messages to follow-up replies. The goal is not to replace your voice, but to help you express it clearly and confidently.
+          </p>
+        </div>
+      </section>
+
+      {/* How BetterOpnr Helps Section */}
       <div className="container mx-auto px-4 py-16 sm:py-20 md:py-24 max-w-6xl">
         <motion.div
           initial={{ y: 30, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          transition={{ duration: 0.6, delay: 0.3 }}
+          transition={{ duration: 0.6, delay: 0.4 }}
         >
           <h2 className="text-3xl sm:text-4xl font-heading font-bold text-center text-foreground mb-4">
-            Why BetterOpnr?
+            How BetterOpnr Helps You Get More Replies
           </h2>
           <p className="text-lg text-muted-foreground text-center max-w-2xl mx-auto mb-12">
-            Stop spending hours crafting the perfect opener. Let AI do the heavy lifting while you focus on building real connections.
+            BetterOpnr focuses on the most common dating communication challenges.
           </p>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -213,99 +254,6 @@ const Landing = () => {
         </motion.div>
       </div>
 
-      {/* Detailed Explanation Section */}
-      <motion.section 
-        className="container mx-auto px-4 py-12 sm:py-16 md:py-20 max-w-3xl"
-        initial={{ y: 30, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, delay: 0.4 }}
-      >
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-foreground text-center mb-8">
-          AI Dating Openers Built for Real Conversations
-        </h2>
-        <div className="space-y-6 text-base sm:text-lg text-muted-foreground leading-relaxed text-center">
-          <p>
-            Starting a conversation on dating apps is harder than it should be. A strong photo or profile doesn't always translate into replies if the first message falls flat.
-          </p>
-          <p>
-            BetterOpnr is an AI-powered dating tool designed to help users write better openers, start conversations naturally, and improve how their dating messages are received. It focuses on real profiles, real context, and real language — not scripted pickup lines.
-          </p>
-          <p>
-            Whether you're unsure what to say first or how to keep a conversation going, BetterOpnr gives you practical suggestions you can edit, personalize, and send.
-          </p>
-        </div>
-      </motion.section>
-
-      {/* What Is BetterOpnr Section */}
-      <section className="container mx-auto px-4 py-12 sm:py-16 md:py-20 max-w-3xl">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-foreground text-center mb-8">
-          What Is BetterOpnr?
-        </h2>
-        <div className="space-y-6 text-base sm:text-lg text-muted-foreground leading-relaxed text-center">
-          <p>
-            BetterOpnr is an AI-powered tool built specifically for dating conversations. It helps users create better first messages, respond naturally, and improve their overall dating profile communication.
-          </p>
-          <p>
-            Unlike generic AI chat tools, BetterOpnr focuses on dating-specific scenarios — from first messages to follow-up replies. The goal is not to replace your voice, but to help you express it clearly and confidently.
-          </p>
-          <p>
-            Whether you need AI dating openers, thoughtful conversation starters, or help improving how your messages come across, BetterOpnr gives you practical suggestions you can actually use.
-          </p>
-        </div>
-      </section>
-
-      {/* Feature List Section */}
-      <section className="container mx-auto px-4 py-12 sm:py-16 md:py-20 max-w-3xl">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-foreground text-center mb-4">
-          How BetterOpnr Helps You Get More Replies
-        </h2>
-        <p className="text-base sm:text-lg text-muted-foreground text-center mb-8">
-          BetterOpnr focuses on the most common dating communication challenges.
-        </p>
-        <ul className="space-y-3 text-base sm:text-lg text-muted-foreground max-w-xl mx-auto">
-          <li className="flex items-start gap-3">
-            <span className="text-primary mt-1">•</span>
-            <span>AI dating openers tailored to real dating profiles</span>
-          </li>
-          <li className="flex items-start gap-3">
-            <span className="text-primary mt-1">•</span>
-            <span>Conversation starters that sound natural, not scripted</span>
-          </li>
-          <li className="flex items-start gap-3">
-            <span className="text-primary mt-1">•</span>
-            <span>Suggestions to improve how your messages are received</span>
-          </li>
-          <li className="flex items-start gap-3">
-            <span className="text-primary mt-1">•</span>
-            <span>Support for different dating styles and comfort levels</span>
-          </li>
-          <li className="flex items-start gap-3">
-            <span className="text-primary mt-1">•</span>
-            <span>Fast, simple suggestions you can edit and send</span>
-          </li>
-        </ul>
-      </section>
-
-      {/* Problem Section - Why Starting Conversations Is Hard */}
-      <motion.section 
-        className="container mx-auto px-4 py-12 sm:py-16 md:py-20 max-w-3xl"
-        initial={{ y: 30, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.6, delay: 0.5 }}
-      >
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-foreground text-center mb-8">
-          Why Starting Conversations on Dating Apps Is So Hard
-        </h2>
-        <div className="space-y-6 text-base sm:text-lg text-muted-foreground leading-relaxed text-center">
-          <p>
-            Most dating apps give you unlimited profiles but no guidance on what to say. A great photo or bio doesn't matter if your first message never gets a reply. Many people struggle with what to say, how to stand out, or how to sound confident without trying too hard.
-          </p>
-          <p>
-            BetterOpnr exists to remove that friction. Instead of guessing, you get AI-powered dating openers and conversation starters that fit your personality, the other person's profile, and the situation.
-          </p>
-        </div>
-      </motion.section>
-
       {/* Trust Section - Designed to Help */}
       <section className="container mx-auto px-4 py-12 sm:py-16 md:py-20 max-w-3xl">
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-foreground text-center mb-8">
@@ -321,31 +269,6 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Closing Content Section */}
-      <section className="container mx-auto px-4 py-16 sm:py-20 md:py-24 max-w-3xl">
-        <h2 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-foreground text-center mb-8">
-          Simple AI Dating Help That Fits Real Conversations
-        </h2>
-        <div className="space-y-6 text-base sm:text-lg text-muted-foreground leading-relaxed text-center mb-10">
-          <p>
-            BetterOpnr was built for people who want better dating conversations without overthinking every message. Whether you are starting a new chat, responding to a match, or refining how you communicate, BetterOpnr helps reduce friction and improve clarity.
-          </p>
-          <p>
-            If you've ever struggled with dating openers, conversation starters, or knowing what to say next, BetterOpnr gives you practical support without pressure.
-          </p>
-        </div>
-        <div className="text-center">
-          <Button 
-            onClick={() => navigate('/sign-up')}
-            size="lg"
-            className="bg-bo-gradient shadow-elegant hover:shadow-lg text-lg px-10 py-6 rounded-2xl"
-          >
-            <Sparkles className="w-5 h-5 mr-2" />
-            Start Using BetterOpnr
-          </Button>
-        </div>
-      </section>
-
       {/* FAQ Section */}
       <section className="container mx-auto px-4 py-16 sm:py-20 md:py-24 max-w-3xl">
         <h2 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-foreground text-center mb-4">
@@ -357,8 +280,10 @@ const Landing = () => {
         
         <Accordion type="single" collapsible className="space-y-4">
           <AccordionItem value="item-1" className="border rounded-xl px-6 bg-background">
-            <AccordionTrigger className="text-left text-base sm:text-lg font-semibold text-foreground hover:no-underline py-5">
-              What are AI dating openers?
+            <AccordionTrigger asChild className="hover:no-underline py-5">
+              <h3 className="text-left text-base sm:text-lg font-semibold text-foreground cursor-pointer flex flex-1 items-center justify-between">
+                What are AI dating openers?
+              </h3>
             </AccordionTrigger>
             <AccordionContent className="text-muted-foreground text-base leading-relaxed pb-5">
               AI dating openers are suggested first messages generated using artificial intelligence. BetterOpnr creates dating openers based on real dating profiles and conversation context, helping users start chats naturally instead of relying on generic pickup lines.
@@ -366,8 +291,10 @@ const Landing = () => {
           </AccordionItem>
 
           <AccordionItem value="item-2" className="border rounded-xl px-6 bg-background">
-            <AccordionTrigger className="text-left text-base sm:text-lg font-semibold text-foreground hover:no-underline py-5">
-              How is BetterOpnr different from other AI chat tools?
+            <AccordionTrigger asChild className="hover:no-underline py-5">
+              <h3 className="text-left text-base sm:text-lg font-semibold text-foreground cursor-pointer flex flex-1 items-center justify-between">
+                How is BetterOpnr different from other AI chat tools?
+              </h3>
             </AccordionTrigger>
             <AccordionContent className="text-muted-foreground text-base leading-relaxed pb-5">
               BetterOpnr is built specifically for dating conversations. Instead of general-purpose responses, it focuses on dating profiles, first messages, and realistic conversation starters designed to sound human and personal.
@@ -375,8 +302,10 @@ const Landing = () => {
           </AccordionItem>
 
           <AccordionItem value="item-3" className="border rounded-xl px-6 bg-background">
-            <AccordionTrigger className="text-left text-base sm:text-lg font-semibold text-foreground hover:no-underline py-5">
-              Does BetterOpnr send messages for me?
+            <AccordionTrigger asChild className="hover:no-underline py-5">
+              <h3 className="text-left text-base sm:text-lg font-semibold text-foreground cursor-pointer flex flex-1 items-center justify-between">
+                Does BetterOpnr send messages for me?
+              </h3>
             </AccordionTrigger>
             <AccordionContent className="text-muted-foreground text-base leading-relaxed pb-5">
               No. BetterOpnr does not automatically send messages. It provides suggested conversation starters and replies that you can edit, personalize, and send yourself so you stay in control of your voice.
@@ -384,8 +313,10 @@ const Landing = () => {
           </AccordionItem>
 
           <AccordionItem value="item-4" className="border rounded-xl px-6 bg-background">
-            <AccordionTrigger className="text-left text-base sm:text-lg font-semibold text-foreground hover:no-underline py-5">
-              Who should use BetterOpnr?
+            <AccordionTrigger asChild className="hover:no-underline py-5">
+              <h3 className="text-left text-base sm:text-lg font-semibold text-foreground cursor-pointer flex flex-1 items-center justify-between">
+                Who should use BetterOpnr?
+              </h3>
             </AccordionTrigger>
             <AccordionContent className="text-muted-foreground text-base leading-relaxed pb-5">
               BetterOpnr is for anyone who wants help starting or continuing dating conversations. It's useful for people who feel stuck on first messages, want to improve their dating communication, or prefer guidance instead of guessing what to say.
@@ -393,8 +324,10 @@ const Landing = () => {
           </AccordionItem>
 
           <AccordionItem value="item-5" className="border rounded-xl px-6 bg-background">
-            <AccordionTrigger className="text-left text-base sm:text-lg font-semibold text-foreground hover:no-underline py-5">
-              Can BetterOpnr be used on different dating apps?
+            <AccordionTrigger asChild className="hover:no-underline py-5">
+              <h3 className="text-left text-base sm:text-lg font-semibold text-foreground cursor-pointer flex flex-1 items-center justify-between">
+                Can BetterOpnr be used on different dating apps?
+              </h3>
             </AccordionTrigger>
             <AccordionContent className="text-muted-foreground text-base leading-relaxed pb-5">
               Yes. BetterOpnr can be used with most dating apps. The conversation starters and suggestions are designed to work across platforms because they focus on profiles and context rather than app-specific templates.
@@ -411,9 +344,9 @@ const Landing = () => {
         transition={{ duration: 0.6, delay: 0.5 }}
       >
         <div className="container mx-auto px-4 text-center space-y-6 max-w-3xl">
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-heading font-bold text-foreground">
+          <p className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-foreground">
             Ready to spark better conversations?
-          </h2>
+          </p>
           <p className="text-lg sm:text-xl text-muted-foreground">
             Join thousands of users who've upgraded their dating game with BetterOpnr.
           </p>
