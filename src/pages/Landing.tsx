@@ -315,6 +315,31 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Closing Content Section */}
+      <section className="container mx-auto px-4 py-16 sm:py-20 md:py-24 max-w-3xl">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-foreground text-center mb-8">
+          Simple AI Dating Help That Fits Real Conversations
+        </h2>
+        <div className="space-y-6 text-base sm:text-lg text-muted-foreground leading-relaxed text-center mb-10">
+          <p>
+            BetterOpnr was built for people who want better dating conversations without overthinking every message. Whether you are starting a new chat, responding to a match, or refining how you communicate, BetterOpnr helps reduce friction and improve clarity.
+          </p>
+          <p>
+            If you've ever struggled with dating openers, conversation starters, or knowing what to say next, BetterOpnr gives you practical support without pressure.
+          </p>
+        </div>
+        <div className="text-center">
+          <Button 
+            onClick={() => navigate('/sign-up')}
+            size="lg"
+            className="bg-bo-gradient shadow-elegant hover:shadow-lg text-lg px-10 py-6 rounded-2xl"
+          >
+            <Sparkles className="w-5 h-5 mr-2" />
+            Start Using BetterOpnr
+          </Button>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <motion.div 
         className="bg-gradient-subtle border-t py-16 sm:py-20"
