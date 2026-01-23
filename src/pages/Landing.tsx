@@ -230,6 +230,26 @@ const Landing = () => {
         </div>
       </motion.section>
 
+      {/* Problem Section - Why Starting Conversations Is Hard */}
+      <motion.section 
+        className="container mx-auto px-4 py-12 sm:py-16 md:py-20 max-w-3xl"
+        initial={{ y: 30, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.6, delay: 0.5 }}
+      >
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-foreground text-center mb-8">
+          Why Starting Conversations on Dating Apps Is So Hard
+        </h2>
+        <div className="space-y-6 text-base sm:text-lg text-muted-foreground leading-relaxed text-center">
+          <p>
+            Most dating apps give you unlimited profiles but no guidance on what to say. A great photo or bio doesn't matter if your first message never gets a reply. Many people struggle with what to say, how to stand out, or how to sound confident without trying too hard.
+          </p>
+          <p>
+            BetterOpnr exists to remove that friction. Instead of guessing, you get AI-powered dating openers and conversation starters that fit your personality, the other person's profile, and the situation.
+          </p>
+        </div>
+      </motion.section>
+
       {/* CTA Section */}
       <motion.div 
         className="bg-gradient-subtle border-t py-16 sm:py-20"
