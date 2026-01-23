@@ -248,6 +248,38 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Feature List Section */}
+      <section className="container mx-auto px-4 py-12 sm:py-16 md:py-20 max-w-3xl">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-foreground text-center mb-4">
+          How BetterOpnr Helps You Get More Replies
+        </h2>
+        <p className="text-base sm:text-lg text-muted-foreground text-center mb-8">
+          BetterOpnr focuses on the most common dating communication challenges.
+        </p>
+        <ul className="space-y-3 text-base sm:text-lg text-muted-foreground max-w-xl mx-auto">
+          <li className="flex items-start gap-3">
+            <span className="text-primary mt-1">•</span>
+            <span>AI dating openers tailored to real dating profiles</span>
+          </li>
+          <li className="flex items-start gap-3">
+            <span className="text-primary mt-1">•</span>
+            <span>Conversation starters that sound natural, not scripted</span>
+          </li>
+          <li className="flex items-start gap-3">
+            <span className="text-primary mt-1">•</span>
+            <span>Suggestions to improve how your messages are received</span>
+          </li>
+          <li className="flex items-start gap-3">
+            <span className="text-primary mt-1">•</span>
+            <span>Support for different dating styles and comfort levels</span>
+          </li>
+          <li className="flex items-start gap-3">
+            <span className="text-primary mt-1">•</span>
+            <span>Fast, simple suggestions you can edit and send</span>
+          </li>
+        </ul>
+      </section>
+
       {/* Problem Section - Why Starting Conversations Is Hard */}
       <motion.section 
         className="container mx-auto px-4 py-12 sm:py-16 md:py-20 max-w-3xl"
