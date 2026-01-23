@@ -278,62 +278,82 @@ const Landing = () => {
           Common questions about how BetterOpnr works and who it's for.
         </p>
         
-        <Accordion type="single" collapsible className="space-y-4">
-          <AccordionItem value="item-1" className="border rounded-xl px-6 bg-background">
-            <AccordionTrigger asChild className="hover:no-underline py-5">
-              <h3 className="text-left text-base sm:text-lg font-semibold text-foreground cursor-pointer flex flex-1 items-center justify-between">
-                What are AI dating openers?
-              </h3>
-            </AccordionTrigger>
-            <AccordionContent className="text-muted-foreground text-base leading-relaxed pb-5">
-              AI dating openers are suggested first messages generated using artificial intelligence. BetterOpnr creates dating openers based on real dating profiles and conversation context, helping users start chats naturally instead of relying on generic pickup lines.
-            </AccordionContent>
-          </AccordionItem>
+        <div className="space-y-4">
+          <div className="border rounded-xl px-6 bg-background">
+            <Accordion type="single" collapsible>
+              <AccordionItem value="item-1" className="border-0">
+                <h3>
+                  <AccordionTrigger className="text-left text-base sm:text-lg font-semibold text-foreground hover:no-underline py-5">
+                    What are AI dating openers?
+                  </AccordionTrigger>
+                </h3>
+                <AccordionContent className="text-muted-foreground text-base leading-relaxed pb-5">
+                  AI dating openers are suggested first messages generated using artificial intelligence. BetterOpnr creates dating openers based on real dating profiles and conversation context, helping users start chats naturally instead of relying on generic pickup lines.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
 
-          <AccordionItem value="item-2" className="border rounded-xl px-6 bg-background">
-            <AccordionTrigger asChild className="hover:no-underline py-5">
-              <h3 className="text-left text-base sm:text-lg font-semibold text-foreground cursor-pointer flex flex-1 items-center justify-between">
-                How is BetterOpnr different from other AI chat tools?
-              </h3>
-            </AccordionTrigger>
-            <AccordionContent className="text-muted-foreground text-base leading-relaxed pb-5">
-              BetterOpnr is built specifically for dating conversations. Instead of general-purpose responses, it focuses on dating profiles, first messages, and realistic conversation starters designed to sound human and personal.
-            </AccordionContent>
-          </AccordionItem>
+          <div className="border rounded-xl px-6 bg-background">
+            <Accordion type="single" collapsible>
+              <AccordionItem value="item-2" className="border-0">
+                <h3>
+                  <AccordionTrigger className="text-left text-base sm:text-lg font-semibold text-foreground hover:no-underline py-5">
+                    How is BetterOpnr different from other AI chat tools?
+                  </AccordionTrigger>
+                </h3>
+                <AccordionContent className="text-muted-foreground text-base leading-relaxed pb-5">
+                  BetterOpnr is built specifically for dating conversations. Instead of general-purpose responses, it focuses on dating profiles, first messages, and realistic conversation starters designed to sound human and personal.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
 
-          <AccordionItem value="item-3" className="border rounded-xl px-6 bg-background">
-            <AccordionTrigger asChild className="hover:no-underline py-5">
-              <h3 className="text-left text-base sm:text-lg font-semibold text-foreground cursor-pointer flex flex-1 items-center justify-between">
-                Does BetterOpnr send messages for me?
-              </h3>
-            </AccordionTrigger>
-            <AccordionContent className="text-muted-foreground text-base leading-relaxed pb-5">
-              No. BetterOpnr does not automatically send messages. It provides suggested conversation starters and replies that you can edit, personalize, and send yourself so you stay in control of your voice.
-            </AccordionContent>
-          </AccordionItem>
+          <div className="border rounded-xl px-6 bg-background">
+            <Accordion type="single" collapsible>
+              <AccordionItem value="item-3" className="border-0">
+                <h3>
+                  <AccordionTrigger className="text-left text-base sm:text-lg font-semibold text-foreground hover:no-underline py-5">
+                    Does BetterOpnr send messages for me?
+                  </AccordionTrigger>
+                </h3>
+                <AccordionContent className="text-muted-foreground text-base leading-relaxed pb-5">
+                  No. BetterOpnr does not automatically send messages. It provides suggested conversation starters and replies that you can edit, personalize, and send yourself so you stay in control of your voice.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
 
-          <AccordionItem value="item-4" className="border rounded-xl px-6 bg-background">
-            <AccordionTrigger asChild className="hover:no-underline py-5">
-              <h3 className="text-left text-base sm:text-lg font-semibold text-foreground cursor-pointer flex flex-1 items-center justify-between">
-                Who should use BetterOpnr?
-              </h3>
-            </AccordionTrigger>
-            <AccordionContent className="text-muted-foreground text-base leading-relaxed pb-5">
-              BetterOpnr is for anyone who wants help starting or continuing dating conversations. It's useful for people who feel stuck on first messages, want to improve their dating communication, or prefer guidance instead of guessing what to say.
-            </AccordionContent>
-          </AccordionItem>
+          <div className="border rounded-xl px-6 bg-background">
+            <Accordion type="single" collapsible>
+              <AccordionItem value="item-4" className="border-0">
+                <h3>
+                  <AccordionTrigger className="text-left text-base sm:text-lg font-semibold text-foreground hover:no-underline py-5">
+                    Who should use BetterOpnr?
+                  </AccordionTrigger>
+                </h3>
+                <AccordionContent className="text-muted-foreground text-base leading-relaxed pb-5">
+                  BetterOpnr is for anyone who wants help starting or continuing dating conversations. It's useful for people who feel stuck on first messages, want to improve their dating communication, or prefer guidance instead of guessing what to say.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
 
-          <AccordionItem value="item-5" className="border rounded-xl px-6 bg-background">
-            <AccordionTrigger asChild className="hover:no-underline py-5">
-              <h3 className="text-left text-base sm:text-lg font-semibold text-foreground cursor-pointer flex flex-1 items-center justify-between">
-                Can BetterOpnr be used on different dating apps?
-              </h3>
-            </AccordionTrigger>
-            <AccordionContent className="text-muted-foreground text-base leading-relaxed pb-5">
-              Yes. BetterOpnr can be used with most dating apps. The conversation starters and suggestions are designed to work across platforms because they focus on profiles and context rather than app-specific templates.
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
+          <div className="border rounded-xl px-6 bg-background">
+            <Accordion type="single" collapsible>
+              <AccordionItem value="item-5" className="border-0">
+                <h3>
+                  <AccordionTrigger className="text-left text-base sm:text-lg font-semibold text-foreground hover:no-underline py-5">
+                    Can BetterOpnr be used on different dating apps?
+                  </AccordionTrigger>
+                </h3>
+                <AccordionContent className="text-muted-foreground text-base leading-relaxed pb-5">
+                  Yes. BetterOpnr can be used with most dating apps. The conversation starters and suggestions are designed to work across platforms because they focus on profiles and context rather than app-specific templates.
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </div>
+        </div>
       </section>
 
       {/* CTA Section */}
