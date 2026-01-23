@@ -300,6 +300,21 @@ const Landing = () => {
         </div>
       </motion.section>
 
+      {/* Trust Section - Designed to Help */}
+      <section className="container mx-auto px-4 py-12 sm:py-16 md:py-20 max-w-3xl">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-foreground text-center mb-8">
+          Designed to Help, Not Pretend for You
+        </h2>
+        <div className="space-y-6 text-base sm:text-lg text-muted-foreground leading-relaxed text-center">
+          <p>
+            BetterOpnr is not about fake personalities or automated flirting. It's a tool to help you communicate more clearly, confidently, and authentically.
+          </p>
+          <p>
+            You stay in control of what you send. BetterOpnr simply gives you better starting points so conversations feel easier and more natural.
+          </p>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <motion.div 
         className="bg-gradient-subtle border-t py-16 sm:py-20"
