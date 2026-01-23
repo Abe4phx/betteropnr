@@ -230,6 +230,24 @@ const Landing = () => {
         </div>
       </motion.section>
 
+      {/* What Is BetterOpnr Section */}
+      <section className="container mx-auto px-4 py-12 sm:py-16 md:py-20 max-w-3xl">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-foreground text-center mb-8">
+          What Is BetterOpnr?
+        </h2>
+        <div className="space-y-6 text-base sm:text-lg text-muted-foreground leading-relaxed text-center">
+          <p>
+            BetterOpnr is an AI-powered tool built specifically for dating conversations. It helps users create better first messages, respond naturally, and improve their overall dating profile communication.
+          </p>
+          <p>
+            Unlike generic AI chat tools, BetterOpnr focuses on dating-specific scenarios — from first messages to follow-up replies. The goal is not to replace your voice, but to help you express it clearly and confidently.
+          </p>
+          <p>
+            Whether you need AI dating openers, thoughtful conversation starters, or help improving how your messages come across, BetterOpnr gives you practical suggestions you can actually use.
+          </p>
+        </div>
+      </section>
+
       {/* Problem Section - Why Starting Conversations Is Hard */}
       <motion.section 
         className="container mx-auto px-4 py-12 sm:py-16 md:py-20 max-w-3xl"
