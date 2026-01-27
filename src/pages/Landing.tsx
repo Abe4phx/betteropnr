@@ -135,6 +135,16 @@ const Landing = () => {
         </div>
       </div>
 
+      {/* What is BetterOpnr Section */}
+      <section className="container mx-auto px-4 py-12 sm:py-16 md:py-20 max-w-3xl">
+        <h2 className="text-2xl sm:text-3xl md:text-4xl font-heading font-bold text-foreground text-center mb-8">
+          What is BetterOpnr?
+        </h2>
+        <p className="text-base sm:text-lg text-muted-foreground leading-relaxed text-center">
+          BetterOpnr is a dating assistant built to remove the hardest part of online dating — starting the conversation. By using AI to generate personalized, respectful openers, BetterOpnr helps users get more replies and more meaningful connections across popular dating apps.
+        </p>
+      </section>
+
       {/* Bridge Section - AI Dating Openers */}
       <motion.section 
         className="container mx-auto px-4 py-12 sm:py-16 md:py-20 max-w-3xl"
