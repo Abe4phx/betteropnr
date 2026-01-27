@@ -48,7 +48,7 @@ const Landing = () => {
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
           >
-            BetterOpnr: AI Dating Openers That Actually Sound Human
+            BetterOpnr — AI Dating Openers That Start Real Conversations
           </motion.h1>
         </div>
       </motion.div>
@@ -65,7 +65,7 @@ const Landing = () => {
             transition={{ duration: 0.6, delay: 0.3 }}
           >
             <p className="text-lg sm:text-xl text-muted-foreground max-w-xl">
-              BetterOpnr helps you create confident conversation starters and better first messages using AI designed for real dating conversations — not generic pickup lines.
+              BetterOpnr is an AI-powered dating opener tool designed to help people start natural, confident conversations on dating apps. Instead of awkward first messages, BetterOpnr analyzes your match and suggests thoughtful openers that feel human, not scripted. Built for modern dating, privacy-first, and easy to use.
             </p>
             
             {/* CTA - Desktop only */}
