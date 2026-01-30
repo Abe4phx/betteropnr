@@ -29,6 +29,7 @@ import Footer from "@/components/Footer";
 import { AnimatePresence, motion } from "framer-motion";
 import { pageTransition } from "@/lib/motionConfig";
 import { useState, useEffect } from "react";
+import { AIConsentScreen } from "@/components/AIConsentScreen";
 
 const CLERK_PUBLISHABLE_KEY = 'pk_live_Y2xlcmsuYmV0dGVyb3Buci5jb20k';
 
@@ -196,6 +197,10 @@ const AnimatedRoutes = () => {
 };
 
 const App = () => {
+  const [hasConsented, setHasConsented] = useState(() => {
+    return localStorage.getItem('betteropnr_ai_consent') === 'true';
+  });
+
   // Show setup instructions if no valid key is configured
   if (!CLERK_PUBLISHABLE_KEY) {
     return (
@@ -226,6 +231,13 @@ const App = () => {
           </div>
         </div>
       </div>
+    );
+  }
+
+  // Show AI consent screen on first launch
+  if (!hasConsented) {
+    return (
+      <AIConsentScreen onConsent={() => setHasConsented(true)} />
     );
   }
 
