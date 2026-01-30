@@ -74,28 +74,25 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
     }
   };
 
+  const premiumFeatures = [
+    'More AI-generated suggestions per day',
+    'Advanced tone options',
+    'Save and reuse favorite openers',
+    'Faster generation during peak times',
+  ];
+
   const features = {
     free: [
-      '5 openers per day',
+      '5 suggestions per day',
       '5 saved favorites',
       'Basic tone selection',
-      'Community support',
     ],
-    pro: [
-      'Unlimited openers',
-      'Unlimited favorites',
-      'All tones & variations',
-      'Follow-up generation',
-      'Priority support',
-      'No ads',
-    ],
+    pro: premiumFeatures,
     creator: [
-      'Everything in Pro',
+      ...premiumFeatures,
       'AI conversation analysis',
-      'Advanced customization',
       'Custom tone creation',
       'Batch generation',
-      'API access (coming soon)',
     ],
   };
 
@@ -108,13 +105,13 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
           transition={{ duration: 0.3 }}
         >
           <DialogHeader>
-            <DialogTitle className="text-3xl font-bold text-center bg-gradient-to-r from-ts-coral to-ts-yellow bg-clip-text text-transparent">
-              Upgrade to Unlimited Sparks! ✨
+            <DialogTitle className="text-2xl sm:text-3xl font-bold text-center text-foreground">
+              Upgrade to BetterOpnr Premium
             </DialogTitle>
-            <DialogDescription className="text-center text-base">
+            <DialogDescription className="text-center text-base text-muted-foreground">
               {isIOSNative 
                 ? 'Manage your subscription through our website'
-                : 'Choose the perfect plan for your conversation needs'}
+                : 'Unlock advanced features and higher usage limits.'}
             </DialogDescription>
           </DialogHeader>
 
@@ -218,15 +215,15 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
                 )}
                 disabled={loading}
                 size="lg"
-                className="w-full shadow-md hover:shadow-lg relative overflow-hidden"
-                style={{
-                  background: 'linear-gradient(90deg, hsl(var(--primary)) 0%, hsl(var(--secondary)) 50%, hsl(var(--primary)) 100%)',
-                  backgroundSize: '200% 100%',
-                  animation: 'shimmer 8s linear infinite',
-                }}
+                className="w-full shadow-md hover:shadow-lg bg-primary hover:bg-primary/90"
               >
-                {loading ? 'Processing...' : 'Upgrade to Pro'}
+                {loading ? 'Processing...' : 'Subscribe'}
               </Button>
+              
+              {/* Disclaimer */}
+              <p className="text-xs text-muted-foreground text-center mt-4">
+                AI suggestions are optional and editable. Results may vary.
+              </p>
             </motion.div>
             <ul className="space-y-4 px-2">
               {features.pro.map((feature, i) => (
@@ -291,6 +288,11 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
             </TabsContent>
           )}
         </Tabs>
+        
+        {/* Footer disclaimer */}
+        <p className="text-xs text-muted-foreground text-center mt-6 px-4">
+          Subscriptions automatically renew unless canceled at least 24 hours before the end of the current period.
+        </p>
         </motion.div>
       </DialogContent>
     </Dialog>
