@@ -80,6 +80,11 @@ export const OpenerCard = ({ id, text, tone, matchName, onTryAgain, onVariation,
       whileHover="hover"
     >
       <Card className="p-6 space-y-4 transition-all duration-300 border border-border/50">
+        {/* AI-generated label */}
+        <p className="text-xs text-muted-foreground/70 uppercase tracking-wide">
+          AI-generated suggestion
+        </p>
+        
         <div className="flex items-start justify-between gap-3">
           <p className="text-base leading-relaxed flex-1">{text}</p>
           <div className="flex flex-col items-end gap-2 shrink-0">
@@ -105,6 +110,11 @@ export const OpenerCard = ({ id, text, tone, matchName, onTryAgain, onVariation,
             </div>
           </div>
         </div>
+        
+        {/* Disclaimer below generated text */}
+        <p className="text-xs text-muted-foreground/60">
+          Review and edit before sending. You choose what to share.
+        </p>
 
         {/* Variation buttons */}
         {onVariation && (
@@ -193,24 +203,29 @@ export const OpenerCard = ({ id, text, tone, matchName, onTryAgain, onVariation,
       )}
       
       <div className="space-y-2">
-        <Button
-          variant="default"
-          size="lg"
-          onClick={handleCopy}
-          className={`w-full rounded-2xl transition-all ${!justCopied ? 'animate-pulse-subtle' : ''}`}
-        >
-          {justCopied ? (
-            <>
-              <Check className="w-5 h-5 mr-2" />
-              Copied!
-            </>
-          ) : (
-            <>
-              <Copy className="w-5 h-5 mr-2" />
-              Copy to Clipboard
-            </>
-          )}
-        </Button>
+        <div className="space-y-1">
+          <Button
+            variant="default"
+            size="lg"
+            onClick={handleCopy}
+            className={`w-full rounded-2xl transition-all ${!justCopied ? 'animate-pulse-subtle' : ''}`}
+          >
+            {justCopied ? (
+              <>
+                <Check className="w-5 h-5 mr-2" />
+                Copied!
+              </>
+            ) : (
+              <>
+                <Copy className="w-5 h-5 mr-2" />
+                Copy to Clipboard
+              </>
+            )}
+          </Button>
+          <p className="text-xs text-muted-foreground/60 text-center">
+            Copies text — does not send messages.
+          </p>
+        </div>
         
         <div className="flex gap-2">
           <Button
