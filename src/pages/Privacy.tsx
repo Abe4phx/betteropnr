@@ -7,6 +7,7 @@ const Privacy = () => {
   const sections = [
     { id: "intro", title: "Introduction" },
     { id: "collect", title: "Information We Collect" },
+    { id: "ai-processing", title: "AI Processing & Generated Content" },
     { id: "use", title: "How We Use Your Information" },
     { id: "sharing", title: "Data Sharing & Third Parties" },
     { id: "security", title: "Data Storage & Security" },
@@ -27,7 +28,7 @@ const Privacy = () => {
               <Shield className="w-12 h-12 text-ts-coral" />
             </div>
             <h1 className="text-4xl font-bold text-foreground mb-2">Privacy Policy</h1>
-            <p className="text-muted-foreground">Last Updated: December 2025</p>
+            <p className="text-muted-foreground">Last Updated: January 2026</p>
           </div>
 
           {/* Table of Contents */}
@@ -60,13 +61,16 @@ const Privacy = () => {
             <section id="collect">
               <h2 className="text-2xl font-bold mb-4">Information We Collect</h2>
               <div className="space-y-4 text-muted-foreground leading-relaxed">
+                <p className="font-medium text-foreground">
+                  BetterOpnr collects only the content you choose to submit. We do not collect data beyond what is necessary for the app to function.
+                </p>
                 <div>
                   <h3 className="text-lg font-semibold text-foreground mb-2">Account Information</h3>
                   <p>When you create an account, we collect your email address, username, and user ID through our authentication provider (Clerk).</p>
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-foreground mb-2">Profile Content</h3>
-                  <p>We collect and temporarily process dating profile text and screenshots you upload to generate conversation starters. Uploaded images are processed by our AI and are not permanently stored.</p>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">User-Submitted Content</h3>
+                  <p>We collect the text you enter and any images you optionally upload (such as dating profile screenshots). This content is used solely to generate AI-powered message suggestions. Images are processed temporarily and are not permanently stored.</p>
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-foreground mb-2">Usage Data</h3>
@@ -79,6 +83,26 @@ const Privacy = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-foreground mb-2">Technical Data</h3>
                   <p>We use browser localStorage for session management and analytics events. No personal device identifiers or location tracking is performed.</p>
+                </div>
+              </div>
+            </section>
+
+            {/* AI Processing */}
+            <section id="ai-processing">
+              <h2 className="text-2xl font-bold mb-4">AI Processing & Generated Content</h2>
+              <div className="space-y-4 text-muted-foreground leading-relaxed">
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">How AI Suggestions Are Created</h3>
+                  <p>BetterOpnr uses artificial intelligence to generate message suggestions based on the text and images you provide. Your input is processed by our AI service to create personalized conversation starters.</p>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">User Control</h3>
+                  <p className="font-medium text-foreground">BetterOpnr does not send messages on your behalf. BetterOpnr does not impersonate you or interact with any third-party platforms or individuals.</p>
+                  <p className="mt-2">All AI-generated suggestions are presented to you for review. You decide whether to copy, edit, or use any suggestion. You are solely responsible for any content you choose to send to others.</p>
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-foreground mb-2">AI Limitations</h3>
+                  <p>AI-generated suggestions may be inaccurate, inappropriate, or unsuitable for your intended use. We recommend reviewing and editing all suggestions before using them.</p>
                 </div>
               </div>
             </section>
@@ -156,13 +180,19 @@ const Privacy = () => {
                   <li><strong>Opt-Out:</strong> Unsubscribe from marketing emails (service emails are required)</li>
                   <li><strong>Withdraw Consent:</strong> Revoke permissions for data processing where applicable</li>
                 </ul>
+                
+                <div className="bg-muted/50 rounded-lg p-4 mt-4">
+                  <h3 className="text-lg font-semibold text-foreground mb-2">How to Request Data Deletion</h3>
+                  <p>To delete your account and all associated data, email <a href="mailto:privacy@betteropnr.com" className="text-ts-teal hover:underline">privacy@betteropnr.com</a> with the subject line "Data Deletion Request" and include the email address associated with your account. We will process your request within 30 days and confirm deletion by email.</p>
+                </div>
+
                 <p className="mt-4">
                   <strong>GDPR Compliance:</strong> If you are located in the European Union, you have additional rights under the General Data Protection Regulation (GDPR).
                 </p>
                 <p>
                   <strong>CCPA Compliance:</strong> California residents have rights under the California Consumer Privacy Act (CCPA), including the right to know what personal information is collected and the right to opt-out of data sales (we do not sell personal data).
                 </p>
-                <p>To exercise these rights, please contact us using the information in the Contact Us section.</p>
+                <p>To exercise any of these rights, please contact us using the information in the Contact Us section.</p>
               </div>
             </section>
 
@@ -170,10 +200,11 @@ const Privacy = () => {
             <section id="retention">
               <h2 className="text-2xl font-bold mb-4">Data Retention</h2>
               <div className="space-y-4 text-muted-foreground leading-relaxed">
-                <p>We retain your personal information for as long as your account is active or as needed to provide services. Specifically:</p>
+                <p className="font-medium text-foreground">We retain user content only as long as necessary to provide the service.</p>
                 <ul className="list-disc pl-6 space-y-2">
                   <li>Account data is retained until you delete your account</li>
-                  <li>Uploaded profile screenshots are processed immediately and not permanently stored</li>
+                  <li>Uploaded images (such as profile screenshots) are processed temporarily to generate suggestions and are not permanently stored</li>
+                  <li>Text you submit for AI processing is not stored after your session ends, unless you choose to save specific suggestions</li>
                   <li>Saved conversation openers are retained until you delete them or close your account</li>
                   <li>Payment records are retained for 7 years for tax and legal compliance</li>
                   <li>Usage analytics data is anonymized after 12 months</li>
