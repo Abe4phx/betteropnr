@@ -366,6 +366,24 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* AI-Assisted Compliance Section */}
+      <section className="container mx-auto px-4 py-12 sm:py-16 max-w-3xl">
+        <h2 className="text-lg sm:text-xl font-heading font-semibold text-foreground text-center mb-4">
+          AI-Assisted, User-Controlled
+        </h2>
+        <div className="space-y-3 text-sm sm:text-base text-muted-foreground leading-relaxed text-center">
+          <p>
+            BetterOpnr provides AI-generated message suggestions that you can review and edit.
+          </p>
+          <p>
+            The app does not send messages for you — you decide what to copy and share.
+          </p>
+          <p>
+            AI suggestions may be inaccurate or inappropriate, so please review before using.
+          </p>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <motion.div 
         className="bg-gradient-subtle border-t py-16 sm:py-20"
