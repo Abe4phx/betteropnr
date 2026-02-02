@@ -273,6 +273,9 @@ const ProfileReview = () => {
                   <p className={`font-medium ${getScoreColor(result.score)}`}>
                     {result.scoreLabel}
                   </p>
+                  <p className="text-xs text-muted-foreground mt-3">
+                    Feedback is subjective and provided for guidance only. Results may vary.
+                  </p>
                 </Card>
 
                 {/* Key Observations */}
