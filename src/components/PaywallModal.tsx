@@ -113,6 +113,9 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
                 ? 'Manage your subscription through our website'
                 : 'Unlock advanced features and higher usage limits.'}
             </DialogDescription>
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              Subscription optional. The app works without upgrading.
+            </p>
           </DialogHeader>
 
           {/* iOS Native Notice */}
