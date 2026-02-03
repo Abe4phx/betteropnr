@@ -317,6 +317,10 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
         </div>
       </div>
 
+      <p className="text-xs text-muted-foreground/70 text-center">
+        Screenshots are analyzed only to generate your results and are not shared or saved.
+      </p>
+
       {imagePreviews.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground font-medium">
