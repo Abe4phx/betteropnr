@@ -263,18 +263,16 @@ const ProfileReview = () => {
               >
                 {/* Score Card */}
                 <Card className={`p-6 bg-gradient-to-br ${getScoreGradient(result.score)} border-none shadow-soft`}>
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="font-heading font-semibold text-foreground">First Impression Score</h3>
-                    <Badge variant="secondary" className="text-lg font-bold px-3 py-1">
-                      {result.score}/100
-                    </Badge>
-                  </div>
+                  <h3 className="font-heading font-semibold text-foreground mb-2">First Impression Score</h3>
+                  <Badge variant="secondary" className="text-lg font-bold px-3 py-1 mb-2">
+                    {result.score}/100
+                  </Badge>
+                  <p className="text-xs text-muted-foreground mb-4">
+                    Feedback is subjective and intended for guidance only.
+                  </p>
                   <Progress value={result.score} className="h-3 mb-4" />
                   <p className={`font-medium ${getScoreColor(result.score)}`}>
                     {result.scoreLabel}
-                  </p>
-                  <p className="text-xs text-muted-foreground/70 mt-3">
-                    Feedback is subjective and for guidance only.
                   </p>
                 </Card>
 
