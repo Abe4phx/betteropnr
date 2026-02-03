@@ -114,7 +114,7 @@ const Privacy = () => {
                 <li>To provide and maintain our AI conversation starter service</li>
                 <li>To process your subscription and manage billing</li>
                 <li>To personalize your experience and save your preferences</li>
-                <li>To improve our AI models and service quality</li>
+                <li>To improve service quality using aggregate, non-identifying usage patterns. User-submitted content is not used to train AI models.</li>
                 <li>To provide customer support and respond to your inquiries</li>
                 <li>To send important service updates and security notifications</li>
                 <li>To comply with legal obligations and prevent fraud</li>
