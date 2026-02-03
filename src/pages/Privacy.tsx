@@ -137,7 +137,7 @@ const Privacy = () => {
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-foreground mb-2">Lovable AI</h3>
-                  <p>Powers our AI conversation generation using Google Gemini models. Profile data is sent to the AI service only when generating openers and is not permanently stored by the AI provider.</p>
+                  <p>Lovable AI powers our conversation generation using Google Gemini models. Profile text and images are sent only at the moment of generation and are not retained, reused, or used to train AI models by BetterOpnr or the AI provider.</p>
                 </div>
                 <div>
                   <h3 className="text-lg font-semibold text-foreground mb-2">Affiliate Links & External Recommendations</h3>
