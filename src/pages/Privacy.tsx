@@ -159,9 +159,7 @@ const Privacy = () => {
                 <ul className="list-disc pl-6 space-y-2">
                   <li>Encrypted data transmission (HTTPS/TLS)</li>
                   <li>Secure authentication and access controls</li>
-                  <li>Regular security audits and updates</li>
-                  <li>Row-level security policies on database tables</li>
-                  <li>Limited employee access to personal data</li>
+                  <li>Limited internal access to personal data</li>
                 </ul>
                 <p>While we take reasonable measures to protect your information, no internet transmission is 100% secure. Please use a strong, unique password for your account.</p>
               </div>
