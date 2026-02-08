@@ -6,6 +6,9 @@ import { toast } from "sonner";
 import { trackEvent } from "@/lib/analytics";
 import { motion } from "framer-motion";
 import { staggerContainer, cardVariants } from "@/lib/motionConfig";
+import { useState } from "react";
+import { isGuest } from "@/lib/guest";
+import { GuestPromptModal } from "@/components/auth/GuestPromptModal";
 
 interface FollowUpListProps {
   followUps: FollowUp[];
@@ -15,6 +18,7 @@ interface FollowUpListProps {
 export const FollowUpList = ({ followUps, openerId }: FollowUpListProps) => {
   const { isFavorite, addToFavorites, removeFromFavorites, rateItem, getItemRating, selectedTones } = useBetterOpnr();
   const relevantFollowUps = followUps.filter(f => f.openerId === openerId);
+  const [showGuestPrompt, setShowGuestPrompt] = useState(false);
 
   if (relevantFollowUps.length === 0) {
     return null;
@@ -31,6 +35,10 @@ export const FollowUpList = ({ followUps, openerId }: FollowUpListProps) => {
   };
 
   const handleFavoriteClick = (followUp: FollowUp) => {
+    if (isGuest()) {
+      setShowGuestPrompt(true);
+      return;
+    }
     const favorite = isFavorite(followUp.id);
     if (favorite) {
       removeFromFavorites(followUp.id);
@@ -114,6 +122,7 @@ export const FollowUpList = ({ followUps, openerId }: FollowUpListProps) => {
           </motion.div>
         );
       })}
+      <GuestPromptModal open={showGuestPrompt} onOpenChange={setShowGuestPrompt} />
     </motion.div>
   );
 };
