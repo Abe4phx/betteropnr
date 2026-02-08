@@ -341,9 +341,9 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
               <LogIn className="w-6 h-6 text-muted-foreground" />
             </div>
             <div className="space-y-1.5">
-              <p className="text-sm font-semibold text-foreground">Sign in to upload screenshots</p>
+              <p className="text-sm font-semibold text-foreground">Unlock screenshot analysis</p>
               <p className="text-xs text-muted-foreground max-w-xs">
-                Guest mode supports text-only. To analyze match screenshots, please sign in (free) or paste their bio/prompts below.
+                Create a free account to drag & drop match screenshots, or paste their info below.
               </p>
             </div>
             <div className="flex gap-2 flex-wrap justify-center">
@@ -354,7 +354,7 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
                 className="gap-2"
               >
                 <LogIn className="w-4 h-4" />
-                Sign in / Create account
+                Continue to sign in
               </Button>
               <Button
                 type="button"
