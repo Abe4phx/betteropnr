@@ -6,6 +6,8 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import { ClerkProvider, useUser } from "@clerk/clerk-react";
 import { SupabaseProvider } from "@/contexts/SupabaseContext";
 import { AuthModeSync } from "@/components/AuthModeSync";
+import { RequireAuthOrGuest } from "@/components/RequireAuthOrGuest";
+import { HomeOrGenerator } from "@/components/HomeOrGenerator";
 import { ClerkSyncProvider } from "@/contexts/ClerkSyncContext";
 import { BetterOpnrProvider } from "@/contexts/TalkSparkContext";
 import { Navigation } from "@/components/Navigation";
@@ -102,10 +104,10 @@ const AnimatedRoutes = () => {
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        {/* Public routes */}
+        {/* Home route - shows Generator for auth/guest, Landing for others */}
         <Route path="/" element={
           <motion.div {...pageTransition}>
-            <Landing />
+            <HomeOrGenerator />
           </motion.div>
         } />
         <Route path="/sign-in/*" element={<SignIn />} />
