@@ -11,7 +11,7 @@ const SignIn = () => {
 
   const handleGuest = () => {
     enterGuest();
-    navigate(from, { replace: true });
+    navigate("/generator", { replace: true });
   };
 
   return (
