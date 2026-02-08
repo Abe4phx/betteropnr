@@ -1,51 +1,47 @@
 
-# Update Homepage Hero Section
+## Reorganize Auth Components & Update Generator Route
 
-This plan updates the hero section copy to better establish BetterOpnr as a brand entity with clearer messaging about what it is, who it's for, and what problem it solves.
+### Overview
+Move the `RequireAuthOrGuest` component into a new `auth` subfolder for better organization, and update the `/generator` route to allow guest access.
 
-## Changes Overview
+### Changes
 
-### 1. Update H1 Headline
-**Location:** Lines 51 in `src/pages/Landing.tsx`
+**1. Create auth folder structure**
+- Create `src/components/auth/` directory
+- Move `RequireAuthOrGuest.tsx` to `src/components/auth/RequireAuthOrGuest.tsx`
+- Optionally move `AuthModeSync.tsx` to the same folder for consistency
 
-| Current | New |
-|---------|-----|
-| BetterOpnr: AI Dating Openers That Actually Sound Human | BetterOpnr — AI Dating Openers That Start Real Conversations |
+**2. Update imports in App.tsx**
+- Change import path from `@/components/RequireAuthOrGuest` to `@/components/auth/RequireAuthOrGuest`
+- Update the `/generator` route to use `RequireAuthOrGuest` instead of `ProtectedRoute`
 
-### 2. Update Subheading Paragraph
-**Location:** Lines 67-69 in `src/pages/Landing.tsx`
+**3. Route change**
+```text
+Before:
+/generator → ProtectedRoute (Clerk auth only)
 
-**Current (1 sentence):**
-> BetterOpnr helps you create confident conversation starters and better first messages using AI designed for real dating conversations — not generic pickup lines.
-
-**New (3 sentences):**
-> BetterOpnr is an AI-powered dating opener tool designed to help people start natural, confident conversations on dating apps. Instead of awkward first messages, BetterOpnr analyzes your match and suggests thoughtful openers that feel human, not scripted. Built for modern dating, privacy-first, and easy to use.
-
-## What Stays the Same
-- CTA button text: "Try BetterOpnr Free"
-- All existing animations (motion.div, motion.h1)
-- Decorative Spark elements
-- Layout structure (header banner with H1, content section with text + video grid)
-- Video section and mobile CTA placement
-
----
-
-## Technical Details
-
-**File to modify:** `src/pages/Landing.tsx`
-
-**Exact changes:**
-
-1. **Line 51** - Replace H1 text content:
-```tsx
-BetterOpnr — AI Dating Openers That Start Real Conversations
+After:
+/generator → RequireAuthOrGuest (Clerk auth OR guest mode)
 ```
 
-2. **Lines 67-69** - Replace subheading paragraph:
+### Technical Details
+
+Files to modify:
+- `src/components/RequireAuthOrGuest.tsx` → move to `src/components/auth/RequireAuthOrGuest.tsx`
+- `src/App.tsx` → update import path and change `/generator` route wrapper
+
+The `/generator` route will change from:
 ```tsx
-<p className="text-lg sm:text-xl text-muted-foreground max-w-xl">
-  BetterOpnr is an AI-powered dating opener tool designed to help people start natural, confident conversations on dating apps. Instead of awkward first messages, BetterOpnr analyzes your match and suggests thoughtful openers that feel human, not scripted. Built for modern dating, privacy-first, and easy to use.
-</p>
+<ProtectedRoute>
+  <Generator />
+</ProtectedRoute>
 ```
 
-**Note:** The JSON-LD structured data in `index.html` references the old H1. After this change, we should also update the WebPage name in the structured data to match the new H1 for consistency.
+To:
+```tsx
+<RequireAuthOrGuest>
+  <Generator />
+</RequireAuthOrGuest>
+```
+
+This ensures guests who click "Continue as Guest" can also navigate directly to `/generator` and access the opener generation feature.
