@@ -2,10 +2,12 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Camera, X, Loader2, Upload, GripVertical, Star } from "lucide-react";
+import { Camera, X, Loader2, Upload, GripVertical, Star, LogIn } from "lucide-react";
 import { useImageTextExtraction } from "@/hooks/useImageTextExtraction";
 import { useRef, useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
+import { useAuth } from "@clerk/clerk-react";
+import { useNavigate } from "react-router-dom";
 
 interface ProfileInputProps {
   value: string;
@@ -13,6 +15,8 @@ interface ProfileInputProps {
 }
 
 export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
+  const { isSignedIn } = useAuth();
+  const navigate = useNavigate();
   const { 
     isExtracting, 
     imagePreviews, 
@@ -33,9 +37,22 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
   const [touchStartPos, setTouchStartPos] = useState<{ x: number; y: number } | null>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
 
+  // Guard for guest users
+  const isGuest = !isSignedIn;
+
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
+
+    // Guard: require authentication
+    if (isGuest) {
+      toast({
+        title: 'Sign in required',
+        description: 'Image upload requires an account. Please sign in to upload screenshots.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     try {
       const fileArray = Array.from(files);
@@ -73,6 +90,16 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
     e.preventDefault();
     e.stopPropagation();
     setIsDraggingOver(false);
+
+    // Guard: require authentication
+    if (isGuest) {
+      toast({
+        title: 'Sign in required',
+        description: 'Image upload requires an account. Please sign in to upload screenshots.',
+        variant: 'destructive',
+      });
+      return;
+    }
 
     const files = Array.from(e.dataTransfer.files);
     const imageFiles = files.filter(file => file.type.startsWith('image/'));
@@ -246,41 +273,55 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
             </Badge>
           </div>
         </div>
-        <div className="flex gap-2">
+        {isGuest ? (
           <Button
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isExtracting}
-            className="gap-2 flex-1 sm:flex-none"
+            onClick={() => navigate('/sign-in')}
+            className="gap-2 flex-1 sm:flex-none border-primary/50 text-primary hover:bg-primary/10"
           >
-            {isExtracting ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span className="hidden sm:inline">Extracting...</span>
-                <span className="sm:hidden">...</span>
-              </>
-            ) : (
-              <>
-                <Camera className="w-4 h-4" />
-                Upload (2-5)
-              </>
-            )}
+            <LogIn className="w-4 h-4" />
+            <span className="hidden sm:inline">Sign in to upload</span>
+            <span className="sm:hidden">Sign in</span>
           </Button>
-          {(imagePreviews.length > 0 || value) && (
+        ) : (
+          <>
             <Button
               type="button"
-              variant="destructive"
+              variant="outline"
               size="sm"
-              onClick={handleClearAll}
+              onClick={() => fileInputRef.current?.click()}
               disabled={isExtracting}
-              className="flex-shrink-0"
+              className="gap-2 flex-1 sm:flex-none"
             >
-              Clear All
+              {isExtracting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span className="hidden sm:inline">Extracting...</span>
+                  <span className="sm:hidden">...</span>
+                </>
+              ) : (
+                <>
+                  <Camera className="w-4 h-4" />
+                  Upload (2-5)
+                </>
+              )}
             </Button>
-          )}
-        </div>
+            {(imagePreviews.length > 0 || value) && (
+              <Button
+                type="button"
+                variant="destructive"
+                size="sm"
+                onClick={handleClearAll}
+                disabled={isExtracting}
+                className="flex-shrink-0"
+              >
+                Clear All
+              </Button>
+            )}
+          </>
+        )}
         <input
           ref={fileInputRef}
           type="file"
@@ -291,35 +332,65 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
         />
       </div>
 
-      {/* Drag and drop zone */}
-      <div
-        onDragOver={handleDragOver}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
-        className={`
-          border-2 border-dashed rounded-2xl p-6 transition-all duration-200
-          ${isDraggingOver 
-            ? 'border-primary bg-primary/5 scale-[1.02]' 
-            : 'border-border bg-muted/30 hover:border-primary/50 hover:bg-muted/50'
-          }
-          ${isExtracting ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}
-        `}
-        onClick={() => !isExtracting && fileInputRef.current?.click()}
-      >
-        <div className="flex flex-col items-center justify-center gap-2 text-center">
-          <Upload className={`w-8 h-8 ${isDraggingOver ? 'text-primary animate-bounce' : 'text-muted-foreground'}`} />
-          <p className="text-sm font-medium">
-            {isDraggingOver ? 'Drop images here' : 'Drag & drop images or click to browse'}
-          </p>
-          <p className="text-xs text-muted-foreground">
-            Upload 2-5 screenshots • JPG, PNG, or WEBP • Max 5MB each
-          </p>
+      {/* Guest sign-in prompt for upload */}
+      {isGuest ? (
+        <div className="border-2 border-dashed border-muted-foreground/30 rounded-2xl p-6 bg-muted/20">
+          <div className="flex flex-col items-center justify-center gap-3 text-center">
+            <div className="p-3 bg-muted rounded-full">
+              <LogIn className="w-6 h-6 text-muted-foreground" />
+            </div>
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-foreground">Sign in to upload screenshots</p>
+              <p className="text-xs text-muted-foreground">
+                Guest mode supports text only. To analyze match screenshots, please sign in.
+              </p>
+            </div>
+            <div className="flex gap-2 flex-wrap justify-center">
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => navigate('/sign-in')}
+                className="gap-2"
+              >
+                <LogIn className="w-4 h-4" />
+                Sign in
+              </Button>
+            </div>
+          </div>
         </div>
-      </div>
+      ) : (
+        <>
+          {/* Drag and drop zone */}
+          <div
+            onDragOver={handleDragOver}
+            onDragLeave={handleDragLeave}
+            onDrop={handleDrop}
+            className={`
+              border-2 border-dashed rounded-2xl p-6 transition-all duration-200
+              ${isDraggingOver 
+                ? 'border-primary bg-primary/5 scale-[1.02]' 
+                : 'border-border bg-muted/30 hover:border-primary/50 hover:bg-muted/50'
+              }
+              ${isExtracting ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}
+            `}
+            onClick={() => !isExtracting && fileInputRef.current?.click()}
+          >
+            <div className="flex flex-col items-center justify-center gap-2 text-center">
+              <Upload className={`w-8 h-8 ${isDraggingOver ? 'text-primary animate-bounce' : 'text-muted-foreground'}`} />
+              <p className="text-sm font-medium">
+                {isDraggingOver ? 'Drop images here' : 'Drag & drop images or click to browse'}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Upload 2-5 screenshots • JPG, PNG, or WEBP • Max 5MB each
+              </p>
+            </div>
+          </div>
 
-      <p className="text-xs text-muted-foreground/70 text-center">
-        Screenshots are analyzed only to generate your results and are not shared or saved.
-      </p>
+          <p className="text-xs text-muted-foreground/70 text-center">
+            Screenshots are analyzed only to generate your results and are not shared or saved.
+          </p>
+        </>
+      )}
 
       {imagePreviews.length > 0 && (
         <div className="space-y-2">
