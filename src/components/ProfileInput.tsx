@@ -39,6 +39,7 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
 
   // Guard for guest users
   const isGuest = !isSignedIn;
+  const [showGuestCallout, setShowGuestCallout] = useState(true);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -333,16 +334,16 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
       </div>
 
       {/* Guest sign-in prompt for upload */}
-      {isGuest ? (
+      {isGuest && showGuestCallout ? (
         <div className="border-2 border-dashed border-muted-foreground/30 rounded-2xl p-6 bg-muted/20">
           <div className="flex flex-col items-center justify-center gap-3 text-center">
             <div className="p-3 bg-muted rounded-full">
               <LogIn className="w-6 h-6 text-muted-foreground" />
             </div>
-            <div className="space-y-1">
-              <p className="text-sm font-medium text-foreground">Sign in to upload screenshots</p>
-              <p className="text-xs text-muted-foreground">
-                Guest mode supports text only. To analyze match screenshots, please sign in.
+            <div className="space-y-1.5">
+              <p className="text-sm font-semibold text-foreground">Sign in to upload screenshots</p>
+              <p className="text-xs text-muted-foreground max-w-xs">
+                Guest mode supports text-only. To analyze match screenshots, please sign in (free) or paste their bio/prompts below.
               </p>
             </div>
             <div className="flex gap-2 flex-wrap justify-center">
@@ -353,9 +354,37 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
                 className="gap-2"
               >
                 <LogIn className="w-4 h-4" />
-                Sign in
+                Sign in / Create account
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowGuestCallout(false)}
+                className="text-muted-foreground"
+              >
+                Continue with text
               </Button>
             </div>
+          </div>
+        </div>
+      ) : isGuest && !showGuestCallout ? (
+        <div 
+          className="border-2 border-dashed border-muted-foreground/20 rounded-2xl p-4 bg-muted/10 cursor-not-allowed opacity-60"
+          onClick={() => setShowGuestCallout(true)}
+        >
+          <div className="flex flex-col items-center justify-center gap-1 text-center">
+            <Upload className="w-6 h-6 text-muted-foreground/50" />
+            <p className="text-xs text-muted-foreground">
+              <button 
+                type="button"
+                onClick={(e) => { e.stopPropagation(); navigate('/sign-in'); }}
+                className="text-primary hover:underline font-medium"
+              >
+                Sign in
+              </button>
+              {' '}to upload screenshots
+            </p>
           </div>
         </div>
       ) : (
