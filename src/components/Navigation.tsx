@@ -7,6 +7,7 @@ import Logo from "@/components/Logo";
 import { useUserPlan } from "@/hooks/useUserPlan";
 import { PaywallModal } from "@/components/PaywallModal";
 import { motion } from "framer-motion";
+import { isGuest } from "@/lib/guest";
 
 export const Navigation = () => {
   const location = useLocation();
@@ -32,7 +33,7 @@ export const Navigation = () => {
     >
       <div className="container mx-auto px-4 py-3 sm:py-4">
         <div className="flex items-center justify-between gap-2 sm:gap-4">
-          <Link to={isLoaded && user ? "/generator" : "/"} className="group">
+          <Link to={(isLoaded && user) || isGuest() ? "/generator" : "/"} className="group">
             <Logo />
           </Link>
 
