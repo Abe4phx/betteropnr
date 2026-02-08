@@ -135,9 +135,7 @@ const AnimatedRoutes = () => {
           path="/generator"
           element={
             <RequireAuthOrGuest>
-              <motion.div {...pageTransition}>
-                <Generator />
-              </motion.div>
+              <Generator />
             </RequireAuthOrGuest>
           }
         />
