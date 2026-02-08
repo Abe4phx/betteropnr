@@ -12,6 +12,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
+import { enterGuest } from '@/lib/guest';
 
 const Landing = () => {
   const navigate = useNavigate();
@@ -76,7 +77,7 @@ const Landing = () => {
               transition={{ duration: 0.6, delay: 0.4 }}
             >
               <Button 
-                onClick={() => navigate('/sign-up')}
+                onClick={() => { enterGuest(); navigate('/generator'); }}
                 size="lg"
                 className="bg-bo-gradient shadow-elegant hover:shadow-lg text-lg px-8 py-6 rounded-2xl"
               >
@@ -124,7 +125,7 @@ const Landing = () => {
             transition={{ duration: 0.6, delay: 0.5 }}
           >
             <Button 
-              onClick={() => navigate('/sign-up')}
+              onClick={() => { enterGuest(); navigate('/generator'); }}
               size="lg"
               className="w-full sm:w-auto bg-bo-gradient shadow-elegant hover:shadow-lg text-lg px-8 py-6 rounded-2xl"
             >
@@ -399,7 +400,7 @@ const Landing = () => {
             Join thousands of users who've upgraded their dating game with BetterOpnr.
           </p>
           <Button 
-            onClick={() => navigate('/sign-up')}
+            onClick={() => { enterGuest(); navigate('/generator'); }}
             size="lg"
             className="bg-bo-gradient shadow-elegant hover:shadow-lg text-lg px-10 py-6 rounded-2xl"
           >
