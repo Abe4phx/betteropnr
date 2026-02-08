@@ -11,6 +11,8 @@ import { useState } from "react";
 import { motion, useAnimation } from "framer-motion";
 import { cardVariants, heartPulse } from "@/lib/motionConfig";
 import { useUserPlan } from "@/hooks/useUserPlan";
+import { isGuest } from "@/lib/guest";
+import { GuestPromptModal } from "@/components/auth/GuestPromptModal";
 
 interface OpenerCardProps {
   id: string;
@@ -30,6 +32,7 @@ export const OpenerCard = ({ id, text, tone, matchName, onTryAgain, onVariation,
   const [showReminderCheckbox, setShowReminderCheckbox] = useState(false);
   const [remindIn24h, setRemindIn24h] = useState(false);
   const [justCopied, setJustCopied] = useState(false);
+  const [showGuestPrompt, setShowGuestPrompt] = useState(false);
   const heartControls = useAnimation();
 
   // Calculate active reminders
@@ -39,6 +42,10 @@ export const OpenerCard = ({ id, text, tone, matchName, onTryAgain, onVariation,
   const isAtReminderLimit = activeReminders >= maxReminders;
 
   const handleFavoriteClick = () => {
+    if (isGuest()) {
+      setShowGuestPrompt(true);
+      return;
+    }
     if (favorite) {
       removeFromFavorites(id);
       setShowReminderCheckbox(false);
@@ -253,6 +260,7 @@ export const OpenerCard = ({ id, text, tone, matchName, onTryAgain, onVariation,
           )}
         </div>
       </div>
+      <GuestPromptModal open={showGuestPrompt} onOpenChange={setShowGuestPrompt} />
     </Card>
     </motion.div>
   );
