@@ -5,8 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ClerkProvider, useUser } from "@clerk/clerk-react";
 import { SupabaseProvider } from "@/contexts/SupabaseContext";
-import { AuthModeSync } from "@/components/AuthModeSync";
-import { RequireAuthOrGuest } from "@/components/RequireAuthOrGuest";
+import { AuthModeSync } from "@/components/auth/AuthModeSync";
+import { RequireAuthOrGuest } from "@/components/auth/RequireAuthOrGuest";
 import { HomeOrGenerator } from "@/components/HomeOrGenerator";
 import { ClerkSyncProvider } from "@/contexts/ClerkSyncContext";
 import { BetterOpnrProvider } from "@/contexts/TalkSparkContext";
@@ -134,11 +134,11 @@ const AnimatedRoutes = () => {
         <Route
           path="/generator"
           element={
-            <ProtectedRoute>
+            <RequireAuthOrGuest>
               <motion.div {...pageTransition}>
                 <Generator />
               </motion.div>
-            </ProtectedRoute>
+            </RequireAuthOrGuest>
           }
         />
         <Route
