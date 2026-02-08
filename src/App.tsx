@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { ClerkProvider, useUser } from "@clerk/clerk-react";
 import { SupabaseProvider } from "@/contexts/SupabaseContext";
+import { AuthModeSync } from "@/components/AuthModeSync";
 import { ClerkSyncProvider } from "@/contexts/ClerkSyncContext";
 import { BetterOpnrProvider } from "@/contexts/TalkSparkContext";
 import { Navigation } from "@/components/Navigation";
@@ -250,6 +251,7 @@ const App = () => {
               <BetterOpnrProvider>
                 <Toaster />
                 <Sonner />
+                <AuthModeSync />
                 <BrowserRouter>
                   <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
                     <Navigation />
