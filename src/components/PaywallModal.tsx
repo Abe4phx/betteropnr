@@ -36,7 +36,7 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
   const handleUpgrade = async (priceId: string, planName: string) => {
     // On iOS native, show message to upgrade via web
     if (isIOSNative) {
-      toast.info('To upgrade, please visit betteropnr.com in your browser', {
+      toast.info('To upgrade or manage your plan, please visit betteropnr.com in your browser.', {
         duration: 5000,
         action: {
           label: 'Open',
@@ -110,7 +110,7 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
             </DialogTitle>
             <DialogDescription className="text-center text-base text-muted-foreground">
               {isIOSNative 
-                ? 'Manage your subscription through our website'
+                ? 'To upgrade or manage your plan, please visit betteropnr.com in your browser.'
                 : 'Unlock advanced features and higher usage limits.'}
             </DialogDescription>
             <p className="text-xs text-muted-foreground text-center mt-2">
@@ -126,7 +126,7 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
               className="bg-primary/10 border border-primary/20 rounded-2xl p-4 mx-4 mt-4 text-center"
             >
               <p className="text-sm text-foreground mb-3">
-                To subscribe or manage your plan, please visit our website:
+                To upgrade or manage your plan, please visit betteropnr.com in your browser.
               </p>
               <Button
                 onClick={() => window.open('https://betteropnr.com/billing', '_blank')}
