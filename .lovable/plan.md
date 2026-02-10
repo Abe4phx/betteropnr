@@ -1,47 +1,19 @@
 
-## Reorganize Auth Components & Update Generator Route
+## Standardize iOS Payment Copy
 
-### Overview
-Move the `RequireAuthOrGuest` component into a new `auth` subfolder for better organization, and update the `/generator` route to allow guest access.
+Update all iOS-specific payment/subscription messages to use the exact copy: **"To upgrade or manage your plan, please visit betteropnr.com in your browser."**
 
 ### Changes
 
-**1. Create auth folder structure**
-- Create `src/components/auth/` directory
-- Move `RequireAuthOrGuest.tsx` to `src/components/auth/RequireAuthOrGuest.tsx`
-- Optionally move `AuthModeSync.tsx` to the same folder for consistency
+**1. PaywallModal.tsx** (3 spots)
+- Toast message (line 39): Change from "To upgrade, please visit betteropnr.com in your browser" to the standardized copy
+- iOS notice banner (line 129): Change from "To subscribe or manage your plan, please visit our website:" to the standardized copy
+- Dialog description for iOS (line 113): Change from "Manage your subscription through our website" to the standardized copy
 
-**2. Update imports in App.tsx**
-- Change import path from `@/components/RequireAuthOrGuest` to `@/components/auth/RequireAuthOrGuest`
-- Update the `/generator` route to use `RequireAuthOrGuest` instead of `ProtectedRoute`
-
-**3. Route change**
-```text
-Before:
-/generator → ProtectedRoute (Clerk auth only)
-
-After:
-/generator → RequireAuthOrGuest (Clerk auth OR guest mode)
-```
+**2. Billing.tsx** (2 spots)
+- Toast in handleManageSubscription (line 44): Change from "Opening subscription management in browser..." to the standardized copy
+- Helper text under upgrade button (line 172): Change from "Subscriptions are managed through our website" to the standardized copy
 
 ### Technical Details
 
-Files to modify:
-- `src/components/RequireAuthOrGuest.tsx` → move to `src/components/auth/RequireAuthOrGuest.tsx`
-- `src/App.tsx` → update import path and change `/generator` route wrapper
-
-The `/generator` route will change from:
-```tsx
-<ProtectedRoute>
-  <Generator />
-</ProtectedRoute>
-```
-
-To:
-```tsx
-<RequireAuthOrGuest>
-  <Generator />
-</RequireAuthOrGuest>
-```
-
-This ensures guests who click "Continue as Guest" can also navigate directly to `/generator` and access the opener generation feature.
+All five locations already have the correct redirect behavior (opening `https://betteropnr.com/billing` in browser). Only the user-facing text strings are being updated for consistency. No logic or routing changes needed.
