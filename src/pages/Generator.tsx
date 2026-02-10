@@ -26,6 +26,9 @@ import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { sparkBurst } from "@/lib/motionConfig";
 import { extractMatchName } from "@/lib/extractMatchName";
 import WritingAffiliateBlock from "@/components/WritingAffiliateBlock";
+import { isGuest } from "@/lib/guest";
+import { canGuestGenerate, consumeGuestRun, getGuestUsage, OPENERS_PER_RUN } from "@/utils/guestLimits";
+import { useNavigate } from "react-router-dom";
 
 const Generator = () => {
   const { user } = useUser();
@@ -55,6 +58,16 @@ const Generator = () => {
   const [showGenerateSuccess, setShowGenerateSuccess] = useState(false);
   const sparkControls = useAnimation();
   const resultsRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
+
+  // GUEST_LIMITS: Track guest state and remaining runs
+  const guestMode = !user && isGuest();
+  const [guestRemaining, setGuestRemaining] = useState(() => guestMode ? getGuestUsage().remaining : 0);
+
+  // Keep guestRemaining in sync when guestMode changes
+  useEffect(() => {
+    if (guestMode) setGuestRemaining(getGuestUsage().remaining);
+  }, [guestMode]);
 
   // Extract match name from profile text
   const matchName = useMemo(() => extractMatchName(profileText), [profileText]);
@@ -80,8 +93,20 @@ const Generator = () => {
       return;
     }
 
-    // Check usage limits for free users
-    if (plan === 'free' && usage.hasExceededOpenerLimit) {
+    // GUEST_LIMITS: Block guests who have exhausted daily limit
+    if (guestMode) {
+      if (!canGuestGenerate()) {
+        toast.error("You've used today's guest limit. Create a free account to keep generating.");
+        setGuestRemaining(0);
+        return;
+      }
+      // Consume run immediately to prevent double-click abuse
+      const remaining = consumeGuestRun();
+      setGuestRemaining(remaining);
+    }
+
+    // Check usage limits for free users (logged-in only)
+    if (!guestMode && plan === 'free' && usage.hasExceededOpenerLimit) {
       setShowPaywallModal(true);
       toast.error('Daily limit reached. Upgrade for unlimited openers!');
       return;
@@ -96,16 +121,20 @@ const Generator = () => {
     });
 
     try {
-      if (!user?.id) {
+      // GUEST_LIMITS: Guests don't have a Clerk user; skip auth check for them
+      if (!guestMode && !user?.id) {
         toast.error('Please sign in to generate openers');
         return;
       }
 
-      const token = await getToken();
-      if (!token) {
+      const token = guestMode ? null : await getToken();
+      if (!guestMode && !token) {
         toast.error('Authentication required');
         return;
       }
+
+      const headers: Record<string, string> = {};
+      if (token) headers.Authorization = `Bearer ${token}`;
 
       const { data, error } = await supabase.functions.invoke('generate', {
         body: {
@@ -114,10 +143,10 @@ const Generator = () => {
           tones: selectedTones,
           mode: 'opener',
           variationStyle,
-          userId: user.id,
-          userEmail: user.primaryEmailAddress?.emailAddress,
+          userId: user?.id ?? 'guest',
+          userEmail: user?.primaryEmailAddress?.emailAddress ?? undefined,
         },
-        headers: { Authorization: `Bearer ${token}` },
+        headers,
       });
       
       if (error) {
@@ -153,7 +182,10 @@ const Generator = () => {
         return;
       }
 
-      const openers = data.results.map((text: string, index: number) => ({
+      // GUEST_LIMITS: Cap openers to OPENERS_PER_RUN for guests
+      const results = guestMode ? data.results.slice(0, OPENERS_PER_RUN) : data.results;
+
+      const openers = results.map((text: string, index: number) => ({
         id: `opener-${Date.now()}-${index}`,
         text,
         tone: selectedTones[index % selectedTones.length].charAt(0).toUpperCase() + 
@@ -407,7 +439,7 @@ const Generator = () => {
               
               <Button
                 onClick={() => generateOpeners()}
-                disabled={isGenerating || usageLoading}
+                disabled={isGenerating || usageLoading || (guestMode && guestRemaining <= 0)}
                 size="lg"
                 className="w-full shadow-md transition-all"
               >
@@ -429,6 +461,30 @@ const Generator = () => {
                   </>
                 )}
               </Button>
+
+              {/* GUEST_LIMITS: Show remaining runs or exhaustion CTA */}
+              {guestMode && (
+                <div className="mt-3 text-center">
+                  {guestRemaining > 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      Guest mode: {guestRemaining} / 3 runs left today
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      <p className="text-sm text-muted-foreground">
+                        You've used today's guest limit. Create a free account to keep generating.
+                      </p>
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => navigate("/sign-up")}
+                      >
+                        Sign up
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
 
