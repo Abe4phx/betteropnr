@@ -41,7 +41,7 @@ const Billing = () => {
   const handleManageSubscription = async () => {
     // On iOS native, redirect to web for subscription management
     if (isIOSNative) {
-      toast.info('Opening subscription management in browser...', { duration: 3000 });
+      toast.info('To upgrade or manage your plan, please visit betteropnr.com in your browser.', { duration: 3000 });
       window.open('https://betteropnr.com/billing', '_blank');
       return;
     }
@@ -169,7 +169,7 @@ const Billing = () => {
                       Upgrade via Web
                     </Button>
                     <p className="text-sm text-muted-foreground mt-2">
-                      Subscriptions are managed through our website
+                      To upgrade or manage your plan, please visit betteropnr.com in your browser.
                     </p>
                   </>
                 ) : (
