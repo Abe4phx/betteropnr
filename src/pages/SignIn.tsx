@@ -73,7 +73,7 @@ const SignIn = () => {
         </Button>
 
         <p className="text-xs text-muted-foreground text-center max-w-xs">
-          Guest mode lets you generate openers. Create an account to save and sync.
+          Signing in is optional. You can continue as a guest.
         </p>
       </div>
     </div>
