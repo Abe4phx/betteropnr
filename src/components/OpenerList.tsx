@@ -40,7 +40,7 @@ export const OpenerList = ({ openers, matchName, lockedSlots = 0, onTryAgain, on
           />
         ))}
         {Array.from({ length: lockedSlots }).map((_, i) => (
-          <LockedOpenerCard key={`locked-${i}`} />
+          <LockedOpenerCard key={`locked-${i}`} index={openers.length + i + 1} />
         ))}
       </div>
     </motion.div>

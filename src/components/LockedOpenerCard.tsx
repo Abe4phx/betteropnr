@@ -5,27 +5,37 @@ import { motion } from "framer-motion";
 import { cardVariants } from "@/lib/motionConfig";
 import { useNavigate } from "react-router-dom";
 
-export const LockedOpenerCard = () => {
+export const LockedOpenerCard = ({ index = 3 }: { index?: number }) => {
   const navigate = useNavigate();
 
   return (
     <motion.div variants={cardVariants} initial="initial" animate="animate">
-      <Card className="p-6 space-y-4 border border-border/50 opacity-60 relative overflow-hidden">
-        <div className="absolute inset-0 bg-muted/50 backdrop-blur-[2px] z-10 flex flex-col items-center justify-center gap-3">
-          <Lock className="w-8 h-8 text-muted-foreground" />
-          <p className="text-sm font-medium text-muted-foreground">
-            Sign in to unlock more openers
+      <Card className="p-6 border border-border/50 relative overflow-hidden min-h-[180px]">
+        {/* Fake blurred content behind overlay */}
+        <div className="space-y-3 select-none" aria-hidden>
+          <p className="text-xs text-muted-foreground/40 uppercase tracking-wide">
+            AI-generated suggestion
           </p>
-          <Button size="sm" onClick={() => navigate("/sign-up")}>
-            Sign up free
-          </Button>
+          <div className="space-y-2">
+            <div className="h-4 w-4/5 rounded bg-muted-foreground/10" />
+            <div className="h-4 w-3/5 rounded bg-muted-foreground/10" />
+            <div className="h-4 w-2/3 rounded bg-muted-foreground/10" />
+          </div>
         </div>
 
-        {/* Placeholder content behind blur */}
-        <p className="text-xs text-muted-foreground/70 uppercase tracking-wide">
-          AI-generated suggestion
-        </p>
-        <div className="h-16 rounded bg-muted animate-pulse" />
+        {/* Lock overlay */}
+        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-10 flex flex-col items-center justify-center gap-2 px-4 text-center">
+          <Lock className="w-7 h-7 text-muted-foreground mb-1" />
+          <p className="text-base font-heading font-semibold text-foreground">
+            Opener #{index} (Locked)
+          </p>
+          <Button size="sm" className="mt-1" onClick={() => navigate("/sign-up")}>
+            Sign in to unlock
+          </Button>
+          <p className="text-xs text-muted-foreground">
+            Get more openers + all tones
+          </p>
+        </div>
       </Card>
     </motion.div>
   );
