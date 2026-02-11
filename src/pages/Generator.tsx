@@ -31,6 +31,9 @@ import { parseEdgeFunctionError, friendlyGenerationMessage } from "@/lib/generat
 import { canGuestGenerate, bumpGuestRunsUsed, getGuestRunsState, setGuestRunsUsedToMax, syncFromServer, OPENERS_PER_RUN } from "@/utils/guestLimits";
 import { useNavigate } from "react-router-dom";
 
+// GUEST_UPGRADE: localStorage key for persisting generator form state across auth
+const PENDING_STATE_KEY = "betteropnr_pending_generator_state";
+
 const Generator = () => {
   const { user } = useUser();
   const { getToken } = useAuth();
@@ -63,6 +66,18 @@ const Generator = () => {
 
   // GUEST_UX_LIMITS: Track guest state and remaining runs
   const guestMode = !user && isGuest();
+
+  // GUEST_UPGRADE: Save form state and navigate to auth
+  const saveAndNavigate = (path: string) => {
+    try {
+      localStorage.setItem(PENDING_STATE_KEY, JSON.stringify({
+        profileText,
+        userProfileText,
+        selectedTones,
+      }));
+    } catch { /* fail silently */ }
+    navigate(path);
+  };
   const [guestRemaining, setGuestRemaining] = useState(() => guestMode ? getGuestRunsState().remaining : 0);
 
   // GUEST_UX_LIMITS: Keep guestRemaining in sync when guestMode changes
@@ -72,6 +87,22 @@ const Generator = () => {
 
   // Extract match name from profile text
   const matchName = useMemo(() => extractMatchName(profileText), [profileText]);
+
+  // GUEST_UPGRADE: Restore form state after guest signs up/logs in
+  useEffect(() => {
+    if (!user) return; // only for authenticated users
+    try {
+      const raw = localStorage.getItem(PENDING_STATE_KEY);
+      if (!raw) return;
+      const saved = JSON.parse(raw);
+      if (saved.profileText) setProfileText(saved.profileText);
+      if (saved.userProfileText) setUserProfileText(saved.userProfileText);
+      if (Array.isArray(saved.selectedTones) && saved.selectedTones.length > 0) setSelectedTones(saved.selectedTones);
+      localStorage.removeItem(PENDING_STATE_KEY);
+    } catch {
+      localStorage.removeItem(PENDING_STATE_KEY);
+    }
+  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // Check if user just completed checkout
@@ -169,7 +200,7 @@ const Generator = () => {
           }
           toast.error(
             "You've used today's guest limit. Create a free account to keep generating.",
-            { action: { label: "Sign up", onClick: () => navigate("/sign-up") } }
+            { action: { label: "Sign up", onClick: () => saveAndNavigate("/sign-up") } }
           );
           return;
         }
@@ -177,7 +208,7 @@ const Generator = () => {
         // GUEST_HARDENING: Guest gets friendly message + sign-up CTA for auth errors
         if (guestMode && (parsed.status === 401 || parsed.status === 403)) {
           toast.error(friendlyGenerationMessage(parsed, true), {
-            action: { label: "Sign up", onClick: () => navigate("/sign-up") },
+            action: { label: "Sign up", onClick: () => saveAndNavigate("/sign-up") },
           });
           return;
         }
@@ -508,14 +539,14 @@ const Generator = () => {
                         <Button
                           variant="default"
                           size="sm"
-                          onClick={() => navigate("/sign-up")}
+                          onClick={() => saveAndNavigate("/sign-up")}
                         >
                           Sign up
                         </Button>
                         <Button
                           variant="secondary"
                           size="sm"
-                          onClick={() => navigate("/sign-in")}
+                          onClick={() => saveAndNavigate("/sign-in")}
                         >
                           Log in
                         </Button>
