@@ -20,7 +20,7 @@ import { useIsNewUser } from "@/hooks/useIsNewUser";
 import { useClerkSyncContext } from "@/contexts/ClerkSyncContext";
 import { PaywallModal } from "@/components/PaywallModal";
 import { UpgradeSuccessModal } from "@/components/UpgradeSuccessModal";
-import { supabase } from "@/integrations/supabase/client";
+import { GENERATOR_FUNCTIONS_BASE_URL } from "@/config/generator";
 import { motion, useAnimation } from "framer-motion";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { sparkBurst } from "@/lib/motionConfig";
@@ -197,8 +197,14 @@ const Generator = () => {
       // PROD_CLEANUP: dev-only instrumentation (no PII)
       if (import.meta.env.DEV) console.log('[GEN_OPENERS]', { mode: guestMode ? 'guest' : 'auth', hasAuth: Boolean(headers.Authorization) });
 
-      const { data, error } = await supabase.functions.invoke('generate', {
-        body: {
+      const genUrl = `${GENERATOR_FUNCTIONS_BASE_URL}/generate`;
+      console.log("[GEN] Using generator host:", new URL(genUrl).host);
+
+      const fetchHeaders: Record<string, string> = { "Content-Type": "application/json", ...headers };
+      const res = await fetch(genUrl, {
+        method: "POST",
+        headers: fetchHeaders,
+        body: JSON.stringify({
           profileText,
           userProfileText,
           tones: selectedTones,
@@ -206,9 +212,15 @@ const Generator = () => {
           variationStyle,
           userId: user?.id ?? 'guest',
           userEmail: user?.primaryEmailAddress?.emailAddress ?? undefined,
-        },
-        headers,
+        }),
       });
+
+      let data: any = null;
+      let error: any = null;
+      try { data = await res.json(); } catch { /* empty */ }
+      if (!res.ok) {
+        error = { message: data?.error || res.statusText, context: { status: res.status, body: data, response: data } };
+      }
       
       if (error) {
         // GUEST_HARDENING: Structured error parsing + friendly messages
@@ -335,8 +347,12 @@ const Generator = () => {
         return;
       }
 
-      const { data, error } = await supabase.functions.invoke('generate', {
-        body: {
+      const varUrl = `${GENERATOR_FUNCTIONS_BASE_URL}/generate`;
+      console.log("[GEN] Using generator host:", new URL(varUrl).host);
+      const varRes = await fetch(varUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
           profileText,
           userProfileText,
           tones: selectedTones,
@@ -344,9 +360,14 @@ const Generator = () => {
           variationStyle: style,
           userId: user?.id,
           userEmail: user?.primaryEmailAddress?.emailAddress,
-        },
-        headers: { Authorization: `Bearer ${token}` },
+        }),
       });
+      let data: any = null;
+      let error: any = null;
+      try { data = await varRes.json(); } catch { /* empty */ }
+      if (!varRes.ok) {
+        error = { message: data?.error || varRes.statusText, context: { status: varRes.status, response: data } };
+      }
 
       if (error) {
         console.error('Variation edge function error:', error);
@@ -403,8 +424,12 @@ const Generator = () => {
         return;
       }
 
-      const { data, error } = await supabase.functions.invoke('generate', {
-        body: {
+      const fuUrl = `${GENERATOR_FUNCTIONS_BASE_URL}/generate`;
+      console.log("[GEN] Using generator host:", new URL(fuUrl).host);
+      const fuRes = await fetch(fuUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
           profileText,
           userProfileText,
           tones: [opener.tone.toLowerCase()],
@@ -412,9 +437,14 @@ const Generator = () => {
           priorMessage: opener.text,
           userId: user?.id,
           userEmail: user?.primaryEmailAddress?.emailAddress,
-        },
-        headers: { Authorization: `Bearer ${token}` },
+        }),
       });
+      let data: any = null;
+      let error: any = null;
+      try { data = await fuRes.json(); } catch { /* empty */ }
+      if (!fuRes.ok) {
+        error = { message: data?.error || fuRes.statusText, context: { status: fuRes.status, response: data } };
+      }
 
       if (error) {
         console.error('Follow-up edge function error:', error);
