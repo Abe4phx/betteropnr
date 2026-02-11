@@ -177,6 +177,21 @@ const Generator = () => {
           return;
         }
         if (status === 429) {
+          // GUEST_LIMITS: Handle server-side guest limit response
+          const errorCode = (error as any)?.context?.error || (error as any)?.context?.response?.error;
+          if (guestMode && errorCode === 'GUEST_LIMIT_REACHED') {
+            toast.error(
+              "You've used today's guest limit. Create a free account to keep generating.",
+              {
+                action: {
+                  label: "Sign up",
+                  onClick: () => navigate("/sign-up"),
+                },
+              }
+            );
+            setGuestRemaining(0);
+            return;
+          }
           toast.error('Rate limit exceeded. Please try again in a moment.');
           return;
         }
