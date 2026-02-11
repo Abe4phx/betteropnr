@@ -1,4 +1,5 @@
 import { OpenerCard } from "./OpenerCard";
+import { LockedOpenerCard } from "./LockedOpenerCard";
 import { Opener } from "@/contexts/TalkSparkContext";
 import { motion } from "framer-motion";
 import { staggerContainer } from "@/lib/motionConfig";
@@ -6,13 +7,14 @@ import { staggerContainer } from "@/lib/motionConfig";
 interface OpenerListProps {
   openers: Opener[];
   matchName?: string;
+  lockedSlots?: number;
   onTryAgain?: (openerId: string) => void;
   onVariation?: (openerId: string, style: 'safer' | 'warmer' | 'funnier' | 'shorter') => void;
   onShowPaywall?: () => void;
 }
 
-export const OpenerList = ({ openers, matchName, onTryAgain, onVariation, onShowPaywall }: OpenerListProps) => {
-  if (openers.length === 0) {
+export const OpenerList = ({ openers, matchName, lockedSlots = 0, onTryAgain, onVariation, onShowPaywall }: OpenerListProps) => {
+  if (openers.length === 0 && lockedSlots === 0) {
     return null;
   }
 
@@ -36,6 +38,9 @@ export const OpenerList = ({ openers, matchName, onTryAgain, onVariation, onShow
             onVariation={onVariation ? (style) => onVariation(opener.id, style) : undefined}
             onShowPaywall={onShowPaywall}
           />
+        ))}
+        {Array.from({ length: lockedSlots }).map((_, i) => (
+          <LockedOpenerCard key={`locked-${i}`} />
         ))}
       </div>
     </motion.div>
