@@ -68,6 +68,8 @@ const Generator = () => {
   const { isSynced } = useClerkSyncContext();
   const { isNewUser, isChecking } = useIsNewUser(isSynced);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [lockedSlots, setLockedSlots] = useState(0);
+  const [guestAllowedTones, setGuestAllowedTones] = useState<string[] | null>(null);
   const [generatingFollowUpFor, setGeneratingFollowUpFor] = useState<string | null>(null);
   const [generatingVariationFor, setGeneratingVariationFor] = useState<string | null>(null);
   const [showPaywallModal, setShowPaywallModal] = useState(false);
@@ -197,6 +199,91 @@ const Generator = () => {
       // PROD_CLEANUP: dev-only instrumentation (no PII)
       if (import.meta.env.DEV) console.log('[GEN_OPENERS]', { mode: guestMode ? 'guest' : 'auth', hasAuth: Boolean(headers.Authorization) });
 
+      // GUEST_ROUTING: Route guests to /generate-guest with simplified payload
+      if (guestMode) {
+        const guestUrl = `${GENERATOR_FUNCTIONS_BASE_URL}/generate-guest`;
+        console.log("[GEN] Using generator host (guest):", new URL(guestUrl).host);
+
+        const guestRes = await fetch(guestUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            tone: selectedTones[0],
+            theirProfileText: profileText,
+          }),
+        });
+
+        let guestData: any = null;
+        try { guestData = await guestRes.json(); } catch { /* empty */ }
+
+        if (!guestRes.ok) {
+          setDebugLastStatus(guestRes.status);
+          setDebugLastError(guestData?.error || guestRes.statusText);
+
+          if (guestRes.status === 429) {
+            // Sync usage from response if available
+            if (guestData?.usage) {
+              syncFromServer({ remainingRunsToday: Math.max(0, guestData.usage.limit - guestData.usage.used), resetDateUtc: '' });
+              setGuestRemaining(0);
+            } else {
+              setGuestRunsUsedToMax();
+              setGuestRemaining(0);
+            }
+            toast.error("Guest limit reached. Sign in to continue.", {
+              action: { label: "Sign in", onClick: () => saveAndNavigate("/sign-in", "login") },
+            });
+            return;
+          }
+
+          if (guestRes.status === 400 || guestRes.status === 403) {
+            toast.error(guestData?.error || "Invalid request. Please try a different tone.");
+            // Auto-reset tone to a valid guest tone
+            if (guestData?.allowedTones && Array.isArray(guestData.allowedTones)) {
+              setGuestAllowedTones(guestData.allowedTones);
+              setSelectedTones([guestData.allowedTones[0]]);
+            } else {
+              setSelectedTones(["playful"]);
+            }
+            return;
+          }
+
+          toast.error(friendlyGenerationMessage(parseEdgeFunctionError({ message: guestData?.error, status: guestRes.status }), true));
+          return;
+        }
+
+        // Success — parse guest response
+        setDebugLastStatus(200);
+        setDebugLastError(null);
+
+        const guestOpeners: string[] = guestData?.openers ?? [];
+        const guestLockedSlots: number = guestData?.lockedSlots ?? 0;
+        if (guestData?.allowedTones) setGuestAllowedTones(guestData.allowedTones);
+        if (guestData?.usage) {
+          const remaining = Math.max(0, guestData.usage.limit - guestData.usage.used);
+          syncFromServer({ remainingRunsToday: remaining, resetDateUtc: '' });
+          setGuestRemaining(remaining);
+        } else {
+          const newRemaining = bumpGuestRunsUsed();
+          setGuestRemaining(newRemaining);
+        }
+
+        const openers = guestOpeners.map((text: string, index: number) => ({
+          id: `opener-${Date.now()}-${index}`,
+          text,
+          tone: selectedTones[0].charAt(0).toUpperCase() + selectedTones[0].slice(1),
+        }));
+
+        setGeneratedOpeners(openers);
+        setLockedSlots(guestLockedSlots);
+        trackEvent('guest_generate_success', { mode: 'guest', count: openers.length });
+        toast.success('Openers generated!');
+        setShowGenerateSuccess(true);
+        setTimeout(() => setShowGenerateSuccess(false), 3000);
+        setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+        return; // Done — skip auth path below
+      }
+
+      // AUTH PATH: Authenticated user flow
       const genUrl = `${GENERATOR_FUNCTIONS_BASE_URL}/generate`;
       console.log("[GEN] Using generator host:", new URL(genUrl).host);
 
@@ -225,50 +312,17 @@ const Generator = () => {
       if (error) {
         // GUEST_HARDENING: Structured error parsing + friendly messages
         const parsed = parseEdgeFunctionError(error);
-        // GUEST_DEBUG: capture error metadata
         setDebugLastStatus(parsed.status);
         setDebugLastError(parsed.code || parsed.message);
-        if (import.meta.env.DEV) console.log('[GEN_OPENERS] error', { mode: guestMode ? 'guest' : 'auth', status: parsed.status, code: parsed.code });
-
-        // GUEST_UX_LIMITS: Handle server-side guest limit — sync local state
-        if (parsed.status === 429 && parsed.code === 'GUEST_LIMIT_REACHED' && guestMode) {
-          // GUEST_LIMITS_SYNC: Prefer server-provided guestLimits if present
-          const errorBody = (error as any)?.context?.body || (error as any)?.context?.response;
-          if (errorBody?.guestLimits) {
-            setDebugLastGuestLimits(errorBody.guestLimits); // GUEST_DEBUG
-            const synced = syncFromServer(errorBody.guestLimits);
-            setGuestRemaining(synced);
-          } else {
-            setDebugLastGuestLimits({ remainingRunsToday: 0, resetDateUtc: "" }); // GUEST_DEBUG
-            setGuestRunsUsedToMax();
-            setGuestRemaining(0);
-          }
-          // GUEST_ANALYTICS: track limit reached
-          trackEvent('guest_generate_limit_reached', { mode: 'guest', remainingRunsToday: 0 });
-          toast.error(
-            "You've used today's guest limit. Create a free account to keep generating.",
-            { action: { label: "Sign up", onClick: () => saveAndNavigate("/sign-up", "signup") } }
-          );
-          return;
-        }
-
-        // GUEST_HARDENING: Guest gets friendly message + sign-up CTA for auth errors
-        if (guestMode && (parsed.status === 401 || parsed.status === 403)) {
-          toast.error(friendlyGenerationMessage(parsed, true), {
-            action: { label: "Sign up", onClick: () => saveAndNavigate("/sign-up") },
-          });
-          return;
-        }
 
         // Logged-in: paywall for daily-limit 403
-        if (!guestMode && (parsed.status === 403 || parsed.message.toLowerCase().includes('daily limit'))) {
+        if (parsed.status === 403 || parsed.message.toLowerCase().includes('daily limit')) {
           setShowPaywallModal(true);
           toast.error('Daily limit reached. Upgrade for unlimited openers!');
           return;
         }
 
-        // GUEST_HARDENING: Friendly message for all remaining errors
-        toast.error(friendlyGenerationMessage(parsed, guestMode));
+        toast.error(friendlyGenerationMessage(parsed, false));
         return;
       }
 
@@ -281,26 +335,10 @@ const Generator = () => {
       // GUEST_DEBUG: capture success metadata
       setDebugLastStatus(200);
       setDebugLastError(null);
-      if (data.guestLimits) setDebugLastGuestLimits(data.guestLimits);
 
-      // GUEST_UX_LIMITS: Cap openers to OPENERS_PER_RUN for guests
-      const results = guestMode ? data.results.slice(0, OPENERS_PER_RUN) : data.results;
+      setLockedSlots(0); // Auth users don't have locked slots
 
-      // GUEST_LIMITS_SYNC: Prefer server-provided guestLimits over local bump
-      if (guestMode) {
-        let newRemaining: number;
-        if (data.guestLimits) {
-          newRemaining = syncFromServer(data.guestLimits);
-          setGuestRemaining(newRemaining);
-        } else {
-          newRemaining = bumpGuestRunsUsed();
-          setGuestRemaining(newRemaining);
-        }
-        // GUEST_ANALYTICS: track successful guest generation
-        trackEvent('guest_generate_success', { mode: 'guest', remainingRunsToday: newRemaining });
-      }
-
-      const openers = results.map((text: string, index: number) => ({
+      const openers = data.results.map((text: string, index: number) => ({
         id: `opener-${Date.now()}-${index}`,
         text,
         tone: selectedTones[index % selectedTones.length].charAt(0).toUpperCase() + 
@@ -654,8 +692,9 @@ const Generator = () => {
               <OpenerList
                 openers={generatedOpeners}
                 matchName={matchName}
+                lockedSlots={lockedSlots}
                 onTryAgain={() => generateOpeners()}
-                onVariation={handleVariation}
+                onVariation={guestMode ? undefined : handleVariation}
                 onShowPaywall={() => setShowPaywallModal(true)}
               />
 
