@@ -20,7 +20,7 @@ import { useIsNewUser } from "@/hooks/useIsNewUser";
 import { useClerkSyncContext } from "@/contexts/ClerkSyncContext";
 import { PaywallModal } from "@/components/PaywallModal";
 import { UpgradeSuccessModal } from "@/components/UpgradeSuccessModal";
-import { GENERATOR_FUNCTIONS_BASE_URL } from "@/config/generator";
+import { GENERATOR_FUNCTIONS_BASE_URL, GENERATOR_ANON_KEY } from "@/config/generator";
 import { motion, useAnimation } from "framer-motion";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { sparkBurst } from "@/lib/motionConfig";
@@ -207,7 +207,7 @@ const Generator = () => {
 
         const guestRes = await fetch(guestUrl, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", "apikey": GENERATOR_ANON_KEY },
           body: JSON.stringify({
             tone: selectedTones[0],
             theirProfileText: profileText,
@@ -290,7 +290,7 @@ const Generator = () => {
       const genUrl = `${GENERATOR_FUNCTIONS_BASE_URL}/generate`;
       console.log("[GEN] Using generator host:", new URL(genUrl).host);
 
-      const fetchHeaders: Record<string, string> = { "Content-Type": "application/json", ...headers };
+      const fetchHeaders: Record<string, string> = { "Content-Type": "application/json", "apikey": GENERATOR_ANON_KEY, ...headers };
       const res = await fetch(genUrl, {
         method: "POST",
         headers: fetchHeaders,
@@ -392,7 +392,7 @@ const Generator = () => {
       console.log("[GEN] Using generator host:", new URL(varUrl).host);
       const varRes = await fetch(varUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json", "apikey": GENERATOR_ANON_KEY, Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           profileText,
           userProfileText,
@@ -469,7 +469,7 @@ const Generator = () => {
       console.log("[GEN] Using generator host:", new URL(fuUrl).host);
       const fuRes = await fetch(fuUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        headers: { "Content-Type": "application/json", "apikey": GENERATOR_ANON_KEY, Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           profileText,
           userProfileText,
