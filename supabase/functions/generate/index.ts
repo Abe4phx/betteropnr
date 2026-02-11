@@ -4,13 +4,17 @@ import { verifyClerkJWT, createAuthErrorResponse } from '../_shared/clerkAuth.ts
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-guest-id',
 };
 
 // Rate limiting store (in-memory, resets on function cold start)
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW = 60000; // 1 minute
 const RATE_LIMIT_MAX_REQUESTS = 10;
+
+// GUEST_LIMITS: Server-side constants
+const GUEST_DAILY_RUN_LIMIT = 3;
+const GUEST_OPENERS_PER_RUN = 2;
 
 // Content filter for explicit or inappropriate content
 const BLOCKED_WORDS = [
@@ -28,6 +32,24 @@ function containsBlockedContent(text: string): boolean {
 function enforceMaxLength(text: string): string {
   if (text.length <= MAX_OPENER_LENGTH) return text;
   return text.substring(0, MAX_OPENER_LENGTH - 3) + '...';
+}
+
+// GUEST_LIMITS: Derive a privacy-safe guest key via SHA-256 hash
+async function deriveGuestKey(req: Request, explicitId?: string): Promise<string> {
+  if (explicitId && explicitId.trim().length > 0) {
+    // Hash the explicit guest ID for consistency
+    const encoded = new TextEncoder().encode(explicitId.trim());
+    const hashBuffer = await crypto.subtle.digest('SHA-256', encoded);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return 'g_' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 32);
+  }
+  // Fallback: hash IP + User-Agent
+  const ip = req.headers.get('x-forwarded-for') || req.headers.get('cf-connecting-ip') || 'unknown';
+  const ua = req.headers.get('user-agent') || 'unknown';
+  const encoded = new TextEncoder().encode(ip + ua);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', encoded);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return 'g_' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 32);
 }
 
 interface GenerateRequest {
@@ -75,11 +97,19 @@ serve(async (req) => {
   }
 
   try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Parse request body once
+    const requestBody: GenerateRequest = await req.json();
+
     // Determine if request is authenticated or guest
     const authHeader = req.headers.get('Authorization');
     let userId: string;
     let userPlan = 'free';
     let isGuestRequest = false;
+    let guestKey = '';
 
     if (authHeader && authHeader.trim() !== '') {
       // Authenticated path: verify Clerk JWT
@@ -92,10 +122,6 @@ serve(async (req) => {
 
       userId = authResult.userId;
       console.log('Authenticated user:', userId);
-
-      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-      const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
       // Rate limiting using verified userId
       const now = Date.now();
@@ -136,10 +162,8 @@ serve(async (req) => {
       if (!userData) {
         console.warn('User not found in database. Creating a new user record with free plan:', userId);
         const emailFromAuth = authResult.email;
-        const emailFromClient = undefined; // will be set from requestBody below
         const fallbackEmail = `unknown+${userId}@placeholder.invalid`;
-        const requestBodyPeek = await req.clone().json();
-        const emailFromBody = (requestBodyPeek && typeof requestBodyPeek.userEmail === 'string') ? requestBodyPeek.userEmail : undefined;
+        const emailFromBody = (requestBody && typeof requestBody.userEmail === 'string') ? requestBody.userEmail : undefined;
         const { data: inserted, error: insertError } = await supabase
           .from('users')
           .insert({
@@ -191,14 +215,16 @@ serve(async (req) => {
         }
       }
     } else {
-      // Guest path: no auth, skip plan/usage checks
-      userId = 'guest';
+      // GUEST_LIMITS: Guest path — no auth
       isGuestRequest = true;
-      console.log('Guest request — skipping auth and plan checks');
+      const xGuestId = req.headers.get('X-Guest-Id') || '';
+      guestKey = await deriveGuestKey(req, xGuestId);
+      userId = guestKey;
+      console.log('Guest request, guestKey:', guestKey);
 
-      // Rate limiting for guests (shared key)
+      // In-memory rate limiting for guests
       const now = Date.now();
-      const guestRateLimit = rateLimitStore.get('guest');
+      const guestRateLimit = rateLimitStore.get(guestKey);
       if (guestRateLimit) {
         if (now < guestRateLimit.resetTime) {
           if (guestRateLimit.count >= RATE_LIMIT_MAX_REQUESTS) {
@@ -209,43 +235,40 @@ serve(async (req) => {
           }
           guestRateLimit.count++;
         } else {
-          rateLimitStore.set('guest', { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+          rateLimitStore.set(guestKey, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
         }
       } else {
-        rateLimitStore.set('guest', { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+        rateLimitStore.set(guestKey, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
       }
-    }
 
-    // Check usage limits for free users
-    if (userPlan === 'free') {
-      const today = new Date().toISOString().split('T')[0];
-      const { data: usageData, error: usageError } = await supabase
-        .from('user_usage')
-        .select('openers_generated')
-        .eq('user_id', userId)
-        .eq('date', today)
+      // GUEST_LIMITS: Server-side daily usage check
+      const todayUtc = new Date().toISOString().split('T')[0];
+      const { data: guestUsage, error: guestUsageError } = await supabase
+        .from('guest_generation_usage')
+        .select('runs_used, date_utc')
+        .eq('guest_key', guestKey)
+        .eq('date_utc', todayUtc)
         .maybeSingle();
 
-      if (usageError) {
-        console.error('Error fetching usage:', usageError);
+      if (guestUsageError) {
+        console.error('Error fetching guest usage:', guestUsageError);
       }
 
-      const openersGenerated = usageData?.openers_generated || 0;
-      const FREE_PLAN_LIMIT = 5;
+      const runsUsed = (guestUsage && guestUsage.date_utc === todayUtc) ? guestUsage.runs_used : 0;
 
-      if (openersGenerated >= FREE_PLAN_LIMIT) {
+      if (runsUsed >= GUEST_DAILY_RUN_LIMIT) {
+        console.log('Guest limit reached for:', guestKey, 'runs:', runsUsed);
         return new Response(
           JSON.stringify({ 
-            error: 'Daily limit reached',
-            message: 'You have reached your daily limit of 5 openers. Upgrade to Pro for unlimited access.',
-            requiresUpgrade: true 
+            error: 'GUEST_LIMIT_REACHED',
+            message: 'Guest limit reached. Create a free account to continue.'
           }),
-          { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
       }
     }
 
-    const { profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle }: GenerateRequest = requestBody;
+    const { profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle } = requestBody;
     
     console.log('Generate request:', { userId, userPlan, mode, isGuestRequest });
 
@@ -291,8 +314,12 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       console.error('LOVABLE_API_KEY not configured');
-      // Fall back to template generation
-      return fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle);
+      const fallbackResult = fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle, isGuestRequest);
+      // GUEST_LIMITS: Increment usage on successful fallback for guests
+      if (isGuestRequest) {
+        await incrementGuestUsage(supabase, guestKey);
+      }
+      return fallbackResult;
     }
 
     // Build variation-specific instructions
@@ -360,7 +387,8 @@ CRITICAL RULES:
 
 Think: What would you actually send if you wanted to casually revive a fun chat?`;
 
-    const openerCount = isGuestRequest ? 2 : 4;
+    // GUEST_LIMITS: Guest gets exactly 2 openers, authenticated gets 4
+    const openerCount = isGuestRequest ? GUEST_OPENERS_PER_RUN : 4;
 
     const userPrompt = mode === 'opener'
       ? `${profileContext}\n\nWrite ${openerCount} unique, natural conversation openers. Sound like a real person who noticed something interesting and wants to chat about it. Be ${tones.join(', ')} - but authentic, not trying too hard.${variationInstruction}${commonInterestHint}\n\nDon't copy exact words from their profile. Paraphrase naturally. Write like you're genuinely texting someone.\n\nReturn ONLY a JSON array of ${openerCount} strings, no other text.`
@@ -399,10 +427,10 @@ Think: What would you actually send if you wanted to casually revive a fun chat?
       clearTimeout(timeoutId);
       if (error instanceof Error && error.name === 'AbortError') {
         console.error('AI request was aborted due to timeout');
-        return fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle);
+        return fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle, isGuestRequest);
       }
       console.error('AI request failed:', error);
-      return fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle);
+      return fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle, isGuestRequest);
     }
 
     if (!response.ok) {
@@ -424,7 +452,11 @@ Think: What would you actually send if you wanted to casually revive a fun chat?
       }
       
       // Fall back to template generation on AI error
-      return fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle);
+      const fallbackResult = fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle, isGuestRequest);
+      if (isGuestRequest) {
+        await incrementGuestUsage(supabase, guestKey);
+      }
+      return fallbackResult;
     }
 
     const data = await response.json();
@@ -432,23 +464,34 @@ Think: What would you actually send if you wanted to casually revive a fun chat?
     
     if (!content) {
       console.error('No content in AI response');
-      return fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle);
+      return fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle, isGuestRequest);
     }
 
     // Parse the JSON array from the response
     try {
       // Remove markdown code blocks if present
       const cleanContent = content.replace(/```json\n?|\n?```/g, '').trim();
-      const results = JSON.parse(cleanContent);
+      let results = JSON.parse(cleanContent);
       
       if (Array.isArray(results) && results.length > 0) {
         // Enforce max length and filter inappropriate content
-        const filteredResults = results
-          .map(text => enforceMaxLength(text))
-          .filter(text => !containsBlockedContent(text));
+        let filteredResults = results
+          .map((text: string) => enforceMaxLength(text))
+          .filter((text: string) => !containsBlockedContent(text));
+
+        // GUEST_LIMITS: Enforce output size for guests
+        if (isGuestRequest) {
+          filteredResults = filteredResults.slice(0, GUEST_OPENERS_PER_RUN);
+        }
         
         if (filteredResults.length > 0) {
           console.log('Successfully generated', filteredResults.length, 'results');
+
+          // GUEST_LIMITS: Increment usage ONLY after successful generation
+          if (isGuestRequest) {
+            await incrementGuestUsage(supabase, guestKey);
+          }
+
           return new Response(
             JSON.stringify({ results: filteredResults }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -460,7 +503,11 @@ Think: What would you actually send if you wanted to casually revive a fun chat?
     }
 
     // Fall back if parsing failed
-    return fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle);
+    const fallbackResult = fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle, isGuestRequest);
+    if (isGuestRequest) {
+      await incrementGuestUsage(supabase, guestKey);
+    }
+    return fallbackResult;
 
   } catch (error) {
     console.error('Error in generate function:', error);
@@ -471,6 +518,35 @@ Think: What would you actually send if you wanted to casually revive a fun chat?
   }
 });
 
+// GUEST_LIMITS: Increment guest daily run counter
+async function incrementGuestUsage(supabase: any, guestKey: string): Promise<void> {
+  const todayUtc = new Date().toISOString().split('T')[0];
+  try {
+    // Select current usage, then insert or update
+    const { data: existing } = await supabase
+      .from('guest_generation_usage')
+      .select('runs_used')
+      .eq('guest_key', guestKey)
+      .eq('date_utc', todayUtc)
+      .maybeSingle();
+
+    if (existing) {
+      await supabase
+        .from('guest_generation_usage')
+        .update({ runs_used: existing.runs_used + 1, updated_at: new Date().toISOString() })
+        .eq('guest_key', guestKey)
+        .eq('date_utc', todayUtc);
+    } else {
+      await supabase
+        .from('guest_generation_usage')
+        .insert({ guest_key: guestKey, date_utc: todayUtc, runs_used: 1 });
+    }
+    console.log('Guest usage incremented for:', guestKey, 'date:', todayUtc);
+  } catch (e) {
+    console.error('Failed to increment guest usage:', e);
+  }
+}
+
 function fallbackGeneration(
   profileText: string,
   userProfileText: string | undefined,
@@ -478,13 +554,13 @@ function fallbackGeneration(
   mode: 'opener' | 'followup',
   priorMessage?: string,
   theirReply?: string,
-  variationStyle?: string
+  variationStyle?: string,
+  isGuest?: boolean
 ): Response {
   console.log('Using fallback template generation');
   
   if (mode === 'followup') {
     if (!theirReply) {
-      // Re-engagement templates for stalled conversations
       const reEngagementTemplates = [
         "Hey! Just remembered our chat about that. How'd it go?",
         "Random thought: still thinking about what you said. Any updates?",
@@ -497,7 +573,6 @@ function fallbackGeneration(
       );
     }
     
-    // Follow-up templates when they replied
     const followUpTemplates = [
       "Ha! That's actually really interesting. What made you think of that?",
       "Wait, tell me more about that part!",
@@ -523,7 +598,9 @@ function fallbackGeneration(
   const adjectives = toneAdjectives[primaryTone] || toneAdjectives.playful;
   const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
   
-  const results = conversationTemplates.slice(0, 4).map(template => {
+  // GUEST_LIMITS: Limit fallback results for guests
+  const count = isGuest ? GUEST_OPENERS_PER_RUN : 4;
+  const results = conversationTemplates.slice(0, count).map(template => {
     return template
       .replace('{interest}', interest)
       .replace('{adjective}', adjective)

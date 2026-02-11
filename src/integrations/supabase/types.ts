@@ -56,6 +56,27 @@ export type Database = {
         }
         Relationships: []
       }
+      guest_generation_usage: {
+        Row: {
+          date_utc: string
+          guest_key: string
+          runs_used: number
+          updated_at: string
+        }
+        Insert: {
+          date_utc: string
+          guest_key: string
+          runs_used?: number
+          updated_at?: string
+        }
+        Update: {
+          date_utc?: string
+          guest_key?: string
+          runs_used?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       stripe_customers: {
         Row: {
           created_at: string
