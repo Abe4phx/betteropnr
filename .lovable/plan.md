@@ -1,42 +1,34 @@
 
 
-## Fix Guest Generation: Allow Unauthenticated Requests in Edge Function
+## Add apikey header to generator fetch calls
 
-### Problem
-The `generate` edge function rejects all requests without a valid Clerk JWT (line 79-84), returning 401 to guest users.
+Since the generator edge functions are hosted on the external Supabase project (`vshitqqftdekgtjanyaa`), all fetch calls need the project's anon key in the `apikey` header. This is a publishable key, so it's safe to store in the codebase.
 
 ### Changes
 
-**1. Edge Function (`supabase/functions/generate/index.ts`)** -- Add guest path
+**1. `src/config/generator.ts`** -- Add the anon key constant
 
-At the top of the request handler (after CORS check, line 77), add a branch:
+```typescript
+export const GENERATOR_ANON_KEY = "sb_publishable_dJhtpuPnb_sz3yYC1XdThQ_I-NzwuMS";
+```
 
-- Check if `Authorization` header is present and non-empty
-- **If NO header (guest)**:
-  - Set `userId = 'guest'`
-  - Skip Clerk JWT verification, user plan lookup, and usage limit checks
-  - Proceed to input validation, content filtering, rate limiting, and generation
-  - In the AI prompt for guests, request only 2 openers instead of 4
-- **If header present (authenticated)**: keep existing flow exactly as-is
+**2. `src/pages/Generator.tsx`** -- Add `apikey` header to both fetch calls
 
-The guest path will still enforce:
-- Input validation (profile text required, length limits, tone validation)
-- Content filtering (blocked words)
-- Rate limiting (using `'guest'` key -- shared, but acceptable for MVP)
-- Max opener length
+- **Guest fetch (line ~208-210):** Add `apikey: GENERATOR_ANON_KEY` to headers
+- **Auth fetch (line ~293-294):** Add `apikey: GENERATOR_ANON_KEY` to `fetchHeaders`
 
-**2. Frontend (`src/pages/Generator.tsx`)** -- Three targeted fixes
+Both calls will include:
+```typescript
+headers: {
+  "Content-Type": "application/json",
+  "apikey": GENERATOR_ANON_KEY,
+  // ...existing auth headers if applicable
+}
+```
 
-- **Move `consumeGuestRun()` from line 104 (before API call) to after successful response (after line 186)**. Only consume a run when the edge function succeeds.
-- **Add guest-friendly error handling**: In the error block (line 152-176), if `guestMode`, show: "Guest generation is temporarily unavailable. Please create a free account to continue." with a Sign Up CTA instead of the generic error.
-- **Add diagnostic logs** before the `supabase.functions.invoke` call for debugging:
-  - `[GEN_OPENERS] endpoint: generate`
-  - `[GEN_OPENERS] isAuthenticated: true/false`
-  - `[GEN_OPENERS] hasAuthHeader: true/false`
+### Technical details
 
-### What stays unchanged
-- All logged-in user behavior (Clerk auth, plan checks, usage limits)
-- Variation and follow-up generation (require auth)
-- Guest daily limit logic in `src/utils/guestLimits.ts`
-- Guest detection, routes, UI badges
-- Opener slicing for guests (already at line 186)
+- Two lines changed in `src/config/generator.ts` (add export)
+- Two header objects updated in `src/pages/Generator.tsx` (guest + auth paths)
+- Import of `GENERATOR_ANON_KEY` added alongside existing `GENERATOR_FUNCTIONS_BASE_URL` import
+
