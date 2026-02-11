@@ -8,7 +8,13 @@ type AnalyticsEvent =
   | 'generated_followup'
   | 'rated_item'
   | 'generated_variation'
-  | 'profile_reviewed';
+  | 'profile_reviewed'
+  // GUEST_ANALYTICS: conversion funnel events
+  | 'guest_generate_success'
+  | 'guest_generate_limit_reached'
+  | 'guest_click_signup_from_limit'
+  | 'guest_click_login_from_limit'
+  | 'guest_converted_to_auth';
 
 interface EventData {
   [key: string]: string | number | boolean | undefined;

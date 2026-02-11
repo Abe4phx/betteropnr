@@ -73,15 +73,19 @@ const Generator = () => {
   // GUEST_UX_LIMITS: Track guest state and remaining runs
   const guestMode = !user && isGuest();
 
-  // GUEST_UPGRADE: Save form state and navigate to auth
-  const saveAndNavigate = (path: string) => {
+  // GUEST_UPGRADE: Save form state, set upgrade marker, and navigate to auth
+  const saveAndNavigate = (path: string, source: 'signup' | 'login' = 'signup') => {
     try {
       localStorage.setItem(PENDING_STATE_KEY, JSON.stringify({
         profileText,
         userProfileText,
         selectedTones,
       }));
+      // GUEST_ANALYTICS: mark upgrade started for conversion tracking
+      localStorage.setItem("betteropnr_guest_upgrade_started", "1");
     } catch { /* fail silently */ }
+    // GUEST_ANALYTICS: track CTA click
+    trackEvent(source === 'signup' ? 'guest_click_signup_from_limit' : 'guest_click_login_from_limit', { mode: 'guest' });
     navigate(path);
   };
   const [guestRemaining, setGuestRemaining] = useState(() => guestMode ? getGuestRunsState().remaining : 0);
@@ -97,6 +101,13 @@ const Generator = () => {
   // GUEST_UPGRADE: Restore form state after guest signs up/logs in
   useEffect(() => {
     if (!user) return; // only for authenticated users
+    // GUEST_ANALYTICS: fire conversion event if upgrade marker exists
+    try {
+      if (localStorage.getItem("betteropnr_guest_upgrade_started") === "1") {
+        trackEvent('guest_converted_to_auth', { mode: 'auth' });
+        localStorage.removeItem("betteropnr_guest_upgrade_started");
+      }
+    } catch { /* fail silently */ }
     try {
       const raw = localStorage.getItem(PENDING_STATE_KEY);
       if (!raw) return;
@@ -209,9 +220,11 @@ const Generator = () => {
             setGuestRunsUsedToMax();
             setGuestRemaining(0);
           }
+          // GUEST_ANALYTICS: track limit reached
+          trackEvent('guest_generate_limit_reached', { mode: 'guest', remainingRunsToday: 0 });
           toast.error(
             "You've used today's guest limit. Create a free account to keep generating.",
-            { action: { label: "Sign up", onClick: () => saveAndNavigate("/sign-up") } }
+            { action: { label: "Sign up", onClick: () => saveAndNavigate("/sign-up", "signup") } }
           );
           return;
         }
@@ -252,13 +265,16 @@ const Generator = () => {
 
       // GUEST_LIMITS_SYNC: Prefer server-provided guestLimits over local bump
       if (guestMode) {
+        let newRemaining: number;
         if (data.guestLimits) {
-          const synced = syncFromServer(data.guestLimits);
-          setGuestRemaining(synced);
+          newRemaining = syncFromServer(data.guestLimits);
+          setGuestRemaining(newRemaining);
         } else {
-          const remaining = bumpGuestRunsUsed();
-          setGuestRemaining(remaining);
+          newRemaining = bumpGuestRunsUsed();
+          setGuestRemaining(newRemaining);
         }
+        // GUEST_ANALYTICS: track successful guest generation
+        trackEvent('guest_generate_success', { mode: 'guest', remainingRunsToday: newRemaining });
       }
 
       const openers = results.map((text: string, index: number) => ({
@@ -555,14 +571,14 @@ const Generator = () => {
                         <Button
                           variant="default"
                           size="sm"
-                          onClick={() => saveAndNavigate("/sign-up")}
+                          onClick={() => saveAndNavigate("/sign-up", "signup")}
                         >
                           Sign up
                         </Button>
                         <Button
                           variant="secondary"
                           size="sm"
-                          onClick={() => saveAndNavigate("/sign-in")}
+                          onClick={() => saveAndNavigate("/sign-in", "login")}
                         >
                           Log in
                         </Button>
