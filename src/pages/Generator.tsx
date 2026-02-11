@@ -27,7 +27,7 @@ import { sparkBurst } from "@/lib/motionConfig";
 import { extractMatchName } from "@/lib/extractMatchName";
 import WritingAffiliateBlock from "@/components/WritingAffiliateBlock";
 import { isGuest } from "@/lib/guest";
-import { canGuestGenerate, consumeGuestRun, getGuestUsage, OPENERS_PER_RUN } from "@/utils/guestLimits";
+import { canGuestGenerate, bumpGuestRunsUsed, getGuestRunsState, setGuestRunsUsedToMax, OPENERS_PER_RUN } from "@/utils/guestLimits";
 import { useNavigate } from "react-router-dom";
 
 const Generator = () => {
@@ -60,13 +60,13 @@ const Generator = () => {
   const resultsRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  // GUEST_LIMITS: Track guest state and remaining runs
+  // GUEST_UX_LIMITS: Track guest state and remaining runs
   const guestMode = !user && isGuest();
-  const [guestRemaining, setGuestRemaining] = useState(() => guestMode ? getGuestUsage().remaining : 0);
+  const [guestRemaining, setGuestRemaining] = useState(() => guestMode ? getGuestRunsState().remaining : 0);
 
-  // Keep guestRemaining in sync when guestMode changes
+  // GUEST_UX_LIMITS: Keep guestRemaining in sync when guestMode changes
   useEffect(() => {
-    if (guestMode) setGuestRemaining(getGuestUsage().remaining);
+    if (guestMode) setGuestRemaining(getGuestRunsState().remaining);
   }, [guestMode]);
 
   // Extract match name from profile text
@@ -93,7 +93,7 @@ const Generator = () => {
       return;
     }
 
-    // GUEST_LIMITS: Block guests who have exhausted daily limit
+    // GUEST_UX_LIMITS: Block guests who have exhausted daily limit
     if (guestMode) {
       if (!canGuestGenerate()) {
         toast.error("You've used today's guest limit. Create a free account to keep generating.");
@@ -177,9 +177,11 @@ const Generator = () => {
           return;
         }
         if (status === 429) {
-          // GUEST_LIMITS: Handle server-side guest limit response
+          // GUEST_UX_LIMITS: Handle server-side guest limit response — sync local state
           const errorCode = (error as any)?.context?.error || (error as any)?.context?.response?.error;
           if (guestMode && errorCode === 'GUEST_LIMIT_REACHED') {
+            setGuestRunsUsedToMax();
+            setGuestRemaining(0);
             toast.error(
               "You've used today's guest limit. Create a free account to keep generating.",
               {
@@ -189,7 +191,6 @@ const Generator = () => {
                 },
               }
             );
-            setGuestRemaining(0);
             return;
           }
           toast.error('Rate limit exceeded. Please try again in a moment.');
@@ -214,12 +215,12 @@ const Generator = () => {
         return;
       }
 
-      // GUEST_LIMITS: Cap openers to OPENERS_PER_RUN for guests
+      // GUEST_UX_LIMITS: Cap openers to OPENERS_PER_RUN for guests
       const results = guestMode ? data.results.slice(0, OPENERS_PER_RUN) : data.results;
 
-      // GUEST_LIMITS: Consume run only on success
+      // GUEST_UX_LIMITS: Bump local usage only on success
       if (guestMode) {
-        const remaining = consumeGuestRun();
+        const remaining = bumpGuestRunsUsed();
         setGuestRemaining(remaining);
       }
 
@@ -500,7 +501,7 @@ const Generator = () => {
                 )}
               </Button>
 
-              {/* GUEST_LIMITS: Show remaining runs or exhaustion CTA */}
+              {/* GUEST_UX_LIMITS: Show remaining runs or exhaustion CTA */}
               {guestMode && (
                 <div className="mt-3 text-center">
                   {guestRemaining > 0 ? (
@@ -512,13 +513,22 @@ const Generator = () => {
                       <p className="text-sm text-muted-foreground">
                         You've used today's guest limit. Create a free account to keep generating.
                       </p>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() => navigate("/sign-up")}
-                      >
-                        Sign up
-                      </Button>
+                      <div className="flex justify-center gap-2">
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => navigate("/sign-up")}
+                        >
+                          Sign up
+                        </Button>
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() => navigate("/sign-in")}
+                        >
+                          Log in
+                        </Button>
+                      </div>
                     </div>
                   )}
                 </div>
