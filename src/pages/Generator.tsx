@@ -27,6 +27,7 @@ import { sparkBurst } from "@/lib/motionConfig";
 import { extractMatchName } from "@/lib/extractMatchName";
 import WritingAffiliateBlock from "@/components/WritingAffiliateBlock";
 import { isGuest } from "@/lib/guest";
+import { parseEdgeFunctionError, friendlyGenerationMessage } from "@/lib/generationErrors";
 import { canGuestGenerate, bumpGuestRunsUsed, getGuestRunsState, setGuestRunsUsedToMax, OPENERS_PER_RUN } from "@/utils/guestLimits";
 import { useNavigate } from "react-router-dom";
 
@@ -134,10 +135,8 @@ const Generator = () => {
       const headers: Record<string, string> = {};
       if (token) headers.Authorization = `Bearer ${token}`;
 
-      // Diagnostic logs
-      console.log("[GEN_OPENERS] endpoint:", "generate");
-      console.log("[GEN_OPENERS] isAuthenticated:", !guestMode);
-      console.log("[GEN_OPENERS] hasAuthHeader:", Boolean(headers.Authorization));
+      // GUEST_HARDENING: minimal instrumentation (no PII)
+      console.log('[GEN_OPENERS]', { mode: guestMode ? 'guest' : 'auth', hasAuth: Boolean(headers.Authorization) });
 
       const { data, error } = await supabase.functions.invoke('generate', {
         body: {
@@ -153,60 +152,39 @@ const Generator = () => {
       });
       
       if (error) {
-        console.error('Edge function error:', error);
+        // GUEST_HARDENING: Structured error parsing + friendly messages
+        const parsed = parseEdgeFunctionError(error);
+        console.log('[GEN_OPENERS] error', { mode: guestMode ? 'guest' : 'auth', status: parsed.status, code: parsed.code });
 
-        // Guest-friendly error: don't consume run, show sign-up CTA
-        if (guestMode) {
+        // GUEST_UX_LIMITS: Handle server-side guest limit — sync local state
+        if (parsed.status === 429 && parsed.code === 'GUEST_LIMIT_REACHED' && guestMode) {
+          setGuestRunsUsedToMax();
+          setGuestRemaining(0);
           toast.error(
-            "Guest generation is temporarily unavailable. Please create a free account to continue.",
-            {
-              action: {
-                label: "Sign up",
-                onClick: () => navigate("/sign-up"),
-              },
-            }
+            "You've used today's guest limit. Create a free account to keep generating.",
+            { action: { label: "Sign up", onClick: () => navigate("/sign-up") } }
           );
           return;
         }
 
-        const status = (error as any)?.context?.status || (error as any)?.status;
-        const serverMsg = (error as any)?.context?.error || (error as any)?.context?.response?.error || (error as any)?.message;
+        // GUEST_HARDENING: Guest gets friendly message + sign-up CTA for auth errors
+        if (guestMode && (parsed.status === 401 || parsed.status === 403)) {
+          toast.error(friendlyGenerationMessage(parsed, true), {
+            action: { label: "Sign up", onClick: () => navigate("/sign-up") },
+          });
+          return;
+        }
 
-        if (status === 402) {
-          toast.error('AI credits exhausted. Please add credits to continue.');
-          return;
-        }
-        if (status === 429) {
-          // GUEST_UX_LIMITS: Handle server-side guest limit response — sync local state
-          const errorCode = (error as any)?.context?.error || (error as any)?.context?.response?.error;
-          if (guestMode && errorCode === 'GUEST_LIMIT_REACHED') {
-            setGuestRunsUsedToMax();
-            setGuestRemaining(0);
-            toast.error(
-              "You've used today's guest limit. Create a free account to keep generating.",
-              {
-                action: {
-                  label: "Sign up",
-                  onClick: () => navigate("/sign-up"),
-                },
-              }
-            );
-            return;
-          }
-          toast.error('Rate limit exceeded. Please try again in a moment.');
-          return;
-        }
-        if (status === 403 || (serverMsg && String(serverMsg).toLowerCase().includes('daily limit'))) {
+        // Logged-in: paywall for daily-limit 403
+        if (!guestMode && (parsed.status === 403 || parsed.message.toLowerCase().includes('daily limit'))) {
           setShowPaywallModal(true);
           toast.error('Daily limit reached. Upgrade for unlimited openers!');
           return;
         }
-        if (serverMsg && String(serverMsg).toLowerCase().includes('timeout')) {
-          toast.error('Request timed out. Please try again.');
-          return;
-        }
 
-        throw new Error(serverMsg || 'Failed to generate openers');
+        // GUEST_HARDENING: Friendly message for all remaining errors
+        toast.error(friendlyGenerationMessage(parsed, guestMode));
+        return;
       }
 
       if (!data?.results || !Array.isArray(data.results) || data.results.length === 0) {
@@ -251,8 +229,9 @@ const Generator = () => {
         resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 300);
     } catch (error) {
+      // GUEST_HARDENING: never show raw errors to user
       console.error('Error generating openers:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to generate openers. Please try again.');
+      toast.error('Something went wrong generating openers. Please try again.');
     } finally {
       setIsGenerating(false);
     }
