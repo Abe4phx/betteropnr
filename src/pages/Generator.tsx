@@ -172,8 +172,8 @@ const Generator = () => {
       const headers: Record<string, string> = {};
       if (token) headers.Authorization = `Bearer ${token}`;
 
-      // GUEST_HARDENING: minimal instrumentation (no PII)
-      console.log('[GEN_OPENERS]', { mode: guestMode ? 'guest' : 'auth', hasAuth: Boolean(headers.Authorization) });
+      // PROD_CLEANUP: dev-only instrumentation (no PII)
+      if (import.meta.env.DEV) console.log('[GEN_OPENERS]', { mode: guestMode ? 'guest' : 'auth', hasAuth: Boolean(headers.Authorization) });
 
       const { data, error } = await supabase.functions.invoke('generate', {
         body: {
@@ -194,7 +194,7 @@ const Generator = () => {
         // GUEST_DEBUG: capture error metadata
         setDebugLastStatus(parsed.status);
         setDebugLastError(parsed.code || parsed.message);
-        console.log('[GEN_OPENERS] error', { mode: guestMode ? 'guest' : 'auth', status: parsed.status, code: parsed.code });
+        if (import.meta.env.DEV) console.log('[GEN_OPENERS] error', { mode: guestMode ? 'guest' : 'auth', status: parsed.status, code: parsed.code });
 
         // GUEST_UX_LIMITS: Handle server-side guest limit — sync local state
         if (parsed.status === 429 && parsed.code === 'GUEST_LIMIT_REACHED' && guestMode) {
@@ -237,7 +237,7 @@ const Generator = () => {
       }
 
       if (!data?.results || !Array.isArray(data.results) || data.results.length === 0) {
-        console.error('Invalid response from edge function:', data);
+        if (import.meta.env.DEV) console.error('Invalid response from edge function:', data);
         toast.error('No openers generated. Please try again.');
         return;
       }
