@@ -70,6 +70,7 @@ const Generator = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [lockedSlots, setLockedSlots] = useState(0);
   const [guestAllowedTones, setGuestAllowedTones] = useState<string[] | null>(null);
+  const [guestLimit, setGuestLimit] = useState(3); // server-synced daily limit
   const [generatingFollowUpFor, setGeneratingFollowUpFor] = useState<string | null>(null);
   const [generatingVariationFor, setGeneratingVariationFor] = useState<string | null>(null);
   const [showPaywallModal, setShowPaywallModal] = useState(false);
@@ -223,6 +224,7 @@ const Generator = () => {
           if (guestRes.status === 429) {
             // Sync usage from response if available
             if (guestData?.usage) {
+              if (guestData.usage.limit) setGuestLimit(guestData.usage.limit);
               syncFromServer({ remainingRunsToday: Math.max(0, guestData.usage.limit - guestData.usage.used), resetDateUtc: '' });
               setGuestRemaining(0);
             } else {
@@ -259,6 +261,7 @@ const Generator = () => {
         const guestLockedSlots: number = guestData?.lockedSlots ?? 0;
         if (guestData?.allowedTones) setGuestAllowedTones(guestData.allowedTones);
         if (guestData?.usage) {
+          if (guestData.usage.limit) setGuestLimit(guestData.usage.limit);
           const remaining = Math.max(0, guestData.usage.limit - guestData.usage.used);
           syncFromServer({ remainingRunsToday: remaining, resetDateUtc: '' });
           setGuestRemaining(remaining);
@@ -639,7 +642,7 @@ const Generator = () => {
                 <div className="mt-3 text-center">
                   {guestRemaining > 0 ? (
                     <p className="text-sm text-muted-foreground">
-                      Guest mode: {guestRemaining} / 3 runs left today
+                      Guest mode: {guestRemaining} / {guestLimit} runs left today
                     </p>
                   ) : (
                     <div className="space-y-2">
