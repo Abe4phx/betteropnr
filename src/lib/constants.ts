@@ -16,4 +16,7 @@ export const BRAND = {
   tones: ["Playful", "Sincere", "Confident", "Funny"] as const,
 };
 
+// PROD_CLEANUP: Centralized feature flag for guest generation (set false to disable entirely)
+export const ENABLE_GUEST_GENERATION = true;
+
 export type ToneName = typeof BRAND.tones[number];
