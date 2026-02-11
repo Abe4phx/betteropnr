@@ -5,6 +5,9 @@ export const OPENERS_PER_RUN = 2;
 
 const DATE_KEY = "betteropnr_guest_runs_date";
 const USED_KEY = "betteropnr_guest_runs_used";
+// GUEST_LIMITS_SYNC: Server-synced keys (preferred over local counters when available)
+const SERVER_RESET_KEY = "betteropnr_guest_server_reset_utc";
+const SERVER_REMAINING_KEY = "betteropnr_guest_server_remaining";
 
 // In-memory fallback when localStorage is unavailable
 let memoryDate = "";
@@ -33,6 +36,9 @@ function resetIfNewDay(): void {
     if (localStorage.getItem(DATE_KEY) !== today) {
       localStorage.setItem(DATE_KEY, today);
       localStorage.setItem(USED_KEY, "0");
+      // Clear stale server sync data
+      localStorage.removeItem(SERVER_RESET_KEY);
+      localStorage.removeItem(SERVER_REMAINING_KEY);
     }
   } else {
     if (memoryDate !== today) {
@@ -42,12 +48,35 @@ function resetIfNewDay(): void {
   }
 }
 
+// GUEST_LIMITS_SYNC: Apply server-provided guestLimits to local state
+export function syncFromServer(guestLimits: { remainingRunsToday: number; resetDateUtc: string }): number {
+  const remaining = Math.max(0, Math.min(DAILY_LIMIT, guestLimits.remainingRunsToday));
+  if (isLocalStorageAvailable()) {
+    localStorage.setItem(SERVER_RESET_KEY, guestLimits.resetDateUtc);
+    localStorage.setItem(SERVER_REMAINING_KEY, String(remaining));
+    // Also sync the local counter so they stay consistent
+    localStorage.setItem(USED_KEY, String(DAILY_LIMIT - remaining));
+    localStorage.setItem(DATE_KEY, getTodayKey());
+  } else {
+    memoryUsed = DAILY_LIMIT - remaining;
+    memoryDate = getTodayKey();
+  }
+  return remaining;
+}
+
 // GUEST_UX_LIMITS: Return current guest runs state
 export function getGuestRunsState(): { date: string; used: number; remaining: number } {
   resetIfNewDay();
   const today = getTodayKey();
 
+  // GUEST_LIMITS_SYNC: Prefer server-synced remaining if available and fresh
   if (isLocalStorageAvailable()) {
+    const serverRemaining = localStorage.getItem(SERVER_REMAINING_KEY);
+    if (serverRemaining !== null) {
+      const r = parseInt(serverRemaining, 10);
+      const used = DAILY_LIMIT - r;
+      return { date: today, used, remaining: Math.max(0, r) };
+    }
     const used = parseInt(localStorage.getItem(USED_KEY) ?? "0", 10);
     return { date: today, used, remaining: Math.max(0, DAILY_LIMIT - used) };
   }
@@ -60,7 +89,7 @@ export function canGuestGenerate(): boolean {
   return getGuestRunsState().remaining > 0;
 }
 
-// GUEST_UX_LIMITS: Increment used by 1 after successful generation
+// GUEST_UX_LIMITS: Increment used by 1 after successful generation (fallback when no server sync)
 export function bumpGuestRunsUsed(): number {
   resetIfNewDay();
 
@@ -68,6 +97,8 @@ export function bumpGuestRunsUsed(): number {
     let used = parseInt(localStorage.getItem(USED_KEY) ?? "0", 10);
     used = Math.min(used + 1, DAILY_LIMIT);
     localStorage.setItem(USED_KEY, String(used));
+    // Clear server cache so next read uses local
+    localStorage.removeItem(SERVER_REMAINING_KEY);
     return Math.max(0, DAILY_LIMIT - used);
   }
 
@@ -81,6 +112,7 @@ export function setGuestRunsUsedToMax(): void {
   if (isLocalStorageAvailable()) {
     localStorage.setItem(DATE_KEY, today);
     localStorage.setItem(USED_KEY, String(DAILY_LIMIT));
+    localStorage.setItem(SERVER_REMAINING_KEY, "0");
   } else {
     memoryDate = today;
     memoryUsed = DAILY_LIMIT;

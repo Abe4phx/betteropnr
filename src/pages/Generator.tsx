@@ -28,7 +28,7 @@ import { extractMatchName } from "@/lib/extractMatchName";
 import WritingAffiliateBlock from "@/components/WritingAffiliateBlock";
 import { isGuest } from "@/lib/guest";
 import { parseEdgeFunctionError, friendlyGenerationMessage } from "@/lib/generationErrors";
-import { canGuestGenerate, bumpGuestRunsUsed, getGuestRunsState, setGuestRunsUsedToMax, OPENERS_PER_RUN } from "@/utils/guestLimits";
+import { canGuestGenerate, bumpGuestRunsUsed, getGuestRunsState, setGuestRunsUsedToMax, syncFromServer, OPENERS_PER_RUN } from "@/utils/guestLimits";
 import { useNavigate } from "react-router-dom";
 
 const Generator = () => {
@@ -158,8 +158,15 @@ const Generator = () => {
 
         // GUEST_UX_LIMITS: Handle server-side guest limit — sync local state
         if (parsed.status === 429 && parsed.code === 'GUEST_LIMIT_REACHED' && guestMode) {
-          setGuestRunsUsedToMax();
-          setGuestRemaining(0);
+          // GUEST_LIMITS_SYNC: Prefer server-provided guestLimits if present
+          const errorBody = (error as any)?.context?.body || (error as any)?.context?.response;
+          if (errorBody?.guestLimits) {
+            const synced = syncFromServer(errorBody.guestLimits);
+            setGuestRemaining(synced);
+          } else {
+            setGuestRunsUsedToMax();
+            setGuestRemaining(0);
+          }
           toast.error(
             "You've used today's guest limit. Create a free account to keep generating.",
             { action: { label: "Sign up", onClick: () => navigate("/sign-up") } }
@@ -196,10 +203,15 @@ const Generator = () => {
       // GUEST_UX_LIMITS: Cap openers to OPENERS_PER_RUN for guests
       const results = guestMode ? data.results.slice(0, OPENERS_PER_RUN) : data.results;
 
-      // GUEST_UX_LIMITS: Bump local usage only on success
+      // GUEST_LIMITS_SYNC: Prefer server-provided guestLimits over local bump
       if (guestMode) {
-        const remaining = bumpGuestRunsUsed();
-        setGuestRemaining(remaining);
+        if (data.guestLimits) {
+          const synced = syncFromServer(data.guestLimits);
+          setGuestRemaining(synced);
+        } else {
+          const remaining = bumpGuestRunsUsed();
+          setGuestRemaining(remaining);
+        }
       }
 
       const openers = results.map((text: string, index: number) => ({
