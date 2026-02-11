@@ -30,6 +30,8 @@ import { isGuest } from "@/lib/guest";
 import { parseEdgeFunctionError, friendlyGenerationMessage } from "@/lib/generationErrors";
 import { canGuestGenerate, bumpGuestRunsUsed, getGuestRunsState, setGuestRunsUsedToMax, syncFromServer, OPENERS_PER_RUN } from "@/utils/guestLimits";
 import { useNavigate } from "react-router-dom";
+// GUEST_DEBUG: Dev-only diagnostics panel
+import GuestDebugPanel from "@/components/GuestDebugPanel";
 
 // GUEST_UPGRADE: localStorage key for persisting generator form state across auth
 const PENDING_STATE_KEY = "betteropnr_pending_generator_state";
@@ -60,6 +62,10 @@ const Generator = () => {
   const [showPaywallModal, setShowPaywallModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showGenerateSuccess, setShowGenerateSuccess] = useState(false);
+  // GUEST_DEBUG: Track last response metadata for debug panel
+  const [debugLastStatus, setDebugLastStatus] = useState<number | null>(null);
+  const [debugLastError, setDebugLastError] = useState<string | null>(null);
+  const [debugLastGuestLimits, setDebugLastGuestLimits] = useState<{ remainingRunsToday: number; resetDateUtc: string } | null>(null);
   const sparkControls = useAnimation();
   const resultsRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -185,6 +191,9 @@ const Generator = () => {
       if (error) {
         // GUEST_HARDENING: Structured error parsing + friendly messages
         const parsed = parseEdgeFunctionError(error);
+        // GUEST_DEBUG: capture error metadata
+        setDebugLastStatus(parsed.status);
+        setDebugLastError(parsed.code || parsed.message);
         console.log('[GEN_OPENERS] error', { mode: guestMode ? 'guest' : 'auth', status: parsed.status, code: parsed.code });
 
         // GUEST_UX_LIMITS: Handle server-side guest limit — sync local state
@@ -192,9 +201,11 @@ const Generator = () => {
           // GUEST_LIMITS_SYNC: Prefer server-provided guestLimits if present
           const errorBody = (error as any)?.context?.body || (error as any)?.context?.response;
           if (errorBody?.guestLimits) {
+            setDebugLastGuestLimits(errorBody.guestLimits); // GUEST_DEBUG
             const synced = syncFromServer(errorBody.guestLimits);
             setGuestRemaining(synced);
           } else {
+            setDebugLastGuestLimits({ remainingRunsToday: 0, resetDateUtc: "" }); // GUEST_DEBUG
             setGuestRunsUsedToMax();
             setGuestRemaining(0);
           }
@@ -230,6 +241,11 @@ const Generator = () => {
         toast.error('No openers generated. Please try again.');
         return;
       }
+
+      // GUEST_DEBUG: capture success metadata
+      setDebugLastStatus(200);
+      setDebugLastError(null);
+      if (data.guestLimits) setDebugLastGuestLimits(data.guestLimits);
 
       // GUEST_UX_LIMITS: Cap openers to OPENERS_PER_RUN for guests
       const results = guestMode ? data.results.slice(0, OPENERS_PER_RUN) : data.results;
@@ -603,6 +619,24 @@ const Generator = () => {
 
       <PaywallModal open={showPaywallModal} onOpenChange={setShowPaywallModal} />
       <UpgradeSuccessModal open={showSuccessModal} onOpenChange={setShowSuccessModal} />
+
+      {/* GUEST_DEBUG: Dev-only diagnostics panel */}
+      {import.meta.env.DEV && (
+        <GuestDebugPanel
+          lastStatus={debugLastStatus}
+          lastErrorCode={debugLastError}
+          lastGuestLimits={debugLastGuestLimits}
+          onResetCache={() => {
+            ["betteropnr_guest_server_remaining", "betteropnr_guest_server_reset_utc", "betteropnr_guest_runs_used", "betteropnr_guest_runs_date"].forEach(k => localStorage.removeItem(k));
+            setGuestRemaining(3);
+            setDebugLastGuestLimits(null);
+          }}
+          onSimulateExhausted={() => {
+            localStorage.setItem("betteropnr_guest_server_remaining", "0");
+            setGuestRemaining(0);
+          }}
+        />
+      )}
     </div>
   );
 };
