@@ -1,19 +1,42 @@
 
-## Standardize iOS Payment Copy
 
-Update all iOS-specific payment/subscription messages to use the exact copy: **"To upgrade or manage your plan, please visit betteropnr.com in your browser."**
+## Fix Guest Generation: Allow Unauthenticated Requests in Edge Function
+
+### Problem
+The `generate` edge function rejects all requests without a valid Clerk JWT (line 79-84), returning 401 to guest users.
 
 ### Changes
 
-**1. PaywallModal.tsx** (3 spots)
-- Toast message (line 39): Change from "To upgrade, please visit betteropnr.com in your browser" to the standardized copy
-- iOS notice banner (line 129): Change from "To subscribe or manage your plan, please visit our website:" to the standardized copy
-- Dialog description for iOS (line 113): Change from "Manage your subscription through our website" to the standardized copy
+**1. Edge Function (`supabase/functions/generate/index.ts`)** -- Add guest path
 
-**2. Billing.tsx** (2 spots)
-- Toast in handleManageSubscription (line 44): Change from "Opening subscription management in browser..." to the standardized copy
-- Helper text under upgrade button (line 172): Change from "Subscriptions are managed through our website" to the standardized copy
+At the top of the request handler (after CORS check, line 77), add a branch:
 
-### Technical Details
+- Check if `Authorization` header is present and non-empty
+- **If NO header (guest)**:
+  - Set `userId = 'guest'`
+  - Skip Clerk JWT verification, user plan lookup, and usage limit checks
+  - Proceed to input validation, content filtering, rate limiting, and generation
+  - In the AI prompt for guests, request only 2 openers instead of 4
+- **If header present (authenticated)**: keep existing flow exactly as-is
 
-All five locations already have the correct redirect behavior (opening `https://betteropnr.com/billing` in browser). Only the user-facing text strings are being updated for consistency. No logic or routing changes needed.
+The guest path will still enforce:
+- Input validation (profile text required, length limits, tone validation)
+- Content filtering (blocked words)
+- Rate limiting (using `'guest'` key -- shared, but acceptable for MVP)
+- Max opener length
+
+**2. Frontend (`src/pages/Generator.tsx`)** -- Three targeted fixes
+
+- **Move `consumeGuestRun()` from line 104 (before API call) to after successful response (after line 186)**. Only consume a run when the edge function succeeds.
+- **Add guest-friendly error handling**: In the error block (line 152-176), if `guestMode`, show: "Guest generation is temporarily unavailable. Please create a free account to continue." with a Sign Up CTA instead of the generic error.
+- **Add diagnostic logs** before the `supabase.functions.invoke` call for debugging:
+  - `[GEN_OPENERS] endpoint: generate`
+  - `[GEN_OPENERS] isAuthenticated: true/false`
+  - `[GEN_OPENERS] hasAuthHeader: true/false`
+
+### What stays unchanged
+- All logged-in user behavior (Clerk auth, plan checks, usage limits)
+- Variation and follow-up generation (require auth)
+- Guest daily limit logic in `src/utils/guestLimits.ts`
+- Guest detection, routes, UI badges
+- Opener slicing for guests (already at line 186)
