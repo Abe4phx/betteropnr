@@ -75,86 +75,146 @@ serve(async (req) => {
   }
 
   try {
-    // Verify JWT and extract user ID
-    const authResult = await verifyClerkJWT(req);
-    
-    if (!authResult.success) {
-      console.error('Auth failed:', authResult.error);
-      return createAuthErrorResponse(authResult.error, authResult.status, corsHeaders);
-    }
+    // Determine if request is authenticated or guest
+    const authHeader = req.headers.get('Authorization');
+    let userId: string;
+    let userPlan = 'free';
+    let isGuestRequest = false;
 
-    const userId = authResult.userId;
-    console.log('Authenticated user:', userId);
+    if (authHeader && authHeader.trim() !== '') {
+      // Authenticated path: verify Clerk JWT
+      const authResult = await verifyClerkJWT(req);
+      
+      if (!authResult.success) {
+        console.error('Auth failed:', authResult.error);
+        return createAuthErrorResponse(authResult.error, authResult.status, corsHeaders);
+      }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+      userId = authResult.userId;
+      console.log('Authenticated user:', userId);
 
-    const requestBody = await req.json();
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Rate limiting using verified userId
-    const now = Date.now();
-    const userRateLimit = rateLimitStore.get(userId);
-    
-    if (userRateLimit) {
-      if (now < userRateLimit.resetTime) {
-        if (userRateLimit.count >= RATE_LIMIT_MAX_REQUESTS) {
-          return new Response(
-            JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
-            { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-          );
+      // Rate limiting using verified userId
+      const now = Date.now();
+      const userRateLimit = rateLimitStore.get(userId);
+      
+      if (userRateLimit) {
+        if (now < userRateLimit.resetTime) {
+          if (userRateLimit.count >= RATE_LIMIT_MAX_REQUESTS) {
+            return new Response(
+              JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+              { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+          userRateLimit.count++;
+        } else {
+          rateLimitStore.set(userId, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
         }
-        userRateLimit.count++;
       } else {
         rateLimitStore.set(userId, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
       }
-    } else {
-      rateLimitStore.set(userId, { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
-    }
 
-    // Get user's plan and check usage limits
-    console.log('Fetching user plan for:', userId);
-    const { data: userData, error: userError } = await supabase
-      .from('users')
-      .select('plan, clerk_user_id')
-      .eq('clerk_user_id', userId)
-      .maybeSingle();
-
-    if (userError) {
-      console.error('Error fetching user:', userError);
-      return new Response(
-        JSON.stringify({ error: 'Failed to verify user plan' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    let userPlan = 'free';
-    if (!userData) {
-      console.warn('User not found in database. Creating a new user record with free plan:', userId);
-      const emailFromAuth = authResult.email;
-      const emailFromClient = (requestBody && typeof requestBody.userEmail === 'string') ? requestBody.userEmail : undefined;
-      const fallbackEmail = `unknown+${userId}@placeholder.invalid`;
-      const { data: inserted, error: insertError } = await supabase
+      // Get user's plan and check usage limits
+      console.log('Fetching user plan for:', userId);
+      const { data: userData, error: userError } = await supabase
         .from('users')
-        .insert({
-          clerk_user_id: userId,
-          email: emailFromAuth || emailFromClient || fallbackEmail,
-          username: 'User',
-          plan: 'free',
-        })
         .select('plan, clerk_user_id')
+        .eq('clerk_user_id', userId)
         .maybeSingle();
 
-      if (insertError) {
-        console.error('Failed to auto-create user. Proceeding with free plan:', insertError);
-        userPlan = 'free';
+      if (userError) {
+        console.error('Error fetching user:', userError);
+        return new Response(
+          JSON.stringify({ error: 'Failed to verify user plan' }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+
+      if (!userData) {
+        console.warn('User not found in database. Creating a new user record with free plan:', userId);
+        const emailFromAuth = authResult.email;
+        const emailFromClient = undefined; // will be set from requestBody below
+        const fallbackEmail = `unknown+${userId}@placeholder.invalid`;
+        const requestBodyPeek = await req.clone().json();
+        const emailFromBody = (requestBodyPeek && typeof requestBodyPeek.userEmail === 'string') ? requestBodyPeek.userEmail : undefined;
+        const { data: inserted, error: insertError } = await supabase
+          .from('users')
+          .insert({
+            clerk_user_id: userId,
+            email: emailFromAuth || emailFromBody || fallbackEmail,
+            username: 'User',
+            plan: 'free',
+          })
+          .select('plan, clerk_user_id')
+          .maybeSingle();
+
+        if (insertError) {
+          console.error('Failed to auto-create user. Proceeding with free plan:', insertError);
+          userPlan = 'free';
+        } else {
+          userPlan = inserted?.plan || 'free';
+        }
       } else {
-        userPlan = inserted?.plan || 'free';
+        userPlan = userData.plan || 'free';
+      }
+      console.log('User plan:', userPlan);
+
+      // Check usage limits for free users
+      if (userPlan === 'free') {
+        const today = new Date().toISOString().split('T')[0];
+        const { data: usageData, error: usageError } = await supabase
+          .from('user_usage')
+          .select('openers_generated')
+          .eq('user_id', userId)
+          .eq('date', today)
+          .maybeSingle();
+
+        if (usageError) {
+          console.error('Error fetching usage:', usageError);
+        }
+
+        const openersGenerated = usageData?.openers_generated || 0;
+        const FREE_PLAN_LIMIT = 5;
+
+        if (openersGenerated >= FREE_PLAN_LIMIT) {
+          return new Response(
+            JSON.stringify({ 
+              error: 'Daily limit reached',
+              message: 'You have reached your daily limit of 5 openers. Upgrade to Pro for unlimited access.',
+              requiresUpgrade: true 
+            }),
+            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          );
+        }
       }
     } else {
-      userPlan = userData.plan || 'free';
+      // Guest path: no auth, skip plan/usage checks
+      userId = 'guest';
+      isGuestRequest = true;
+      console.log('Guest request — skipping auth and plan checks');
+
+      // Rate limiting for guests (shared key)
+      const now = Date.now();
+      const guestRateLimit = rateLimitStore.get('guest');
+      if (guestRateLimit) {
+        if (now < guestRateLimit.resetTime) {
+          if (guestRateLimit.count >= RATE_LIMIT_MAX_REQUESTS) {
+            return new Response(
+              JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
+              { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            );
+          }
+          guestRateLimit.count++;
+        } else {
+          rateLimitStore.set('guest', { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+        }
+      } else {
+        rateLimitStore.set('guest', { count: 1, resetTime: now + RATE_LIMIT_WINDOW });
+      }
     }
-    console.log('User plan:', userPlan);
 
     // Check usage limits for free users
     if (userPlan === 'free') {
@@ -187,7 +247,7 @@ serve(async (req) => {
 
     const { profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle }: GenerateRequest = requestBody;
     
-    console.log('Generate request:', { userId, userPlan, mode });
+    console.log('Generate request:', { userId, userPlan, mode, isGuestRequest });
 
     // Enhanced input validation
     if (!profileText?.trim()) {
@@ -300,8 +360,10 @@ CRITICAL RULES:
 
 Think: What would you actually send if you wanted to casually revive a fun chat?`;
 
+    const openerCount = isGuestRequest ? 2 : 4;
+
     const userPrompt = mode === 'opener'
-      ? `${profileContext}\n\nWrite 4 unique, natural conversation openers. Sound like a real person who noticed something interesting and wants to chat about it. Be ${tones.join(', ')} - but authentic, not trying too hard.${variationInstruction}${commonInterestHint}\n\nDon't copy exact words from their profile. Paraphrase naturally. Write like you're genuinely texting someone.\n\nReturn ONLY a JSON array of 4 strings, no other text.`
+      ? `${profileContext}\n\nWrite ${openerCount} unique, natural conversation openers. Sound like a real person who noticed something interesting and wants to chat about it. Be ${tones.join(', ')} - but authentic, not trying too hard.${variationInstruction}${commonInterestHint}\n\nDon't copy exact words from their profile. Paraphrase naturally. Write like you're genuinely texting someone.\n\nReturn ONLY a JSON array of ${openerCount} strings, no other text.`
       : theirReply
         ? `${profileContext}\n\nMy message: "${priorMessage}"\nTheir reply: "${theirReply}"\n\nWrite 3-5 natural follow-up messages. React to what they said like a real person would, add your take, and keep the conversation flowing. Be ${tones.join(', ')}.${variationInstruction}${commonInterestHint}\n\nReturn ONLY a JSON array of strings, no other text.`
         : `${profileContext}\n\nMy last message: "${priorMessage}"\n\nThey went quiet 24-48h ago. Write 3-5 light, casual messages to re-engage without being pushy. Be ${tones.join(', ')}.${variationInstruction}\n\nReturn ONLY a JSON array of strings, no other text.`;

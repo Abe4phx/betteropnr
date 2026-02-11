@@ -100,9 +100,7 @@ const Generator = () => {
         setGuestRemaining(0);
         return;
       }
-      // Consume run immediately to prevent double-click abuse
-      const remaining = consumeGuestRun();
-      setGuestRemaining(remaining);
+      // Don't consume run yet — wait for successful response
     }
 
     // Check usage limits for free users (logged-in only)
@@ -136,6 +134,11 @@ const Generator = () => {
       const headers: Record<string, string> = {};
       if (token) headers.Authorization = `Bearer ${token}`;
 
+      // Diagnostic logs
+      console.log("[GEN_OPENERS] endpoint:", "generate");
+      console.log("[GEN_OPENERS] isAuthenticated:", !guestMode);
+      console.log("[GEN_OPENERS] hasAuthHeader:", Boolean(headers.Authorization));
+
       const { data, error } = await supabase.functions.invoke('generate', {
         body: {
           profileText,
@@ -151,6 +154,20 @@ const Generator = () => {
       
       if (error) {
         console.error('Edge function error:', error);
+
+        // Guest-friendly error: don't consume run, show sign-up CTA
+        if (guestMode) {
+          toast.error(
+            "Guest generation is temporarily unavailable. Please create a free account to continue.",
+            {
+              action: {
+                label: "Sign up",
+                onClick: () => navigate("/sign-up"),
+              },
+            }
+          );
+          return;
+        }
 
         const status = (error as any)?.context?.status || (error as any)?.status;
         const serverMsg = (error as any)?.context?.error || (error as any)?.context?.response?.error || (error as any)?.message;
@@ -184,6 +201,12 @@ const Generator = () => {
 
       // GUEST_LIMITS: Cap openers to OPENERS_PER_RUN for guests
       const results = guestMode ? data.results.slice(0, OPENERS_PER_RUN) : data.results;
+
+      // GUEST_LIMITS: Consume run only on success
+      if (guestMode) {
+        const remaining = consumeGuestRun();
+        setGuestRemaining(remaining);
+      }
 
       const openers = results.map((text: string, index: number) => ({
         id: `opener-${Date.now()}-${index}`,
