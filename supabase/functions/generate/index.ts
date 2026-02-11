@@ -2,15 +2,51 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.77.0';
 import { verifyClerkJWT, createAuthErrorResponse } from '../_shared/clerkAuth.ts';
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-guest-id',
-};
+// GUEST_SECURITY: Strict CORS — allow only our domains and Lovable preview
+const ALLOWED_ORIGINS = [
+  'https://betteropnr.lovable.app',
+  'https://betteropnr.com',
+  'https://www.betteropnr.com',
+];
+// Also allow Lovable preview domains (pattern: *.lovable.app)
+function isAllowedOrigin(origin: string | null): boolean {
+  if (!origin) return false;
+  if (ALLOWED_ORIGINS.includes(origin)) return true;
+  // Allow any *.lovable.app subdomain for preview/dev
+  try {
+    const url = new URL(origin);
+    return url.hostname.endsWith('.lovable.app');
+  } catch {
+    return false;
+  }
+}
 
-// Rate limiting store (in-memory, resets on function cold start)
+function getCorsHeaders(req: Request): Record<string, string> {
+  const origin = req.headers.get('Origin');
+  const allowedOrigin = isAllowedOrigin(origin) ? origin! : ALLOWED_ORIGINS[0];
+  return {
+    'Access-Control-Allow-Origin': allowedOrigin,
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-guest-id, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
+}
+
+// GUEST_SECURITY: Static fallback headers for functions outside the request handler
+const corsHeaders = {
+  'Access-Control-Allow-Origin': ALLOWED_ORIGINS[0],
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-guest-id, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+};
 const rateLimitStore = new Map<string, { count: number; resetTime: number }>();
 const RATE_LIMIT_WINDOW = 60000; // 1 minute
 const RATE_LIMIT_MAX_REQUESTS = 10;
+
+// GUEST_SECURITY: Short-term throttle store (per guestKey, 1 req per 10s)
+const guestThrottleStore = new Map<string, number>();
+const GUEST_THROTTLE_MS = 10000;
+
+// GUEST_SECURITY: Max payload size in bytes (20KB)
+const MAX_PAYLOAD_BYTES = 20480;
 
 // GUEST_LIMITS: Server-side constants
 const GUEST_DAILY_RUN_LIMIT = 3;
@@ -92,17 +128,52 @@ const toneAdjectives: Record<string, string[]> = {
 };
 
 serve(async (req) => {
+  const cors = getCorsHeaders(req);
+
+  // GUEST_SECURITY: Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response(null, { headers: cors });
+  }
+
+  // GUEST_SECURITY: Reject non-POST methods
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ error: 'METHOD_NOT_ALLOWED', message: 'Only POST requests are accepted.' }),
+      { status: 405, headers: { ...cors, 'Content-Type': 'application/json' } }
+    );
   }
 
   try {
+    // GUEST_SECURITY: Enforce max payload size
+    const contentLength = req.headers.get('Content-Length');
+    if (contentLength && parseInt(contentLength, 10) > MAX_PAYLOAD_BYTES) {
+      return new Response(
+        JSON.stringify({ error: 'INVALID_INPUT', message: 'Request payload is too large.' }),
+        { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    // Parse request body once
-    const requestBody: GenerateRequest = await req.json();
+    // GUEST_SECURITY: Parse and validate request body
+    let requestBody: GenerateRequest;
+    try {
+      const rawText = await req.text();
+      if (rawText.length > MAX_PAYLOAD_BYTES) {
+        return new Response(
+          JSON.stringify({ error: 'INVALID_INPUT', message: 'Request payload is too large.' }),
+          { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } }
+        );
+      }
+      requestBody = JSON.parse(rawText);
+    } catch {
+      return new Response(
+        JSON.stringify({ error: 'INVALID_INPUT', message: 'Please provide the required information to generate openers.' }),
+        { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } }
+      );
+    }
 
     // Determine if request is authenticated or guest
     const authHeader = req.headers.get('Authorization');
@@ -117,7 +188,7 @@ serve(async (req) => {
       
       if (!authResult.success) {
         console.error('Auth failed:', authResult.error);
-        return createAuthErrorResponse(authResult.error, authResult.status, corsHeaders);
+        return createAuthErrorResponse(authResult.error, authResult.status, cors);
       }
 
       userId = authResult.userId;
@@ -132,7 +203,7 @@ serve(async (req) => {
           if (userRateLimit.count >= RATE_LIMIT_MAX_REQUESTS) {
             return new Response(
               JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
-              { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+              { status: 429, headers: { ...cors, 'Content-Type': 'application/json' } }
             );
           }
           userRateLimit.count++;
@@ -155,7 +226,7 @@ serve(async (req) => {
         console.error('Error fetching user:', userError);
         return new Response(
           JSON.stringify({ error: 'Failed to verify user plan' }),
-          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } }
         );
       }
 
@@ -210,7 +281,7 @@ serve(async (req) => {
               message: 'You have reached your daily limit of 5 openers. Upgrade to Pro for unlimited access.',
               requiresUpgrade: true 
             }),
-            { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { status: 403, headers: { ...cors, 'Content-Type': 'application/json' } }
           );
         }
       }
@@ -222,6 +293,17 @@ serve(async (req) => {
       userId = guestKey;
       console.log('Guest request, guestKey:', guestKey);
 
+      // GUEST_SECURITY: Short-term throttle — max 1 request per 10s per guest
+      const lastReqAt = guestThrottleStore.get(guestKey) || 0;
+      const nowMs = Date.now();
+      if (nowMs - lastReqAt < GUEST_THROTTLE_MS) {
+        return new Response(
+          JSON.stringify({ error: 'GUEST_TOO_FAST', message: 'Please wait a moment before generating again.' }),
+          { status: 429, headers: { ...cors, 'Content-Type': 'application/json' } }
+        );
+      }
+      guestThrottleStore.set(guestKey, nowMs);
+
       // In-memory rate limiting for guests
       const now = Date.now();
       const guestRateLimit = rateLimitStore.get(guestKey);
@@ -230,7 +312,7 @@ serve(async (req) => {
           if (guestRateLimit.count >= RATE_LIMIT_MAX_REQUESTS) {
             return new Response(
               JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
-              { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+              { status: 429, headers: { ...cors, 'Content-Type': 'application/json' } }
             );
           }
           guestRateLimit.count++;
@@ -265,7 +347,7 @@ serve(async (req) => {
             message: 'Guest limit reached. Create a free account to continue.',
             guestLimits: buildGuestLimits(runsUsed),
           }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 429, headers: { ...cors, 'Content-Type': 'application/json' } }
         );
       }
     }
@@ -278,7 +360,7 @@ serve(async (req) => {
     if (!profileText?.trim()) {
       return new Response(
         JSON.stringify({ error: 'Profile text is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -286,7 +368,7 @@ serve(async (req) => {
     if (profileText.length > 3000 || (userProfileText && userProfileText.length > 3000)) {
       return new Response(
         JSON.stringify({ error: 'Profile text is too long. Maximum 3000 characters allowed.' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -295,13 +377,13 @@ serve(async (req) => {
     if (!tones || tones.length === 0) {
       return new Response(
         JSON.stringify({ error: 'At least one tone must be selected' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } }
       );
     }
     if (tones.length > 4 || !tones.every(tone => allowedTones.includes(tone))) {
       return new Response(
         JSON.stringify({ error: 'Invalid tones provided. Maximum 4 allowed tones.' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -309,7 +391,7 @@ serve(async (req) => {
     if (containsBlockedContent(profileText)) {
       return new Response(
         JSON.stringify({ error: 'Content contains inappropriate language. Please revise.' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } }
       );
     }
 
@@ -443,14 +525,14 @@ Think: What would you actually send if you wanted to casually revive a fun chat?
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
-          { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 429, headers: { ...cors, 'Content-Type': 'application/json' } }
         );
       }
       
       if (response.status === 402) {
         return new Response(
           JSON.stringify({ error: 'AI credits exhausted. Please add credits to continue.' }),
-          { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+          { status: 402, headers: { ...cors, 'Content-Type': 'application/json' } }
         );
       }
       
@@ -502,7 +584,7 @@ Think: What would you actually send if you wanted to casually revive a fun chat?
 
           return new Response(
             JSON.stringify(responsePayload),
-            { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            { headers: { ...cors, 'Content-Type': 'application/json' } }
           );
         }
       }
@@ -519,10 +601,11 @@ Think: What would you actually send if you wanted to casually revive a fun chat?
     return fallbackResult;
 
   } catch (error) {
+    // GUEST_SECURITY: Never leak technical errors
     console.error('Error in generate function:', error);
     return new Response(
-      JSON.stringify({ error: 'An error occurred while processing your request' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      JSON.stringify({ error: 'SERVER_ERROR', message: 'Something went wrong. Please try again.' }),
+      { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } }
     );
   }
 });
