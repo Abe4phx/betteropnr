@@ -2,6 +2,39 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.77.0';
 import { verifyClerkJWT, createAuthErrorResponse } from '../_shared/clerkAuth.ts';
 
+// OBSERVABILITY: Request correlation + structured logging helpers
+function generateRequestId(req: Request): string {
+  return req.headers.get('X-Request-Id') || crypto.randomUUID();
+}
+
+function maskId(id: string | null | undefined): string {
+  if (!id || id.length < 10) return id ?? 'unknown';
+  return id.slice(0, 6) + '…' + id.slice(-4);
+}
+
+// OBSERVABILITY: In-memory counters (best-effort, reset on cold start)
+const metrics = {
+  totalRequests: 0,
+  guestRequests: 0,
+  authRequests: 0,
+  success2xx: 0,
+  rateLimited429: 0,
+  invalidInput400: 0,
+  authFailed401_403: 0,
+  serverError5xx: 0,
+};
+const METRICS_LOG_INTERVAL = 50;
+
+function logEvent(evt: Record<string, unknown>): void {
+  try { console.log(JSON.stringify(evt)); } catch { /* ignore */ }
+}
+
+function maybeLogMetrics(): void {
+  if (metrics.totalRequests > 0 && metrics.totalRequests % METRICS_LOG_INTERVAL === 0) {
+    logEvent({ type: 'metrics_summary', ...metrics, timestamp: new Date().toISOString() });
+  }
+}
+
 // GUEST_SECURITY: Strict CORS — allow only our domains and Lovable preview
 const ALLOWED_ORIGINS = [
   'https://betteropnr.lovable.app',
@@ -129,28 +162,78 @@ const toneAdjectives: Record<string, string[]> = {
 
 serve(async (req) => {
   const cors = getCorsHeaders(req);
+  // OBSERVABILITY: Correlation ID + timing
+  const requestId = generateRequestId(req);
+  const requestStartMs = Date.now();
+  const reqOrigin = req.headers.get('Origin') || null;
+  // OBSERVABILITY: Track per-request state for final log
+  let reqMode: 'auth' | 'guest' = 'auth';
+  let reqUserKey = 'unknown';
+  let reqStatus = 200;
+  let reqErrorCode: string | null = null;
+  let reqOpenersReturned = 0;
+  let reqGuestRemaining: number | null = null;
+  let aiDurationMs: number | null = null;
+  let aiProvider: string | null = null;
+
+  metrics.totalRequests++;
+
+  // OBSERVABILITY: Helper to finalize response with X-Request-Id and log
+  function finalizeResponse(resp: Response, overrideStatus?: number): Response {
+    const status = overrideStatus ?? resp.status;
+    reqStatus = status;
+    if (status >= 200 && status < 300) metrics.success2xx++;
+    else if (status === 400) metrics.invalidInput400++;
+    else if (status === 401 || status === 403) metrics.authFailed401_403++;
+    else if (status === 429) metrics.rateLimited429++;
+    else if (status >= 500) metrics.serverError5xx++;
+
+    const headers = new Headers(resp.headers);
+    headers.set('X-Request-Id', requestId);
+
+    logEvent({
+      type: 'request_complete',
+      timestamp: new Date().toISOString(),
+      requestId,
+      mode: reqMode,
+      userKey: maskId(reqUserKey),
+      origin: reqOrigin,
+      status: reqStatus,
+      errorCode: reqErrorCode,
+      durationMs: Date.now() - requestStartMs,
+      aiDurationMs,
+      aiProviderUsed: aiProvider,
+      openersReturned: reqOpenersReturned,
+      guestRemainingRunsToday: reqGuestRemaining,
+    });
+    maybeLogMetrics();
+
+    return new Response(resp.body, { status, headers });
+  }
 
   // GUEST_SECURITY: Handle CORS preflight
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: cors });
+    return new Response(null, { headers: { ...cors, 'X-Request-Id': requestId } });
   }
 
   // GUEST_SECURITY: Reject non-POST methods
   if (req.method !== 'POST') {
-    return new Response(
+    reqErrorCode = 'METHOD_NOT_ALLOWED';
+    return finalizeResponse(new Response(
       JSON.stringify({ error: 'METHOD_NOT_ALLOWED', message: 'Only POST requests are accepted.' }),
       { status: 405, headers: { ...cors, 'Content-Type': 'application/json' } }
-    );
+    ));
   }
 
   try {
     // GUEST_SECURITY: Enforce max payload size
     const contentLength = req.headers.get('Content-Length');
     if (contentLength && parseInt(contentLength, 10) > MAX_PAYLOAD_BYTES) {
-      return new Response(
+      reqErrorCode = 'INVALID_INPUT';
+      return finalizeResponse(new Response(
         JSON.stringify({ error: 'INVALID_INPUT', message: 'Request payload is too large.' }),
         { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } }
-      );
+      ));
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -162,17 +245,19 @@ serve(async (req) => {
     try {
       const rawText = await req.text();
       if (rawText.length > MAX_PAYLOAD_BYTES) {
-        return new Response(
+        reqErrorCode = 'INVALID_INPUT';
+        return finalizeResponse(new Response(
           JSON.stringify({ error: 'INVALID_INPUT', message: 'Request payload is too large.' }),
           { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } }
-        );
+        ));
       }
       requestBody = JSON.parse(rawText);
     } catch {
-      return new Response(
+      reqErrorCode = 'INVALID_INPUT';
+      return finalizeResponse(new Response(
         JSON.stringify({ error: 'INVALID_INPUT', message: 'Please provide the required information to generate openers.' }),
         { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } }
-      );
+      ));
     }
 
     // Determine if request is authenticated or guest
@@ -184,14 +269,18 @@ serve(async (req) => {
 
     if (authHeader && authHeader.trim() !== '') {
       // Authenticated path: verify Clerk JWT
+      reqMode = 'auth';
+      metrics.authRequests++;
       const authResult = await verifyClerkJWT(req);
       
       if (!authResult.success) {
         console.error('Auth failed:', authResult.error);
-        return createAuthErrorResponse(authResult.error, authResult.status, cors);
+        reqErrorCode = 'AUTH_FAILED';
+        return finalizeResponse(createAuthErrorResponse(authResult.error, authResult.status, cors));
       }
 
       userId = authResult.userId;
+      reqUserKey = userId;
       console.log('Authenticated user:', userId);
 
       // Rate limiting using verified userId
@@ -201,10 +290,11 @@ serve(async (req) => {
       if (userRateLimit) {
         if (now < userRateLimit.resetTime) {
           if (userRateLimit.count >= RATE_LIMIT_MAX_REQUESTS) {
-            return new Response(
+            reqErrorCode = 'RATE_LIMITED';
+            return finalizeResponse(new Response(
               JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
               { status: 429, headers: { ...cors, 'Content-Type': 'application/json' } }
-            );
+            ));
           }
           userRateLimit.count++;
         } else {
@@ -224,10 +314,11 @@ serve(async (req) => {
 
       if (userError) {
         console.error('Error fetching user:', userError);
-        return new Response(
+        reqErrorCode = 'USER_FETCH_FAILED';
+        return finalizeResponse(new Response(
           JSON.stringify({ error: 'Failed to verify user plan' }),
             { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } }
-        );
+        ));
       }
 
       if (!userData) {
@@ -275,32 +366,37 @@ serve(async (req) => {
         const FREE_PLAN_LIMIT = 5;
 
         if (openersGenerated >= FREE_PLAN_LIMIT) {
-          return new Response(
+          reqErrorCode = 'DAILY_LIMIT';
+          return finalizeResponse(new Response(
             JSON.stringify({ 
               error: 'Daily limit reached',
               message: 'You have reached your daily limit of 5 openers. Upgrade to Pro for unlimited access.',
               requiresUpgrade: true 
             }),
             { status: 403, headers: { ...cors, 'Content-Type': 'application/json' } }
-          );
+          ));
         }
       }
     } else {
       // GUEST_LIMITS: Guest path — no auth
       isGuestRequest = true;
+      reqMode = 'guest';
+      metrics.guestRequests++;
       const xGuestId = req.headers.get('X-Guest-Id') || '';
       guestKey = await deriveGuestKey(req, xGuestId);
       userId = guestKey;
+      reqUserKey = guestKey;
       console.log('Guest request, guestKey:', guestKey);
 
       // GUEST_SECURITY: Short-term throttle — max 1 request per 10s per guest
       const lastReqAt = guestThrottleStore.get(guestKey) || 0;
       const nowMs = Date.now();
       if (nowMs - lastReqAt < GUEST_THROTTLE_MS) {
-        return new Response(
+        reqErrorCode = 'GUEST_TOO_FAST';
+        return finalizeResponse(new Response(
           JSON.stringify({ error: 'GUEST_TOO_FAST', message: 'Please wait a moment before generating again.' }),
           { status: 429, headers: { ...cors, 'Content-Type': 'application/json' } }
-        );
+        ));
       }
       guestThrottleStore.set(guestKey, nowMs);
 
@@ -310,10 +406,11 @@ serve(async (req) => {
       if (guestRateLimit) {
         if (now < guestRateLimit.resetTime) {
           if (guestRateLimit.count >= RATE_LIMIT_MAX_REQUESTS) {
-            return new Response(
+            reqErrorCode = 'RATE_LIMITED';
+            return finalizeResponse(new Response(
               JSON.stringify({ error: 'Rate limit exceeded. Please try again later.' }),
               { status: 429, headers: { ...cors, 'Content-Type': 'application/json' } }
-            );
+            ));
           }
           guestRateLimit.count++;
         } else {
@@ -340,15 +437,16 @@ serve(async (req) => {
 
       if (runsUsed >= GUEST_DAILY_RUN_LIMIT) {
         console.log('Guest limit reached for:', guestKey, 'runs:', runsUsed);
-        // GUEST_LIMITS_SYNC: Include guestLimits in 429 response
-        return new Response(
+        reqErrorCode = 'GUEST_LIMIT_REACHED';
+        reqGuestRemaining = 0;
+        return finalizeResponse(new Response(
           JSON.stringify({ 
             error: 'GUEST_LIMIT_REACHED',
             message: 'Guest limit reached. Create a free account to continue.',
             guestLimits: buildGuestLimits(runsUsed),
           }),
           { status: 429, headers: { ...cors, 'Content-Type': 'application/json' } }
-        );
+        ));
       }
     }
 
@@ -358,41 +456,46 @@ serve(async (req) => {
 
     // Enhanced input validation
     if (!profileText?.trim()) {
-      return new Response(
+      reqErrorCode = 'MISSING_PROFILE';
+      return finalizeResponse(new Response(
         JSON.stringify({ error: 'Profile text is required' }),
         { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } }
-      );
+      ));
     }
 
     // Enforce input length limits (increased to 3000 characters)
     if (profileText.length > 3000 || (userProfileText && userProfileText.length > 3000)) {
-      return new Response(
+      reqErrorCode = 'INPUT_TOO_LONG';
+      return finalizeResponse(new Response(
         JSON.stringify({ error: 'Profile text is too long. Maximum 3000 characters allowed.' }),
         { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } }
-      );
+      ));
     }
 
     // Validate tones array
     const allowedTones = ['playful', 'sincere', 'thoughtful', 'fun', 'flirty', 'bold', 'curious', 'confident', 'funny'];
     if (!tones || tones.length === 0) {
-      return new Response(
+      reqErrorCode = 'MISSING_TONES';
+      return finalizeResponse(new Response(
         JSON.stringify({ error: 'At least one tone must be selected' }),
         { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } }
-      );
+      ));
     }
     if (tones.length > 4 || !tones.every(tone => allowedTones.includes(tone))) {
-      return new Response(
+      reqErrorCode = 'INVALID_TONES';
+      return finalizeResponse(new Response(
         JSON.stringify({ error: 'Invalid tones provided. Maximum 4 allowed tones.' }),
         { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } }
-      );
+      ));
     }
 
     // Content filtering
     if (containsBlockedContent(profileText)) {
-      return new Response(
+      reqErrorCode = 'BLOCKED_CONTENT';
+      return finalizeResponse(new Response(
         JSON.stringify({ error: 'Content contains inappropriate language. Please revise.' }),
         { status: 400, headers: { ...cors, 'Content-Type': 'application/json' } }
-      );
+      ));
     }
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
@@ -402,9 +505,11 @@ serve(async (req) => {
       // GUEST_LIMITS_SYNC: Increment usage on successful fallback for guests and attach guestLimits
       if (isGuestRequest) {
         const newUsed = await incrementGuestUsage(supabase, guestKey);
-        return injectGuestLimits(fallbackResult, newUsed);
+        const injected = await injectGuestLimits(fallbackResult, newUsed);
+        if (newUsed >= 0) reqGuestRemaining = Math.max(0, GUEST_DAILY_RUN_LIMIT - newUsed);
+        return finalizeResponse(injected);
       }
-      return fallbackResult;
+      return finalizeResponse(fallbackResult);
     }
 
     // Build variation-specific instructions
@@ -481,6 +586,10 @@ Think: What would you actually send if you wanted to casually revive a fun chat?
         ? `${profileContext}\n\nMy message: "${priorMessage}"\nTheir reply: "${theirReply}"\n\nWrite 3-5 natural follow-up messages. React to what they said like a real person would, add your take, and keep the conversation flowing. Be ${tones.join(', ')}.${variationInstruction}${commonInterestHint}\n\nReturn ONLY a JSON array of strings, no other text.`
         : `${profileContext}\n\nMy last message: "${priorMessage}"\n\nThey went quiet 24-48h ago. Write 3-5 light, casual messages to re-engage without being pushy. Be ${tones.join(', ')}.${variationInstruction}\n\nReturn ONLY a JSON array of strings, no other text.`;
 
+    // OBSERVABILITY: Track AI call timing
+    aiProvider = 'google/gemini-2.5-flash';
+    const aiStartMs = Date.now();
+
     // Call Lovable AI with timeout protection
     console.log('Calling Lovable AI API...');
     const controller = new AbortController();
@@ -507,15 +616,17 @@ Think: What would you actually send if you wanted to casually revive a fun chat?
         }),
       });
       clearTimeout(timeoutId);
+      aiDurationMs = Date.now() - aiStartMs;
       console.log('AI API response status:', response.status);
     } catch (error) {
       clearTimeout(timeoutId);
+      aiDurationMs = Date.now() - aiStartMs;
       if (error instanceof Error && error.name === 'AbortError') {
         console.error('AI request was aborted due to timeout');
-        return fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle, isGuestRequest);
+        return finalizeResponse(fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle, isGuestRequest));
       }
       console.error('AI request failed:', error);
-      return fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle, isGuestRequest);
+      return finalizeResponse(fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle, isGuestRequest));
     }
 
     if (!response.ok) {
@@ -523,26 +634,30 @@ Think: What would you actually send if you wanted to casually revive a fun chat?
       console.error('AI gateway error:', response.status, errorText);
       
       if (response.status === 429) {
-        return new Response(
+        reqErrorCode = 'AI_RATE_LIMIT';
+        return finalizeResponse(new Response(
           JSON.stringify({ error: 'Rate limit exceeded. Please try again in a moment.' }),
           { status: 429, headers: { ...cors, 'Content-Type': 'application/json' } }
-        );
+        ));
       }
       
       if (response.status === 402) {
-        return new Response(
+        reqErrorCode = 'AI_CREDITS';
+        return finalizeResponse(new Response(
           JSON.stringify({ error: 'AI credits exhausted. Please add credits to continue.' }),
           { status: 402, headers: { ...cors, 'Content-Type': 'application/json' } }
-        );
+        ));
       }
       
       // Fall back to template generation on AI error
       const fallbackResult = fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle, isGuestRequest);
       if (isGuestRequest) {
         const newUsed = await incrementGuestUsage(supabase, guestKey);
-        return injectGuestLimits(fallbackResult, newUsed);
+        const injected = await injectGuestLimits(fallbackResult, newUsed);
+        if (newUsed >= 0) reqGuestRemaining = Math.max(0, GUEST_DAILY_RUN_LIMIT - newUsed);
+        return finalizeResponse(injected);
       }
-      return fallbackResult;
+      return finalizeResponse(fallbackResult);
     }
 
     const data = await response.json();
@@ -550,7 +665,7 @@ Think: What would you actually send if you wanted to casually revive a fun chat?
     
     if (!content) {
       console.error('No content in AI response');
-      return fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle, isGuestRequest);
+      return finalizeResponse(fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle, isGuestRequest));
     }
 
     // Parse the JSON array from the response
@@ -572,6 +687,7 @@ Think: What would you actually send if you wanted to casually revive a fun chat?
         
         if (filteredResults.length > 0) {
           console.log('Successfully generated', filteredResults.length, 'results');
+          reqOpenersReturned = filteredResults.length;
 
           // GUEST_LIMITS_SYNC: Increment usage and include guestLimits in response
           let responsePayload: any = { results: filteredResults };
@@ -579,13 +695,14 @@ Think: What would you actually send if you wanted to casually revive a fun chat?
             const newUsed = await incrementGuestUsage(supabase, guestKey);
             if (newUsed >= 0) {
               responsePayload.guestLimits = buildGuestLimits(newUsed);
+              reqGuestRemaining = Math.max(0, GUEST_DAILY_RUN_LIMIT - newUsed);
             }
           }
 
-          return new Response(
+          return finalizeResponse(new Response(
             JSON.stringify(responsePayload),
             { headers: { ...cors, 'Content-Type': 'application/json' } }
-          );
+          ));
         }
       }
     } catch (parseError) {
@@ -596,17 +713,20 @@ Think: What would you actually send if you wanted to casually revive a fun chat?
     const fallbackResult = fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle, isGuestRequest);
     if (isGuestRequest) {
       const newUsed = await incrementGuestUsage(supabase, guestKey);
-      return injectGuestLimits(fallbackResult, newUsed);
+      const injected = await injectGuestLimits(fallbackResult, newUsed);
+      if (newUsed >= 0) reqGuestRemaining = Math.max(0, GUEST_DAILY_RUN_LIMIT - newUsed);
+      return finalizeResponse(injected);
     }
-    return fallbackResult;
+    return finalizeResponse(fallbackResult);
 
   } catch (error) {
     // GUEST_SECURITY: Never leak technical errors
     console.error('Error in generate function:', error);
-    return new Response(
+    reqErrorCode = 'SERVER_ERROR';
+    return finalizeResponse(new Response(
       JSON.stringify({ error: 'SERVER_ERROR', message: 'Something went wrong. Please try again.' }),
       { status: 500, headers: { ...cors, 'Content-Type': 'application/json' } }
-    );
+    ));
   }
 });
 
