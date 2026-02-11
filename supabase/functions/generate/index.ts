@@ -258,10 +258,12 @@ serve(async (req) => {
 
       if (runsUsed >= GUEST_DAILY_RUN_LIMIT) {
         console.log('Guest limit reached for:', guestKey, 'runs:', runsUsed);
+        // GUEST_LIMITS_SYNC: Include guestLimits in 429 response
         return new Response(
           JSON.stringify({ 
             error: 'GUEST_LIMIT_REACHED',
-            message: 'Guest limit reached. Create a free account to continue.'
+            message: 'Guest limit reached. Create a free account to continue.',
+            guestLimits: buildGuestLimits(runsUsed),
           }),
           { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
@@ -315,9 +317,10 @@ serve(async (req) => {
     if (!LOVABLE_API_KEY) {
       console.error('LOVABLE_API_KEY not configured');
       const fallbackResult = fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle, isGuestRequest);
-      // GUEST_LIMITS: Increment usage on successful fallback for guests
+      // GUEST_LIMITS_SYNC: Increment usage on successful fallback for guests and attach guestLimits
       if (isGuestRequest) {
-        await incrementGuestUsage(supabase, guestKey);
+        const newUsed = await incrementGuestUsage(supabase, guestKey);
+        return injectGuestLimits(fallbackResult, newUsed);
       }
       return fallbackResult;
     }
@@ -454,7 +457,8 @@ Think: What would you actually send if you wanted to casually revive a fun chat?
       // Fall back to template generation on AI error
       const fallbackResult = fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle, isGuestRequest);
       if (isGuestRequest) {
-        await incrementGuestUsage(supabase, guestKey);
+        const newUsed = await incrementGuestUsage(supabase, guestKey);
+        return injectGuestLimits(fallbackResult, newUsed);
       }
       return fallbackResult;
     }
@@ -487,13 +491,17 @@ Think: What would you actually send if you wanted to casually revive a fun chat?
         if (filteredResults.length > 0) {
           console.log('Successfully generated', filteredResults.length, 'results');
 
-          // GUEST_LIMITS: Increment usage ONLY after successful generation
+          // GUEST_LIMITS_SYNC: Increment usage and include guestLimits in response
+          let responsePayload: any = { results: filteredResults };
           if (isGuestRequest) {
-            await incrementGuestUsage(supabase, guestKey);
+            const newUsed = await incrementGuestUsage(supabase, guestKey);
+            if (newUsed >= 0) {
+              responsePayload.guestLimits = buildGuestLimits(newUsed);
+            }
           }
 
           return new Response(
-            JSON.stringify({ results: filteredResults }),
+            JSON.stringify(responsePayload),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
           );
         }
@@ -505,7 +513,8 @@ Think: What would you actually send if you wanted to casually revive a fun chat?
     // Fall back if parsing failed
     const fallbackResult = fallbackGeneration(profileText, userProfileText, tones, mode, priorMessage, theirReply, variationStyle, isGuestRequest);
     if (isGuestRequest) {
-      await incrementGuestUsage(supabase, guestKey);
+      const newUsed = await incrementGuestUsage(supabase, guestKey);
+      return injectGuestLimits(fallbackResult, newUsed);
     }
     return fallbackResult;
 
@@ -518,11 +527,10 @@ Think: What would you actually send if you wanted to casually revive a fun chat?
   }
 });
 
-// GUEST_LIMITS: Increment guest daily run counter
-async function incrementGuestUsage(supabase: any, guestKey: string): Promise<void> {
+// GUEST_LIMITS_SYNC: Increment guest daily run counter and return new runs_used
+async function incrementGuestUsage(supabase: any, guestKey: string): Promise<number> {
   const todayUtc = new Date().toISOString().split('T')[0];
   try {
-    // Select current usage, then insert or update
     const { data: existing } = await supabase
       .from('guest_generation_usage')
       .select('runs_used')
@@ -530,10 +538,12 @@ async function incrementGuestUsage(supabase: any, guestKey: string): Promise<voi
       .eq('date_utc', todayUtc)
       .maybeSingle();
 
+    const newUsed = existing ? existing.runs_used + 1 : 1;
+
     if (existing) {
       await supabase
         .from('guest_generation_usage')
-        .update({ runs_used: existing.runs_used + 1, updated_at: new Date().toISOString() })
+        .update({ runs_used: newUsed, updated_at: new Date().toISOString() })
         .eq('guest_key', guestKey)
         .eq('date_utc', todayUtc);
     } else {
@@ -541,9 +551,35 @@ async function incrementGuestUsage(supabase: any, guestKey: string): Promise<voi
         .from('guest_generation_usage')
         .insert({ guest_key: guestKey, date_utc: todayUtc, runs_used: 1 });
     }
-    console.log('Guest usage incremented for:', guestKey, 'date:', todayUtc);
+    console.log('Guest usage incremented for:', guestKey, 'date:', todayUtc, 'newUsed:', newUsed);
+    return newUsed;
   } catch (e) {
     console.error('Failed to increment guest usage:', e);
+    return -1; // unknown
+  }
+}
+
+// GUEST_LIMITS_SYNC: Build guestLimits payload
+function buildGuestLimits(runsUsed: number): { remainingRunsToday: number; resetDateUtc: string } {
+  const resetDateUtc = new Date().toISOString().split('T')[0];
+  return {
+    remainingRunsToday: Math.max(0, GUEST_DAILY_RUN_LIMIT - runsUsed),
+    resetDateUtc,
+  };
+}
+
+// GUEST_LIMITS_SYNC: Inject guestLimits into an existing Response (for fallback paths)
+async function injectGuestLimits(resp: Response, newUsed: number): Promise<Response> {
+  if (newUsed < 0) return resp; // unknown usage, skip
+  try {
+    const body = await resp.json();
+    body.guestLimits = buildGuestLimits(newUsed);
+    return new Response(JSON.stringify(body), {
+      status: resp.status,
+      headers: resp.headers,
+    });
+  } catch {
+    return resp;
   }
 }
 
