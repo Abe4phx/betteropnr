@@ -36,6 +36,17 @@ import GuestDebugPanel from "@/components/GuestDebugPanel";
 // GUEST_UPGRADE: localStorage key for persisting generator form state across auth
 const PENDING_STATE_KEY = "betteropnr_pending_generator_state";
 
+/*
+  GUEST MODE VERIFICATION CHECKLIST:
+  1) Guest can generate 3 times/day and receives exactly 2 openers each run.
+  2) 4th attempt returns 429 + GUEST_LIMIT_REACHED and UI disables Generate.
+  3) remainingRunsToday updates from server guestLimits.
+  4) Guest runs decrement only on success.
+  5) Double-click doesn't duplicate requests or consume runs twice.
+  6) Upgrade flow restores generator input after signup/login.
+  7) CORS allows only betteropnr.com origins.
+  8) No service role key in client.
+*/
 const Generator = () => {
   const { user } = useUser();
   const { getToken } = useAuth();

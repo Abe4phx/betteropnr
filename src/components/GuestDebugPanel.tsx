@@ -4,6 +4,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { isGuest } from "@/lib/guest";
+// GUEST_SELF_TEST: lazy import to keep bundle safe
+import { runGuestSelfTest } from "@/utils/guestSelfTest";
 
 const LS_KEYS = {
   serverRemaining: "betteropnr_guest_server_remaining",
@@ -32,6 +34,8 @@ interface Props {
 export default function GuestDebugPanel({ lastStatus, lastErrorCode, lastGuestLimits, onResetCache, onSimulateExhausted }: Props) {
   const [visible, setVisible] = useState(false);
   const { user } = useUser();
+  // GUEST_SELF_TEST: state for test results
+  const [testResults, setTestResults] = useState<{ pass: boolean; checks: Array<{ name: string; pass: boolean; detail?: string }> } | null>(null);
 
   const handleKey = useCallback((e: KeyboardEvent) => {
     if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === "g") {
@@ -52,7 +56,7 @@ export default function GuestDebugPanel({ lastStatus, lastErrorCode, lastGuestLi
   })();
 
   return (
-    <div className="fixed bottom-4 right-4 z-[9999] w-80 rounded-lg border border-border bg-background/95 backdrop-blur p-3 text-xs font-mono shadow-lg space-y-2">
+    <div className="fixed bottom-4 right-4 z-[9999] w-80 rounded-lg border border-border bg-background/95 backdrop-blur p-3 text-xs font-mono shadow-lg space-y-2 max-h-[80vh] overflow-y-auto">
       <div className="flex items-center justify-between">
         <span className="font-bold text-foreground">Guest Debug</span>
         <button onClick={() => setVisible(false)} className="text-muted-foreground hover:text-foreground">✕</button>
@@ -87,6 +91,30 @@ export default function GuestDebugPanel({ lastStatus, lastErrorCode, lastGuestLi
       <div className="flex gap-2 pt-1 border-t border-border">
         <button onClick={onResetCache} className="flex-1 rounded bg-muted px-2 py-1 text-foreground hover:bg-accent">Reset cache</button>
         <button onClick={onSimulateExhausted} className="flex-1 rounded bg-muted px-2 py-1 text-foreground hover:bg-accent">Simulate exhausted</button>
+      </div>
+
+      {/* GUEST_SELF_TEST: Run local assertions */}
+      <div className="border-t border-border pt-1 space-y-1">
+        <button
+          onClick={() => setTestResults(runGuestSelfTest())}
+          className="w-full rounded bg-muted px-2 py-1 text-foreground hover:bg-accent font-semibold"
+        >
+          Run Self-Test
+        </button>
+        {testResults && (
+          <div className="space-y-1 mt-1">
+            <span className={testResults.pass ? "text-green-500 font-bold" : "text-red-500 font-bold"}>
+              {testResults.pass ? "✓ ALL PASSED" : "✗ SOME FAILED"}
+            </span>
+            {testResults.checks.map((c, i) => (
+              <div key={i} className="flex gap-1 text-muted-foreground">
+                <span>{c.pass ? "✓" : "✗"}</span>
+                <span className={c.pass ? "text-foreground" : "text-red-400"}>{c.name}</span>
+                {c.detail && <span className="text-muted-foreground ml-auto">{c.detail}</span>}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
