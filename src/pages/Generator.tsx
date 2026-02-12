@@ -207,7 +207,7 @@ const Generator = () => {
 
         const guestRes = await fetch(guestUrl, {
           method: "POST",
-          headers: { "Content-Type": "application/json", "apikey": GENERATOR_ANON_KEY },
+          headers: { "Content-Type": "application/json", "apikey": GENERATOR_ANON_KEY, "Authorization": `Bearer ${GENERATOR_ANON_KEY}` },
           body: JSON.stringify({
             tone: selectedTones[0],
             theirProfileText: profileText,
