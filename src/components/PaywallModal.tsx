@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { motion } from 'framer-motion';
 import { isNativeApp, getPlatform } from '@/lib/platformDetection';
-import { useAuthedFunctionInvoke } from '@/hooks/useAuthedFunctionInvoke';
+
 
 interface PaywallModalProps {
   open: boolean;
@@ -26,7 +26,6 @@ const PRICE_IDS = {
 
 export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
   const { user } = useUser();
-  const { invoke } = useAuthedFunctionInvoke();
   const [loading, setLoading] = useState(false);
   const [isYearly, setIsYearly] = useState(false);
   
@@ -45,27 +44,34 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
       });
       return;
     }
-    
-    if (!user?.emailAddresses?.[0]?.emailAddress) {
+
+    const email = user?.emailAddresses?.[0]?.emailAddress;
+    if (!email) {
       toast.error('User email not found. Please try again.');
       return;
     }
 
+    // Determine plan interval from priceId
+    const plan: "monthly" | "yearly" = priceId === PRICE_IDS.pro_yearly ? "yearly" : "monthly";
+
     setLoading(true);
     try {
-      const { data, error } = await invoke<{ url?: string }>('create-checkout', {
-        body: { 
-          priceId,
-          userEmail: user.emailAddresses[0].emailAddress,
-          userId: user.id,
-        },
-      });
+      const res = await fetch(
+        "https://vshitqqftdekgtjanyaa.supabase.co/functions/v1/create-checkout",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+          },
+          body: JSON.stringify({ plan, email }),
+        }
+      );
 
-      if (error) throw error;
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data?.error || "Checkout failed");
 
-      if (data?.url) {
-        window.open(data.url, '_blank');
-      }
+      window.location.href = data.url;
     } catch (error) {
       console.error('Error creating checkout:', error);
       toast.error(error instanceof Error ? `Checkout failed: ${error.message}` : 'Failed to start checkout. Please try again.');
