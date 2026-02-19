@@ -32,7 +32,9 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
   // Check if running on iOS native app (Apple IAP required)
   const isIOSNative = isNativeApp() && getPlatform() === 'ios';
 
-  const handleUpgrade = async (priceId: string, planName: string) => {
+  type BillingPlan = "monthly" | "yearly";
+
+  const handleUpgrade = async (plan: BillingPlan) => {
     // On iOS native, show message to upgrade via web
     if (isIOSNative) {
       toast.info('Subscriptions cannot be purchased in the iOS app. Please open betteropnr.com to upgrade or manage your plan.', {
@@ -45,14 +47,8 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
       return;
     }
 
-    const email = user?.emailAddresses?.[0]?.emailAddress;
-    if (!email) {
-      toast.error('User email not found. Please try again.');
-      return;
-    }
-
-    // Determine plan interval from priceId
-    const plan: "monthly" | "yearly" = priceId === PRICE_IDS.pro_yearly ? "yearly" : "monthly";
+    const email = user?.primaryEmailAddress?.emailAddress ?? (user as any)?.email ?? null;
+    const anonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
     setLoading(true);
     try {
@@ -62,19 +58,21 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            apikey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+            apikey: anonKey,
+            Authorization: `Bearer ${anonKey}`,
           },
           body: JSON.stringify({ plan, email }),
         }
       );
 
       const data = await res.json().catch(() => ({}));
-      if (!res.ok) throw new Error(data?.error || "Checkout failed");
+      if (!res.ok) throw new Error(data?.error || `Checkout failed (${res.status})`);
+      if (!data?.url) throw new Error("Checkout failed: missing session url");
 
       window.location.href = data.url;
-    } catch (error) {
-      console.error('Error creating checkout:', error);
-      toast.error(error instanceof Error ? `Checkout failed: ${error.message}` : 'Failed to start checkout. Please try again.');
+    } catch (err: any) {
+      console.error('Error creating checkout:', err);
+      toast.error(err.message ?? 'Checkout failed');
     } finally {
       setLoading(false);
     }
@@ -218,10 +216,7 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
               )}
 
               <Button 
-                onClick={() => handleUpgrade(
-                  isYearly ? PRICE_IDS.pro_yearly : PRICE_IDS.pro_monthly,
-                  'Pro'
-                )}
+                onClick={() => handleUpgrade(isYearly ? 'yearly' : 'monthly')}
                 disabled={loading}
                 size="lg"
                 className="w-full shadow-md hover:shadow-lg bg-primary hover:bg-primary/90"
@@ -266,7 +261,7 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
                 <p className="text-4xl font-bold mb-2 text-ts-navy">$9.99/month</p>
                 <p className="text-muted-foreground mb-6">For power users and professionals</p>
                 <Button 
-                  onClick={() => handleUpgrade(PRICE_IDS.creator_monthly, 'Creator')}
+                  onClick={() => handleUpgrade('monthly')}
                   disabled={loading}
                   size="lg"
                   className="w-full shadow-md hover:shadow-lg relative overflow-hidden"
