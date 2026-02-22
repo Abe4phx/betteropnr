@@ -58,8 +58,6 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            apikey: anonKey,
-            Authorization: `Bearer ${anonKey}`,
           },
           body: JSON.stringify({ plan, email }),
         }
