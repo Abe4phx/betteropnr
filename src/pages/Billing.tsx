@@ -4,12 +4,19 @@ import { useUser } from '@clerk/clerk-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Check, Crown, Sparkles, Zap, ExternalLink } from 'lucide-react';
+import { Check, Crown, Sparkles, Zap, ExternalLink, RefreshCw } from 'lucide-react';
 import { useUserPlan } from '@/hooks/useUserPlan';
 import { toast } from 'sonner';
 import { UpgradeSuccessModal } from '@/components/UpgradeSuccessModal';
 import { isNativeApp, getPlatform } from '@/lib/platformDetection';
 import { useAuthedFunctionInvoke } from '@/hooks/useAuthedFunctionInvoke';
+import {
+  getCustomerInfo,
+  isProActive,
+  purchaseMonthly,
+  purchaseYearly,
+  restorePurchases,
+} from '@/lib/revenuecat';
 
 const Billing = () => {
   const navigate = useNavigate();
@@ -18,16 +25,36 @@ const Billing = () => {
   const { plan, loading } = useUserPlan();
   const [portalLoading, setPortalLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
-  
-  // Check if running on iOS native app
+
+  // iOS native = RevenueCat IAP
   const isIOSNative = isNativeApp() && getPlatform() === 'ios';
 
+  // RevenueCat state (iOS native only)
+  const [rcLoading, setRcLoading] = useState(false);
+  const [rcPro, setRcPro] = useState(false);
+  const [rcError, setRcError] = useState<string | null>(null);
+
+  // Refresh RevenueCat status
+  const refreshRC = async () => {
+    setRcError(null);
+    try {
+      const info = await getCustomerInfo();
+      setRcPro(isProActive(info));
+    } catch (e: any) {
+      console.error('RevenueCat refresh error:', e);
+    }
+  };
+
   useEffect(() => {
-    // Check if user just completed checkout
+    if (isIOSNative && user?.id) {
+      refreshRC();
+    }
+  }, [isIOSNative, user?.id]);
+
+  useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('success') === 'true') {
       setShowSuccessModal(true);
-      // Clean up URL
       window.history.replaceState({}, '', window.location.pathname);
     }
   }, []);
@@ -38,20 +65,45 @@ const Billing = () => {
     }
   }, [user, isLoaded, navigate]);
 
-  const handleManageSubscription = async () => {
-    // On iOS native, redirect to web for subscription management
-    if (isIOSNative) {
-      toast.info('Subscriptions cannot be purchased in the iOS app. Please open betteropnr.com to upgrade or manage your plan.', { duration: 3000 });
-      window.open('https://betteropnr.com/billing', '_blank');
-      return;
+  const handleRCPurchase = async (type: 'monthly' | 'yearly') => {
+    setRcLoading(true);
+    setRcError(null);
+    try {
+      const info = type === 'monthly' ? await purchaseMonthly() : await purchaseYearly();
+      setRcPro(isProActive(info));
+      if (isProActive(info)) {
+        toast.success('Welcome to Pro! 🎉');
+      }
+    } catch (e: any) {
+      const msg = e?.message ?? 'Purchase failed.';
+      setRcError(msg);
+      toast.error(msg);
+    } finally {
+      setRcLoading(false);
     }
-    
+  };
+
+  const handleRCRestore = async () => {
+    setRcLoading(true);
+    setRcError(null);
+    try {
+      const info = await restorePurchases();
+      setRcPro(isProActive(info));
+      toast.success(isProActive(info) ? 'Pro restored! 🎉' : 'No active subscription found.');
+    } catch (e: any) {
+      const msg = e?.message ?? 'Restore failed.';
+      setRcError(msg);
+      toast.error(msg);
+    } finally {
+      setRcLoading(false);
+    }
+  };
+
+  const handleManageSubscription = async () => {
     setPortalLoading(true);
     try {
       const { data, error } = await invoke<{ url?: string }>('create-portal-session');
-
       if (error) throw error;
-
       if (data?.url) {
         window.open(data.url, '_blank');
       }
@@ -95,7 +147,9 @@ const Billing = () => {
     },
   };
 
-  const currentPlanConfig = planConfig[plan as keyof typeof planConfig] || planConfig.free;
+  // On iOS native, use RevenueCat status to determine effective plan
+  const effectivePlan = isIOSNative && rcPro ? 'pro' : plan;
+  const currentPlanConfig = planConfig[effectivePlan as keyof typeof planConfig] || planConfig.free;
   const Icon = currentPlanConfig.icon;
 
   return (
@@ -114,12 +168,12 @@ const Billing = () => {
                   Current Plan
                   <Badge className={currentPlanConfig.bgColor}>
                     <Icon className={`w-3 h-3 mr-1 ${currentPlanConfig.color}`} />
-                    {plan.charAt(0).toUpperCase() + plan.slice(1)}
+                    {effectivePlan.charAt(0).toUpperCase() + effectivePlan.slice(1)}
                   </Badge>
                 </CardTitle>
                 <CardDescription>
-                  {plan === 'free' 
-                    ? 'Upgrade to unlock unlimited features' 
+                  {effectivePlan === 'free'
+                    ? 'Upgrade to unlock unlimited features'
                     : 'Thank you for being a premium member!'}
                 </CardDescription>
               </div>
@@ -138,7 +192,73 @@ const Billing = () => {
               </ul>
             </div>
 
-            {plan !== 'free' && (
+            {/* iOS Native: RevenueCat IAP buttons */}
+            {isIOSNative && effectivePlan === 'free' && (
+              <div className="pt-4 border-t space-y-3">
+                {rcError && (
+                  <p className="text-sm text-destructive">{rcError}</p>
+                )}
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button
+                    onClick={() => handleRCPurchase('monthly')}
+                    disabled={rcLoading}
+                    className="flex-1"
+                  >
+                    <Zap className="w-4 h-4 mr-2" />
+                    {rcLoading ? 'Processing...' : 'Go Pro Monthly'}
+                  </Button>
+                  <Button
+                    onClick={() => handleRCPurchase('yearly')}
+                    disabled={rcLoading}
+                    className="flex-1"
+                  >
+                    <Zap className="w-4 h-4 mr-2" />
+                    {rcLoading ? 'Processing...' : 'Go Pro Yearly'}
+                  </Button>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-2">
+                  <Button
+                    onClick={handleRCRestore}
+                    disabled={rcLoading}
+                    variant="outline"
+                    className="flex-1"
+                  >
+                    {rcLoading ? 'Processing...' : 'Restore Purchases'}
+                  </Button>
+                  <Button
+                    onClick={() => refreshRC()}
+                    variant="ghost"
+                    className="flex-1"
+                  >
+                    <RefreshCw className="w-4 h-4 mr-2" />
+                    Refresh Status
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Purchases are handled through the App Store. Manage your subscription in iOS Settings.
+                </p>
+              </div>
+            )}
+
+            {/* iOS Native: Pro active */}
+            {isIOSNative && effectivePlan !== 'free' && (
+              <div className="pt-4 border-t space-y-3">
+                <Button
+                  onClick={() => refreshRC()}
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                >
+                  <RefreshCw className="w-4 h-4 mr-2" />
+                  Refresh Status
+                </Button>
+                <p className="text-sm text-muted-foreground">
+                  Manage your subscription in iOS Settings → Apple ID → Subscriptions
+                </p>
+              </div>
+            )}
+
+            {/* Web: Stripe manage subscription */}
+            {!isIOSNative && effectivePlan !== 'free' && (
               <div className="pt-4 border-t">
                 <Button
                   onClick={handleManageSubscription}
@@ -150,42 +270,24 @@ const Billing = () => {
                   {portalLoading ? 'Loading...' : 'Manage Subscription'}
                 </Button>
                 <p className="text-sm text-muted-foreground mt-2">
-                  {isIOSNative 
-                    ? 'Opens in your web browser for subscription management'
-                    : 'Update payment method, view invoices, or cancel your subscription'}
+                  Update payment method, view invoices, or cancel your subscription
                 </p>
               </div>
             )}
 
-            {plan === 'free' && (
+            {/* Web: Upgrade CTA */}
+            {!isIOSNative && effectivePlan === 'free' && (
               <div className="pt-4 border-t">
-                {isIOSNative ? (
-                  <>
-                    <Button
-                      onClick={() => window.open('https://betteropnr.com/billing', '_blank')}
-                      className="w-full sm:w-auto"
-                    >
-                      <ExternalLink className="w-4 h-4 mr-2" />
-                      Upgrade via Web
-                    </Button>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Subscriptions cannot be purchased in the iOS app. Please open betteropnr.com to upgrade or manage your plan.
-                    </p>
-                  </>
-                ) : (
-                  <>
-                    <Button
-                      onClick={() => navigate('/')}
-                      className="w-full sm:w-auto"
-                    >
-                      <Zap className="w-4 h-4 mr-2" />
-                      Upgrade Now
-                    </Button>
-                    <p className="text-sm text-muted-foreground mt-2">
-                      Get unlimited access to all features
-                    </p>
-                  </>
-                )}
+                <Button
+                  onClick={() => navigate('/')}
+                  className="w-full sm:w-auto"
+                >
+                  <Zap className="w-4 h-4 mr-2" />
+                  Upgrade Now
+                </Button>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Get unlimited access to all features
+                </p>
               </div>
             )}
           </CardContent>
@@ -194,12 +296,10 @@ const Billing = () => {
         <Card>
           <CardHeader>
             <CardTitle>Usage Information</CardTitle>
-            <CardDescription>
-              Your current usage and limits
-            </CardDescription>
+            <CardDescription>Your current usage and limits</CardDescription>
           </CardHeader>
           <CardContent>
-            {plan === 'free' ? (
+            {effectivePlan === 'free' ? (
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-sm">Daily Openers</span>
@@ -223,9 +323,9 @@ const Billing = () => {
         </Card>
       </div>
 
-      <UpgradeSuccessModal 
-        open={showSuccessModal} 
-        onOpenChange={setShowSuccessModal} 
+      <UpgradeSuccessModal
+        open={showSuccessModal}
+        onOpenChange={setShowSuccessModal}
       />
     </>
   );
