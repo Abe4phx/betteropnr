@@ -1,90 +1,111 @@
-import { isNativeApp, getPlatform } from '@/lib/platformDetection';
+// src/lib/revenuecat.ts
+import { Capacitor } from "@capacitor/core";
+import {
+  Purchases,
+  LOG_LEVEL,
+  type CustomerInfo,
+  type PurchasesOffering,
+} from "@revenuecat/purchases-capacitor";
 
-// RevenueCat publishable API key (safe for client-side, like Stripe's publishable key)
-const REVENUECAT_API_KEY = 'appl_YOUR_KEY_HERE';
+const RC_API_KEY = "test_BmbVMnVlRiZDWWkhRsTJdFmTmdl";
+export const RC_ENTITLEMENT_ID = "BetterOpnr Pro";
 
-// Entitlement ID configured in RevenueCat dashboard
-const PRO_ENTITLEMENT_ID = 'pro';
+// Optional: product IDs (handy for debugging / direct checks)
+export const RC_PRODUCT_MONTHLY = "betteropnr.premium.monthly";
+export const RC_PRODUCT_YEARLY = "betteropnr.premium.yearly";
 
-// Product identifiers matching RevenueCat offerings
-const PACKAGE_MAP: Record<string, string> = {
-  monthly: '$rc_monthly',
-  yearly: '$rc_annual',
-};
-
-function isIOSNative(): boolean {
-  return isNativeApp() && getPlatform() === 'ios';
-}
-
-/**
- * Dynamically import the RevenueCat SDK (only available on native)
- */
-async function getSDK() {
-  const { Purchases } = await import('@revenuecat/purchases-capacitor');
-  return Purchases;
-}
+let configured = false;
 
 /**
- * Configure RevenueCat SDK. Call once at app startup (native iOS only).
+ * Call once at app startup.
+ * Only configures on native iOS/Android. Does nothing on web.
  */
-export async function configureRevenueCat(userId?: string): Promise<void> {
-  if (!isIOSNative()) return;
+export async function configureRevenueCat(): Promise<void> {
+  if (configured) return;
 
-  const Purchases = await getSDK();
+  const isNative = Capacitor.isNativePlatform();
+  if (!isNative) return;
+
+  // Helpful during setup; you can reduce later.
+  await Purchases.setLogLevel({ level: LOG_LEVEL.DEBUG });
+
   await Purchases.configure({
-    apiKey: REVENUECAT_API_KEY,
-    ...(userId ? { appUserID: userId } : {}),
+    apiKey: RC_API_KEY,
   });
+
+  configured = true;
 }
 
 /**
- * Purchase the Pro plan via native iOS IAP.
- * Returns the customer info on success, throws on failure/cancellation.
+ * Identify the user in RevenueCat using your auth user id (Clerk userId).
+ * Call whenever user logs in, and call logOut when they log out.
  */
-export async function purchaseProPlan(plan: 'monthly' | 'yearly') {
-  if (!isIOSNative()) {
-    throw new Error('Native purchases are only available on iOS');
-  }
+export async function loginRevenueCat(appUserId: string): Promise<CustomerInfo | null> {
+  if (!Capacitor.isNativePlatform()) return null;
+  await configureRevenueCat();
 
-  const Purchases = await getSDK();
-  const offeringsResult = await Purchases.getOfferings();
+  const { customerInfo } = await Purchases.logIn({ appUserID: appUserId });
+  return customerInfo;
+}
 
-  const current = (offeringsResult as any)?.current;
-  if (!current) {
-    throw new Error('No offerings available. Please try again later.');
-  }
+export async function logoutRevenueCat(): Promise<void> {
+  if (!Capacitor.isNativePlatform()) return;
+  await configureRevenueCat();
+  await Purchases.logOut();
+}
 
-  const packageId = PACKAGE_MAP[plan];
-  const pkg = current.availablePackages.find((p: any) => p.identifier === packageId);
+export async function getCustomerInfo(): Promise<CustomerInfo | null> {
+  if (!Capacitor.isNativePlatform()) return null;
+  await configureRevenueCat();
 
-  if (!pkg) {
-    throw new Error(`Package "${plan}" not found in current offering.`);
-  }
+  const { customerInfo } = await Purchases.getCustomerInfo();
+  return customerInfo;
+}
+
+export function isProActive(customerInfo: CustomerInfo | null): boolean {
+  if (!customerInfo) return false;
+
+  // RevenueCat entitlements are keyed by the entitlement identifier
+  const ent = customerInfo.entitlements.active[RC_ENTITLEMENT_ID];
+  return Boolean(ent);
+}
+
+export async function getCurrentOffering(): Promise<PurchasesOffering | null> {
+  if (!Capacitor.isNativePlatform()) return null;
+  await configureRevenueCat();
+
+  const { current } = await Purchases.getOfferings();
+  return current ?? null;
+}
+
+export async function purchaseMonthly(): Promise<CustomerInfo | null> {
+  if (!Capacitor.isNativePlatform()) return null;
+  await configureRevenueCat();
+
+  const offering = await getCurrentOffering();
+  const pkg = offering?.monthly;
+  if (!pkg) throw new Error("Monthly package not found in RevenueCat offering.");
 
   const { customerInfo } = await Purchases.purchasePackage({ aPackage: pkg });
   return customerInfo;
 }
 
-/**
- * Check if the user has an active "pro" entitlement.
- */
-export async function checkEntitlements(): Promise<boolean> {
-  if (!isIOSNative()) return false;
+export async function purchaseYearly(): Promise<CustomerInfo | null> {
+  if (!Capacitor.isNativePlatform()) return null;
+  await configureRevenueCat();
 
-  const Purchases = await getSDK();
-  const { customerInfo } = await Purchases.getCustomerInfo();
-  return customerInfo.entitlements.active[PRO_ENTITLEMENT_ID] !== undefined;
+  const offering = await getCurrentOffering();
+  const pkg = offering?.annual;
+  if (!pkg) throw new Error("Annual package not found in RevenueCat offering.");
+
+  const { customerInfo } = await Purchases.purchasePackage({ aPackage: pkg });
+  return customerInfo;
 }
 
-/**
- * Restore previous purchases (e.g. after reinstall or device switch).
- */
-export async function restorePurchases() {
-  if (!isIOSNative()) {
-    throw new Error('Restore is only available on iOS');
-  }
+export async function restorePurchases(): Promise<CustomerInfo | null> {
+  if (!Capacitor.isNativePlatform()) return null;
+  await configureRevenueCat();
 
-  const Purchases = await getSDK();
   const { customerInfo } = await Purchases.restorePurchases();
   return customerInfo;
 }
