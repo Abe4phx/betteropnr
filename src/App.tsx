@@ -13,6 +13,7 @@ import { BetterOpnrProvider } from "@/contexts/TalkSparkContext";
 import { Navigation } from "@/components/Navigation";
 import { InstallBanner } from "@/components/InstallBanner";
 import { isWebApp } from "@/lib/platformDetection";
+import { configureRevenueCat, loginRevenueCat, logoutRevenueCat } from "@/lib/revenuecat";
 import Landing from "./pages/Landing";
 import Generator from "./pages/Generator";
 import Saved from "./pages/Saved";
@@ -33,6 +34,24 @@ import { AnimatePresence, motion } from "framer-motion";
 import { pageTransition } from "@/lib/motionConfig";
 import { useState, useEffect } from "react";
 import { AIConsentScreen } from "@/components/AIConsentScreen";
+
+function RevenueCatAuthBridge() {
+  const { isSignedIn, user } = useUser();
+
+  useEffect(() => {
+    configureRevenueCat().catch(console.error);
+  }, []);
+
+  useEffect(() => {
+    if (isSignedIn && user?.id) {
+      loginRevenueCat(user.id).catch(console.error);
+      return;
+    }
+    logoutRevenueCat().catch(console.error);
+  }, [isSignedIn, user?.id]);
+
+  return null;
+}
 
 const CLERK_PUBLISHABLE_KEY = 'pk_live_Y2xlcmsuYmV0dGVyb3Buci5jb20k';
 
@@ -252,6 +271,7 @@ const App = () => {
                 <Toaster />
                 <Sonner />
                 <AuthModeSync />
+                <RevenueCatAuthBridge />
                 <BrowserRouter>
                   <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
                     <Navigation />
