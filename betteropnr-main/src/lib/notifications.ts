@@ -1,0 +1,192 @@
+/**
+ * Unified notification utilities that work across web and native platforms
+ */
+
+import { isNativeApp } from './platformDetection';
+import * as CapacitorNotifications from './capacitorNotifications';
+
+export interface NotificationPermissionStatus {
+  granted: boolean;
+  denied: boolean;
+  default: boolean;
+}
+
+/**
+ * Request notification permission from the user (works on both web and native)
+ */
+export const requestNotificationPermission = async (): Promise<NotificationPermissionStatus> => {
+  if (isNativeApp()) {
+    const result = await CapacitorNotifications.requestNotificationPermission();
+    localStorage.setItem('notification-permission-status', JSON.stringify(result));
+    return result;
+  }
+
+  if (!('Notification' in window)) {
+    console.warn('This browser does not support notifications');
+    return { granted: false, denied: true, default: false };
+  }
+
+  const permission = await Notification.requestPermission();
+  
+  return {
+    granted: permission === 'granted',
+    denied: permission === 'denied',
+    default: permission === 'default',
+  };
+};
+
+/**
+ * Get current notification permission status (works on both web and native)
+ */
+export const getNotificationPermissionStatus = (): NotificationPermissionStatus => {
+  if (isNativeApp()) {
+    // Return cached status for sync compatibility
+    const cached = localStorage.getItem('notification-permission-status');
+    if (cached) return JSON.parse(cached);
+    return { granted: false, denied: false, default: true };
+  }
+
+  if (!('Notification' in window)) {
+    return { granted: false, denied: true, default: false };
+  }
+
+  const permission = Notification.permission;
+  
+  return {
+    granted: permission === 'granted',
+    denied: permission === 'denied',
+    default: permission === 'default',
+  };
+};
+
+/**
+ * Schedule a notification for a specific time (works on both web and native)
+ */
+export const scheduleNotification = (
+  title: string,
+  options: NotificationOptions & { scheduledTime: number },
+  notificationId: string
+): void => {
+  if (isNativeApp()) {
+    CapacitorNotifications.scheduleNotification(title, options, notificationId);
+    return;
+  }
+
+  const { scheduledTime, ...notificationOptions } = options;
+  const now = Date.now();
+  const delay = scheduledTime - now;
+
+  if (delay <= 0) {
+    // Time has passed, show immediately
+    showNotification(title, notificationOptions);
+    return;
+  }
+
+  // Store notification in localStorage
+  const storedNotifications = getStoredNotifications();
+  storedNotifications[notificationId] = {
+    title,
+    options: notificationOptions,
+    scheduledTime,
+  };
+  localStorage.setItem('betterOpnr-notifications', JSON.stringify(storedNotifications));
+
+  // Schedule the notification
+  setTimeout(() => {
+    showNotification(title, notificationOptions);
+    removeStoredNotification(notificationId);
+  }, delay);
+};
+
+/**
+ * Show a notification immediately (works on both web and native)
+ */
+export const showNotification = (title: string, options?: NotificationOptions): void => {
+  if (isNativeApp()) {
+    CapacitorNotifications.showNotification(title, options);
+    return;
+  }
+
+  if (!('Notification' in window)) {
+    console.warn('This browser does not support notifications');
+    return;
+  }
+
+  if (Notification.permission === 'granted') {
+    const notification = new Notification(title, {
+      icon: '/pwa-192x192.png',
+      badge: '/pwa-192x192.png',
+      ...options,
+    });
+
+    // Handle notification click
+    notification.onclick = () => {
+      window.focus();
+      notification.close();
+      
+      // Navigate to the app if it's not focused
+      if (options?.data?.url) {
+        window.location.href = options.data.url;
+      } else {
+        window.location.href = '/';
+      }
+    };
+  }
+};
+
+/**
+ * Cancel a scheduled notification (works on both web and native)
+ */
+export const cancelNotification = (notificationId: string): void => {
+  if (isNativeApp()) {
+    CapacitorNotifications.cancelNotification(notificationId);
+    return;
+  }
+  removeStoredNotification(notificationId);
+};
+
+/**
+ * Get stored notifications from localStorage
+ */
+const getStoredNotifications = (): Record<string, any> => {
+  const stored = localStorage.getItem('betterOpnr-notifications');
+  return stored ? JSON.parse(stored) : {};
+};
+
+/**
+ * Remove a stored notification
+ */
+const removeStoredNotification = (notificationId: string): void => {
+  const storedNotifications = getStoredNotifications();
+  delete storedNotifications[notificationId];
+  localStorage.setItem('betterOpnr-notifications', JSON.stringify(storedNotifications));
+};
+
+/**
+ * Initialize notifications system - reschedule any pending notifications (works on both web and native)
+ */
+export const initializeNotifications = (): void => {
+  if (isNativeApp()) {
+    CapacitorNotifications.initializeNotifications();
+    return;
+  }
+
+  const storedNotifications = getStoredNotifications();
+  const now = Date.now();
+
+  Object.entries(storedNotifications).forEach(([id, notification]: [string, any]) => {
+    const delay = notification.scheduledTime - now;
+    
+    if (delay <= 0) {
+      // Show immediately if time has passed
+      showNotification(notification.title, notification.options);
+      removeStoredNotification(id);
+    } else {
+      // Reschedule
+      setTimeout(() => {
+        showNotification(notification.title, notification.options);
+        removeStoredNotification(id);
+      }, delay);
+    }
+  });
+};

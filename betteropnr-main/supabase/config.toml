@@ -1,0 +1,36 @@
+project_id = "vvhrzznaowjxpgbgyyim"
+
+# All edge functions verify Clerk JWTs themselves using the _shared/clerkAuth.ts helper
+
+[functions.sync-existing-subscription]
+verify_jwt = false
+
+[functions.user-profile]
+verify_jwt = false
+
+[functions.generate]
+verify_jwt = false
+
+[functions.review-profile]
+verify_jwt = false
+
+[functions.extract-profile-text]
+verify_jwt = false
+
+[functions.create-checkout]
+verify_jwt = false
+
+[functions.create-portal-session]
+verify_jwt = false
+
+[functions.setup-demo-account]
+verify_jwt = false
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.user-usage]
+verify_jwt = false
+
+[functions.affiliates]
+verify_jwt = false

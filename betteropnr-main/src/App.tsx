@@ -13,7 +13,6 @@ import { BetterOpnrProvider } from "@/contexts/TalkSparkContext";
 import { Navigation } from "@/components/Navigation";
 import { InstallBanner } from "@/components/InstallBanner";
 import { isWebApp } from "@/lib/platformDetection";
-import { RevenueCatAuthBridge } from "@/components/RevenueCatAuthBridge";
 import Landing from "./pages/Landing";
 import Generator from "./pages/Generator";
 import Saved from "./pages/Saved";
@@ -253,7 +252,6 @@ const App = () => {
                 <Toaster />
                 <Sonner />
                 <AuthModeSync />
-                <RevenueCatAuthBridge />
                 <BrowserRouter>
                   <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
                     <Navigation />
