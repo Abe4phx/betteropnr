@@ -1,0 +1,180 @@
+import { useState, useEffect, useRef } from "react";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { User, ChevronDown, Camera, X, Loader2 } from "lucide-react";
+import { useImageTextExtraction } from "@/hooks/useImageTextExtraction";
+import { useUserProfile } from "@/hooks/useUserProfile";
+
+interface UserProfileInputProps {
+  value: string;
+  onChange: (value: string) => void;
+}
+
+export const UserProfileInput = ({ value, onChange }: UserProfileInputProps) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const { isExtracting, imagePreviews, extractText, clearPreviews } = useImageTextExtraction();
+  const { profileText, setProfileText, isLoading } = useUserProfile();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const hasInitializedRef = useRef(false);
+
+  // Sync profile text from database to parent component (only once on load)
+  useEffect(() => {
+    if (!isLoading && profileText && !hasInitializedRef.current) {
+      hasInitializedRef.current = true;
+      onChange(profileText);
+    }
+  }, [isLoading, profileText, onChange]);
+
+  // Also mark as initialized if loading finishes with no profile
+  useEffect(() => {
+    if (!isLoading && !hasInitializedRef.current) {
+      hasInitializedRef.current = true;
+    }
+  }, [isLoading]);
+
+  // Handle local value changes - sync to hook for persistence
+  const handleValueChange = (newValue: string) => {
+    onChange(newValue);
+    // Only sync to database after initialization
+    if (hasInitializedRef.current) {
+      setProfileText(newValue);
+    }
+  };
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const extractedText = await extractText(file);
+      handleValueChange(extractedText);
+    } catch (error) {
+      // Error handling is done in the hook
+    }
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handlePaste = async (event: React.ClipboardEvent) => {
+    const items = event.clipboardData?.items;
+    if (!items) return;
+
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i];
+      
+      if (item.type.startsWith('image/')) {
+        event.preventDefault();
+        const file = item.getAsFile();
+        if (!file) continue;
+
+        try {
+          const extractedText = await extractText(file);
+          handleValueChange(extractedText);
+        } catch (error) {
+          // Error handling is done in the hook
+        }
+        break;
+      }
+    }
+  };
+
+  const handleClearPreview = () => {
+    clearPreviews();
+  };
+
+  return (
+    <Collapsible open={isOpen} onOpenChange={setIsOpen} className="space-y-3">
+      <CollapsibleTrigger className="w-full">
+        <div className="flex items-center justify-between gap-2 p-4 rounded-2xl bg-muted/50 hover:bg-muted transition-colors border-2 border-ts-teal/30 hover:border-ts-teal/50">
+          <div className="flex items-center gap-3">
+            <User className="w-5 h-5 text-ts-teal" />
+            <div className="flex items-center gap-2">
+              <Label htmlFor="userProfile" className="text-lg font-semibold cursor-pointer">
+                Your Profile
+              </Label>
+              <Badge variant="outline" className="bg-ts-teal/10 text-ts-teal border-ts-teal/30 text-xs font-bold">
+                YOU
+              </Badge>
+              {value.trim() && <span className="text-sm text-muted-foreground font-normal">✓ Saved</span>}
+            </div>
+          </div>
+          <ChevronDown className={`w-5 h-5 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        </div>
+      </CollapsibleTrigger>
+      <CollapsibleContent className="space-y-3">
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isExtracting}
+              className="gap-2"
+            >
+              {isExtracting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Extracting...
+                </>
+              ) : (
+                <>
+                  <Camera className="w-4 h-4" />
+                  Upload Screenshot
+                </>
+              )}
+            </Button>
+            <span className="text-xs text-muted-foreground">or paste image (Ctrl/Cmd+V)</span>
+          </div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            onChange={handleFileSelect}
+            className="hidden"
+          />
+        </div>
+
+        {imagePreviews.length > 0 && (
+          <div className="relative inline-block">
+            <img
+              src={imagePreviews[0]}
+              alt="Preview"
+              className="h-20 w-20 object-cover rounded-lg border-2 border-border"
+            />
+            <button
+              onClick={handleClearPreview}
+              className="absolute -top-2 -right-2 bg-destructive text-destructive-foreground rounded-full p-1 hover:bg-destructive/90 transition-colors"
+              type="button"
+            >
+              <X className="w-3 h-3" />
+            </button>
+          </div>
+        )}
+
+        <Textarea
+          id="userProfile"
+          placeholder="Your interests, hobbies, favorites... (e.g., 'Love hiking, coffee enthusiast, watch sci-fi, play guitar')"
+          value={value}
+          onChange={(e) => handleValueChange(e.target.value)}
+          onPaste={handlePaste}
+          maxLength={3000}
+          className="min-h-[100px] resize-none text-base rounded-2xl shadow-sm focus:shadow-md transition-shadow"
+        />
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            This helps find common ground and makes conversations more natural! Upload a screenshot or type manually. {isLoading ? 'Loading...' : 'Changes are automatically saved.'}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            {value.length}/3000
+          </p>
+        </div>
+      </CollapsibleContent>
+    </Collapsible>
+  );
+};

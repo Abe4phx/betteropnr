@@ -1,0 +1,195 @@
+/* Import Google Fonts */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600;700&display=swap");
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* HSL Color System for shadcn/ui components */
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 225 38% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 225 38% 10%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 225 38% 10%;
+    --primary: 0 100% 71%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 0 100% 80%;
+    --secondary: 44 100% 70%;
+    --secondary-foreground: 225 38% 10%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 175 100% 36%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 355 78% 56%;
+    --destructive-foreground: 0 0% 98%;
+    --success: 163 95% 43%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 44 100% 70%;
+    --radius: 1rem;
+    --sidebar-background: 0 0% 98%;
+    --sidebar-foreground: 225 38% 10%;
+    --sidebar-primary: 0 100% 71%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 0 0% 95%;
+    --sidebar-accent-foreground: 225 38% 10%;
+    --sidebar-border: 0 0% 88%;
+    --sidebar-ring: 0 100% 71%;
+    /* Direct color values for utility classes */
+    --ts-coral: #FF6B6B;
+    --ts-yellow: #FFD166;
+    --ts-navy: #1A1A40;
+    --ts-gray: #F5F5F5;
+    --ts-ink: #0F1222;
+    --ts-teal: #00B8A9;
+    --ts-error: #E63946;
+    --ts-success: #06D6A0;
+  }
+
+  .dark {
+    --background: 225 38% 10%;
+    --foreground: 0 0% 96%;
+    --card: 240 44% 18%;
+    --card-foreground: 0 0% 96%;
+    --popover: 240 44% 18%;
+    --popover-foreground: 0 0% 96%;
+    --primary: 0 100% 71%;
+    --primary-foreground: 0 0% 100%;
+    --primary-glow: 0 100% 80%;
+    --secondary: 44 100% 70%;
+    --secondary-foreground: 225 38% 10%;
+    --muted: 240 44% 18%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 175 100% 36%;
+    --accent-foreground: 0 0% 100%;
+    --destructive: 355 78% 56%;
+    --destructive-foreground: 0 0% 98%;
+    --success: 163 95% 43%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 44 100% 70%;
+    --sidebar-background: 240 44% 15%;
+    --sidebar-foreground: 0 0% 96%;
+    --sidebar-primary: 0 100% 71%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 44% 20%;
+    --sidebar-accent-foreground: 0 0% 96%;
+    --sidebar-border: 240 44% 22%;
+    --sidebar-ring: 0 100% 71%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  html, body, #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-body antialiased;
+    padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bottom);
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading;
+  }
+}
+
+/* Custom BetterOpnr Utility Classes */
+@layer components {
+  /* Headings */
+  .h1 { @apply font-heading text-3xl sm:text-4xl text-foreground font-bold leading-tight; }
+  .h2 { @apply font-heading text-2xl sm:text-3xl text-foreground font-semibold leading-snug; }
+  .h3 { @apply font-heading text-xl sm:text-2xl text-foreground font-semibold; }
+
+  /* Buttons */
+  .btn {
+    @apply inline-flex items-center justify-center px-4 py-2 rounded-2xl font-medium transition-all duration-200;
+  }
+  .btn-primary {
+    @apply bg-primary text-primary-foreground shadow-soft hover:opacity-90 hover:scale-[1.02] active:shadow-none;
+  }
+  .btn-secondary {
+    @apply bg-white text-foreground border border-border hover:bg-muted;
+  }
+  .btn-ghost {
+    @apply text-foreground hover:bg-white/60;
+  }
+
+  /* Cards */
+  .card {
+    @apply bg-card rounded-3xl p-6 shadow-soft hover:shadow-elegant transition-shadow duration-300;
+  }
+
+  /* Badges / Tone chips */
+  .badge {
+    @apply rounded-full px-4 py-2 text-xs font-medium border border-black/5 bg-white;
+  }
+
+  /* Share card layout */
+  .screenshot-card {
+    background: linear-gradient(135deg, rgba(255,107,107,0.05), rgba(255,209,102,0.05));
+    @apply rounded-3xl p-6 border border-border;
+  }
+}
+
+/* Custom Animations */
+@keyframes pulse-subtle {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.95; transform: scale(1.01); }
+}
+
+.animate-pulse-subtle {
+  animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Focus states */
+*:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(255, 209, 102, 0.9);
+  border-radius: .75rem;
+}
+
+/* iOS Safe Area Inset Variables */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+
+/* iOS Safe Area Inset Utilities */
+@layer utilities {
+  .pt-safe-top {
+    padding-top: var(--safe-top);
+  }
+  .pb-safe-bottom {
+    padding-bottom: var(--safe-bottom);
+  }
+  .pl-safe-left {
+    padding-left: var(--safe-left);
+  }
+  .pr-safe-right {
+    padding-right: var(--safe-right);
+  }
+  .px-safe {
+    padding-left: var(--safe-left);
+    padding-right: var(--safe-right);
+  }
+  .py-safe {
+    padding-top: var(--safe-top);
+    padding-bottom: var(--safe-bottom);
+  }
+  .min-h-screen-safe {
+    min-height: calc(100vh - var(--safe-top) - var(--safe-bottom));
+  }
+}

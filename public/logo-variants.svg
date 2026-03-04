@@ -1,0 +1,100 @@
+<!-- TalkSpark Logo Variants Collection -->
+<!-- Use these SVG definitions in your application -->
+
+<!-- 1. ICON ONLY - Square Safe (28x28 default) -->
+<svg id="talkspark-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="bubble-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B6B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFD166;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Speech bubble with rounded corners -->
+  <path d="M10 16c0-3.314 2.686-6 6-6h32c3.314 0 6 2.686 6 6v16c0 3.314-2.686 6-6 6H28l-8 8v-8h-4c-3.314 0-6-2.686-6-6V16z" 
+        fill="url(#bubble-gradient)" 
+        opacity="0.95"/>
+  <!-- 4-point spark -->
+  <path d="M46 10l2 5 5 2-5 2-2 5-2-5-5-2 5-2 2-5z" 
+        fill="#FFD166"/>
+</svg>
+
+<!-- 2. ICON ONLY - Circular Variant -->
+<svg id="talkspark-icon-circular" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="bubble-gradient-circular" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B6B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFD166;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Circular speech bubble -->
+  <circle cx="32" cy="24" r="18" fill="url(#bubble-gradient-circular)" opacity="0.95"/>
+  <!-- Small tail -->
+  <path d="M24 38l-4 8 2-8z" fill="url(#bubble-gradient-circular)" opacity="0.95"/>
+  <!-- 4-point spark -->
+  <path d="M46 10l2 5 5 2-5 2-2 5-2-5-5-2 5-2 2-5z" fill="#FFD166"/>
+</svg>
+
+<!-- 3. ICON ONLY - Chat Tail Variant -->
+<svg id="talkspark-icon-tail" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="bubble-gradient-tail" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B6B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFD166;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Rounded rectangle bubble -->
+  <rect x="10" y="12" width="44" height="24" rx="8" fill="url(#bubble-gradient-tail)" opacity="0.95"/>
+  <!-- Stylized tail -->
+  <path d="M22 36c0 0 -6 2 -8 10c0 0 4-6 8-10z" fill="url(#bubble-gradient-tail)" opacity="0.95"/>
+  <!-- 4-point spark -->
+  <path d="M48 8l2 5 5 2-5 2-2 5-2-5-5-2 5-2 2-5z" fill="#FFD166"/>
+</svg>
+
+<!-- 4. HORIZONTAL LOCKUP - Icon + Wordmark -->
+<svg id="talkspark-lockup" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 48" width="200" height="48">
+  <defs>
+    <linearGradient id="bubble-gradient-lockup" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B6B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FFD166;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Speech bubble icon -->
+  <path d="M4 12c0-2.486 1.79-4.5 4-4.5h20c2.21 0 4 2.014 4 4.5v12c0 2.486-1.79 4.5-4 4.5h-12l-6 6v-6h-2c-2.21 0-4-2.014-4-4.5V12z" 
+        fill="url(#bubble-gradient-lockup)" 
+        opacity="0.95"/>
+  <!-- Spark -->
+  <path d="M29 6l1.5 3.75 3.75 1.5-3.75 1.5L29 16.5l-1.5-3.75L23.75 11.25l3.75-1.5L29 6z" 
+        fill="#FFD166"/>
+  
+  <!-- Wordmark: TalkSpark -->
+  <text x="45" y="28" font-family="Poppins, sans-serif" font-weight="600" font-size="24" fill="#1A1A40">TalkSpark</text>
+  
+  <!-- Tagline -->
+  <text x="45" y="40" font-family="Inter, sans-serif" font-weight="400" font-size="9" fill="#1A1A40" opacity="0.6">Start better conversations</text>
+</svg>
+
+<!-- 5. MONOCHROME VARIANT - For dark backgrounds -->
+<svg id="talkspark-mono-white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- Speech bubble -->
+  <path d="M10 16c0-3.314 2.686-6 6-6h32c3.314 0 6 2.686 6 6v16c0 3.314-2.686 6-6 6H28l-8 8v-8h-4c-3.314 0-6-2.686-6-6V16z" 
+        fill="#FFFFFF" 
+        opacity="0.95"/>
+  <!-- Spark -->
+  <path d="M46 10l2 5 5 2-5 2-2 5-2-5-5-2 5-2 2-5z" 
+        fill="#FFFFFF"/>
+</svg>
+
+<!-- 6. MONOCHROME LOCKUP - For dark backgrounds -->
+<svg id="talkspark-mono-lockup" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 48" width="200" height="48">
+  <!-- Speech bubble icon -->
+  <path d="M4 12c0-2.486 1.79-4.5 4-4.5h20c2.21 0 4 2.014 4 4.5v12c0 2.486-1.79 4.5-4 4.5h-12l-6 6v-6h-2c-2.21 0-4-2.014-4-4.5V12z" 
+        fill="#FFFFFF" 
+        opacity="0.95"/>
+  <!-- Spark -->
+  <path d="M29 6l1.5 3.75 3.75 1.5-3.75 1.5L29 16.5l-1.5-3.75L23.75 11.25l3.75-1.5L29 6z" 
+        fill="#FFFFFF"/>
+  <!-- Wordmark -->
+  <text x="45" y="28" font-family="Poppins, sans-serif" font-weight="600" font-size="24" fill="#FFFFFF">TalkSpark</text>
+  <!-- Tagline -->
+  <text x="45" y="40" font-family="Inter, sans-serif" font-weight="400" font-size="9" fill="#FFFFFF" opacity="0.7">Start better conversations</text>
+</svg>
