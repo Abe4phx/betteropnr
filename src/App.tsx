@@ -33,8 +33,10 @@ import { AnimatePresence, motion } from "framer-motion";
 import { pageTransition } from "@/lib/motionConfig";
 import { useState, useEffect } from "react";
 import { AIConsentScreen } from "@/components/AIConsentScreen";
+import { isNativeApp } from "@/lib/platformDetection";
 
-const CLERK_PUBLISHABLE_KEY = "pk_live_Y2xlcmsuYmV0dGVyb3Buci5jb20k";
+const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ?? "";
+const CLERK_DOMAIN = import.meta.env.VITE_CLERK_DOMAIN ?? "clerk.betteropnr.com";
 
 const queryClient = new QueryClient();
 
@@ -267,8 +269,8 @@ const App = () => {
   return (
   <ClerkProvider
     publishableKey={CLERK_PUBLISHABLE_KEY}
-    frontendApi="clerk.betteropnr.com"
-    standardBrowser={false}
+    domain={CLERK_DOMAIN}
+    standardBrowser={!isNativeApp()}
     allowedRedirectProtocols={["betteropnr"]}
   >
     <SupabaseProvider>

@@ -178,6 +178,8 @@ npm install @capacitor/splash-screen
 **Authentication failing?**
 - Verify Clerk redirect URLs are configured
 - Check that you're using the correct OAuth scheme in Clerk dashboard
+- Use `VITE_CLERK_PUBLISHABLE_KEY` (not a hardcoded key) and set `VITE_CLERK_DOMAIN=clerk.betteropnr.com`
+- In Capacitor, allow Clerk hosts used by ClerkJS (`clerk.betteropnr.com`, `*.clerk.accounts.dev`, `*.clerk.services`)
 
 **Build errors?**
 - Run `npx cap sync` after any code changes

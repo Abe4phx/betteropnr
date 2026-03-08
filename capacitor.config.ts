@@ -6,7 +6,11 @@ const config: CapacitorConfig = {
   webDir: 'dist',
   server: {
     androidScheme: 'https',
-    allowNavigation: ['clerk.betteropnr.com'],
+    allowNavigation: [
+      'clerk.betteropnr.com',
+      '*.clerk.accounts.dev',
+      '*.clerk.services',
+    ],
   },
   plugins: {
     LocalNotifications: {
