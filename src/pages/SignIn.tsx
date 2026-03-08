@@ -1,69 +1,85 @@
-import { SignIn as ClerkSignIn } from '@clerk/clerk-react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useSignIn } from '@clerk/clerk-react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { Spark } from '@/components/ui/Spark';
 import { Button } from '@/components/ui/button';
 import { enterGuest } from '@/lib/guest';
 
 const SignIn = () => {
+  const { isLoaded, signIn } = useSignIn();
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as any)?.from || '/generator';
 
   const handleGuest = () => {
     enterGuest();
-    navigate("/generator", { replace: true });
+    navigate('/generator', { replace: true });
+  };
+
+  const handleOAuth = async (strategy: 'oauth_apple' | 'oauth_google') => {
+    if (!isLoaded || !signIn) return;
+
+    try {
+      await signIn.authenticateWithRedirect({
+        strategy,
+        redirectUrl: '/sso-callback',
+        redirectUrlComplete: from,
+      });
+    } catch (err) {
+      console.error('OAuth error:', err);
+    }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4 relative overflow-hidden">
-      {/* Decorative floating sparks */}
-      <Spark 
+      <Spark
         className="absolute top-20 right-20 pointer-events-none hidden md:block"
         animate="drift"
         duration={6}
         size={32}
       />
-      <Spark 
+      <Spark
         className="absolute bottom-32 left-24 pointer-events-none hidden md:block"
         animate="float"
         duration={7}
         size={28}
       />
 
-      <div className="flex flex-col items-center gap-4">
-        <ClerkSignIn
-          appearance={{
-            elements: {
-              rootBox: 'mx-auto',
-              card: 'shadow-elegant rounded-3xl border-0',
-              headerTitle: 'font-heading font-bold',
-              headerSubtitle: 'text-muted-foreground',
-              formButtonPrimary: 'bg-primary hover:bg-primary/90 rounded-2xl transition-all duration-200 hover:scale-[1.02]',
-              footerActionLink: 'text-primary hover:text-primary/80',
-              formFieldInput: 'rounded-xl border-border focus:ring-secondary',
-              formFieldLabel: 'text-foreground font-medium',
-              identityPreviewEditButton: 'text-primary',
-              otpCodeFieldInput: 'rounded-xl border-border',
-            },
-            layout: {
-              logoPlacement: 'inside',
-            },
-            variables: {
-              colorPrimary: '#FF6B6B',
-              colorText: '#0F1222',
-              colorBackground: '#FFFFFF',
-              colorInputBackground: '#FFFFFF',
-              colorInputText: '#0F1222',
-              borderRadius: '1rem',
-            },
-          }}
-          routing="path"
-          path="/sign-in"
-          signUpUrl="/sign-up"
-          afterSignInUrl={from}
-        />
+      <div className="w-full max-w-md bg-white rounded-3xl shadow-elegant p-6 sm:p-8 flex flex-col items-center gap-4">
+        <div className="text-center space-y-2">
+          <h1 className="text-2xl font-bold text-foreground">Sign in to BetterOpnr</h1>
+          <p className="text-sm text-muted-foreground">
+            Start better conversations with Apple or Google.
+          </p>
+        </div>
 
-        {/* Guest button */}
+        <div className="w-full space-y-3">
+          <Button
+            type="button"
+            onClick={() => handleOAuth('oauth_apple')}
+            disabled={!isLoaded}
+            className="w-full rounded-2xl h-12 text-base"
+          >
+            Continue with Apple
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => handleOAuth('oauth_google')}
+            disabled={!isLoaded}
+            className="w-full rounded-2xl h-12 text-base"
+          >
+            Continue with Google
+          </Button>
+        </div>
+
+        <div className="text-sm text-muted-foreground text-center">
+          Don&apos;t have an account?{' '}
+          <Link to="/sign-up" className="text-primary font-medium hover:underline">
+            Create one
+          </Link>
+        </div>
+
         <Button
           variant="ghost"
           onClick={handleGuest}
