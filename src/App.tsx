@@ -265,7 +265,10 @@ const App = () => {
   }
 
   return (
-    <ClerkProvider publishableKey={CLERK_PUBLISHABLE_KEY}>
+    <ClerkProvider
+  publishableKey={CLERK_PUBLISHABLE_KEY}
+  frontendApi="clerk.betteropnr.com"
+>
       <SupabaseProvider>
         <ClerkSyncProvider>
           <QueryClientProvider client={queryClient}>
