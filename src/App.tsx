@@ -3,7 +3,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { ClerkProvider, useUser } from "@clerk/clerk-react";
+import { ClerkProvider, useUser, AuthenticateWithRedirectCallback } from "@clerk/clerk-react";
 import { SupabaseProvider } from "@/contexts/SupabaseContext";
 import { AuthModeSync } from "@/components/auth/AuthModeSync";
 import { RequireAuthOrGuest } from "@/components/auth/RequireAuthOrGuest";
@@ -14,7 +14,6 @@ import { Navigation } from "@/components/Navigation";
 import { InstallBanner } from "@/components/InstallBanner";
 import { isWebApp } from "@/lib/platformDetection";
 import { RevenueCatAuthBridge } from "@/components/RevenueCatAuthBridge";
-import Landing from "./pages/Landing";
 import Generator from "./pages/Generator";
 import Saved from "./pages/Saved";
 import Dashboard from "./pages/Dashboard";
@@ -34,9 +33,8 @@ import { AnimatePresence, motion } from "framer-motion";
 import { pageTransition } from "@/lib/motionConfig";
 import { useState, useEffect } from "react";
 import { AIConsentScreen } from "@/components/AIConsentScreen";
-import { ClerkProvider, useUser, AuthenticateWithRedirectCallback } from "@clerk/clerk-react";
 
-const CLERK_PUBLISHABLE_KEY = 'pk_live_Y2xlcmsuYmV0dGVyb3Buci5jb20k';
+const CLERK_PUBLISHABLE_KEY = "pk_live_Y2xlcmsuYmV0dGVyb3Buci5jb20k";
 
 const queryClient = new QueryClient();
 
@@ -46,15 +44,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [authTimeout, setAuthTimeout] = useState(false);
 
   useEffect(() => {
-    // Set a timeout to detect if Clerk never loads (e.g., domain not authorized)
     const timer = setTimeout(() => {
       if (!isLoaded) {
         setAuthTimeout(true);
         if (import.meta.env.DEV) {
-          console.warn('⚠️ Auth timeout: Clerk did not load within 10 seconds. Check that this domain is authorized in your Clerk dashboard.');
+          console.warn(
+            "⚠️ Auth timeout: Clerk did not load within 10 seconds. Check that this domain is authorized in your Clerk dashboard."
+          );
         }
       }
-    }, 10000); // 10 second timeout
+    }, 10000);
 
     return () => clearTimeout(timer);
   }, [isLoaded]);
@@ -71,7 +70,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
             </p>
           </div>
           <button
-            onClick={() => window.location.href = '/sign-in'}
+            onClick={() => (window.location.href = "/sign-in")}
             className="px-6 py-3 bg-primary text-primary-foreground rounded-2xl font-semibold hover:opacity-90 transition-opacity"
           >
             Go to Sign In
@@ -93,7 +92,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   }
 
   if (!isSignedIn) {
-    // Store intended destination for smart redirect after login
     return <Navigate to="/sign-in" state={{ from: location.pathname }} replace />;
   }
 
@@ -102,37 +100,48 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const AnimatedRoutes = () => {
   const location = useLocation();
-  
+
   return (
     <AnimatePresence mode="wait">
       <Routes location={location} key={location.pathname}>
-        {/* Home route - shows Generator for auth/guest, Landing for others */}
-        <Route path="/" element={
-          <motion.div {...pageTransition}>
-            <HomeOrGenerator />
-          </motion.div>
-        } />
+        <Route
+          path="/"
+          element={
+            <motion.div {...pageTransition}>
+              <HomeOrGenerator />
+            </motion.div>
+          }
+        />
         <Route path="/sign-in/*" element={<SignIn />} />
         <Route path="/sign-up/*" element={<SignUp />} />
+        <Route path="/sso-callback" element={<AuthenticateWithRedirectCallback />} />
         <Route path="/brand-preview" element={<BrandPreview />} />
         <Route path="/install" element={<Install />} />
-        <Route path="/privacy" element={
-          <motion.div {...pageTransition}>
-            <Privacy />
-          </motion.div>
-        } />
-        <Route path="/terms" element={
-          <motion.div {...pageTransition}>
-            <Terms />
-          </motion.div>
-        } />
-        <Route path="/affiliate-disclosure" element={
-          <motion.div {...pageTransition}>
-            <AffiliateDisclosure />
-          </motion.div>
-        } />
-        
-        {/* Protected routes with page transitions */}
+        <Route
+          path="/privacy"
+          element={
+            <motion.div {...pageTransition}>
+              <Privacy />
+            </motion.div>
+          }
+        />
+        <Route
+          path="/terms"
+          element={
+            <motion.div {...pageTransition}>
+              <Terms />
+            </motion.div>
+          }
+        />
+        <Route
+          path="/affiliate-disclosure"
+          element={
+            <motion.div {...pageTransition}>
+              <AffiliateDisclosure />
+            </motion.div>
+          }
+        />
+
         <Route
           path="/generator"
           element={
@@ -191,8 +200,7 @@ const AnimatedRoutes = () => {
             </ProtectedRoute>
           }
         />
-        
-        {/* 404 Not Found */}
+
         <Route path="*" element={<NotFound />} />
       </Routes>
     </AnimatePresence>
@@ -201,10 +209,9 @@ const AnimatedRoutes = () => {
 
 const App = () => {
   const [hasConsented, setHasConsented] = useState(() => {
-    return localStorage.getItem('betteropnr_ai_consent') === 'true';
+    return localStorage.getItem("betteropnr_ai_consent") === "true";
   });
 
-  // Show setup instructions if no valid key is configured
   if (!CLERK_PUBLISHABLE_KEY) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-subtle">
@@ -216,10 +223,25 @@ const App = () => {
               The <code className="bg-muted px-2 py-1 rounded text-sm">VITE_CLERK_PUBLISHABLE_KEY</code> environment variable is not configured.
             </p>
             <ol className="space-y-3 list-decimal list-inside text-foreground">
-              <li>Go to your <a href="https://dashboard.clerk.com/" target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80">Clerk Dashboard</a></li>
+              <li>
+                Go to your{" "}
+                <a
+                  href="https://dashboard.clerk.com/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary underline hover:text-primary/80"
+                >
+                  Clerk Dashboard
+                </a>
+              </li>
               <li>Navigate to <strong>API Keys</strong></li>
-              <li>Copy your <strong>Publishable Key</strong> (starts with <code className="bg-muted px-1 rounded text-xs">pk_live_</code> or <code className="bg-muted px-1 rounded text-xs">pk_test_</code>)</li>
-              <li>Add it to your <code className="bg-muted px-2 py-1 rounded text-sm">.env</code> file:
+              <li>
+                Copy your <strong>Publishable Key</strong> (starts with{" "}
+                <code className="bg-muted px-1 rounded text-xs">pk_live_</code> or{" "}
+                <code className="bg-muted px-1 rounded text-xs">pk_test_</code>)
+              </li>
+              <li>
+                Add it to your <code className="bg-muted px-2 py-1 rounded text-sm">.env</code> file:
                 <code className="block bg-muted p-3 rounded mt-2 text-sm font-mono">
                   VITE_CLERK_PUBLISHABLE_KEY="pk_live_..."
                 </code>
@@ -228,7 +250,8 @@ const App = () => {
             </ol>
             <div className="mt-4 p-4 bg-muted/50 rounded-xl">
               <p className="text-sm text-muted-foreground">
-                <strong>Note:</strong> Use a production key (<code className="text-xs">pk_live_</code>) for real users. Test keys don't send actual emails.
+                <strong>Note:</strong> Use a production key (
+                <code className="text-xs">pk_live_</code>) for real users. Test keys don't send actual emails.
               </p>
             </div>
           </div>
@@ -237,11 +260,8 @@ const App = () => {
     );
   }
 
-  // Show AI consent screen on first launch
   if (!hasConsented) {
-    return (
-      <AIConsentScreen onConsent={() => setHasConsented(true)} />
-    );
+    return <AIConsentScreen onConsent={() => setHasConsented(true)} />;
   }
 
   return (
