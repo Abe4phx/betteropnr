@@ -265,11 +265,13 @@ const App = () => {
   }
 
   return (
-    <ClerkProvider
-  publishableKey={CLERK_PUBLISHABLE_KEY}
-  frontendApi="clerk.betteropnr.com"
->
-      <SupabaseProvider>
+  <ClerkProvider
+    publishableKey={CLERK_PUBLISHABLE_KEY}
+    frontendApi="clerk.betteropnr.com"
+    standardBrowser={false}
+    allowedRedirectProtocols={["betteropnr"]}
+  >
+    <SupabaseProvider>
         <ClerkSyncProvider>
           <QueryClientProvider client={queryClient}>
             <TooltipProvider>
