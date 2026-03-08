@@ -180,6 +180,7 @@ npm install @capacitor/splash-screen
 - Check that you're using the correct OAuth scheme in Clerk dashboard
 - Use `VITE_CLERK_PUBLISHABLE_KEY` (not a hardcoded key) and set `VITE_CLERK_DOMAIN=clerk.betteropnr.com`
 - In Capacitor, allow Clerk hosts used by ClerkJS (`clerk.betteropnr.com`, `*.clerk.accounts.dev`, `*.clerk.services`)
+- If iOS logs show `_baseFetch` failing on `/npm/@clerk/clerk-js/...`, set `VITE_CLERK_JS_URL` to Clerk CDN and verify any proxy/WAF on `clerk.betteropnr.com` allows `/npm/*` paths
 
 **Build errors?**
 - Run `npx cap sync` after any code changes

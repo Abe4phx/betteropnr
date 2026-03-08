@@ -37,6 +37,7 @@ import { isNativeApp } from "@/lib/platformDetection";
 
 const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ?? "";
 const CLERK_DOMAIN = import.meta.env.VITE_CLERK_DOMAIN ?? "clerk.betteropnr.com";
+const CLERK_JS_URL = import.meta.env.VITE_CLERK_JS_URL ?? "https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js";
 
 const queryClient = new QueryClient();
 
@@ -270,6 +271,7 @@ const App = () => {
   <ClerkProvider
     publishableKey={CLERK_PUBLISHABLE_KEY}
     domain={CLERK_DOMAIN}
+    clerkJSUrl={isNativeApp() ? CLERK_JS_URL : undefined}
     standardBrowser={!isNativeApp()}
     allowedRedirectProtocols={["betteropnr"]}
   >
