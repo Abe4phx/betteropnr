@@ -34,6 +34,7 @@ import { AnimatePresence, motion } from "framer-motion";
 import { pageTransition } from "@/lib/motionConfig";
 import { useState, useEffect } from "react";
 import { AIConsentScreen } from "@/components/AIConsentScreen";
+import { ClerkProvider, useUser, AuthenticateWithRedirectCallback } from "@clerk/clerk-react";
 
 const CLERK_PUBLISHABLE_KEY = 'pk_live_Y2xlcmsuYmV0dGVyb3Buci5jb20k';
 
