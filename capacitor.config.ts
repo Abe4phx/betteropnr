@@ -5,7 +5,8 @@ const config: CapacitorConfig = {
   appName: 'BetterOpnr',
   webDir: 'dist',
   server: {
-    androidScheme: 'https'
+    androidScheme: 'https',
+    allowNavigation: ['clerk.betteropnr.com'],
   },
   plugins: {
     LocalNotifications: {
