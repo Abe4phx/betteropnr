@@ -46,7 +46,9 @@ import { pageTransition } from "@/lib/motionConfig";
 import { useState, useEffect } from "react";
 import { AIConsentScreen } from "@/components/AIConsentScreen";
 
-const CLERK_PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ?? "";
+const CLERK_PUBLISHABLE_KEY =
+  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ||
+  "pk_live_Y2xlcmsuYmV0dGVyb3Buci5jb20k";
 const CLERK_JS_URL =
   import.meta.env.VITE_CLERK_JS_URL ??
   `https://${
