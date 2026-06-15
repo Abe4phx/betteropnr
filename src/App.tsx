@@ -77,6 +77,14 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     return () => clearTimeout(timer);
   }, [isLoaded]);
 
+  // Native: honour a session token obtained via the hosted-auth deep link.
+  // Checked after all hooks so hook call order is stable.
+  const hasNativeSession = isNativeApp() && (
+    !!localStorage.getItem("betteropnr_native_supabase_token") ||
+    !!localStorage.getItem("betteropnr_native_session_token")
+  );
+  if (hasNativeSession) return <>{children}</>;
+
   if (authTimeout) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center bg-gradient-subtle px-4">
@@ -143,7 +151,12 @@ const AnimatedRoutes = () => {
         <Route path="/sign-up/*" element={<SignUp />} />
         <Route
           path="/sso-callback"
-          element={<AuthenticateWithRedirectCallback />}
+          element={
+            <AuthenticateWithRedirectCallback
+              signInForceRedirectUrl="/generator"
+              signUpForceRedirectUrl="/generator"
+            />
+          }
         />
         <Route path="/auth-callback" element={<AuthCallback />} />
         <Route path="/brand-preview" element={<BrandPreview />} />
