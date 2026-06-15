@@ -1,17 +1,37 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { useAuth } from "@clerk/clerk-react";
 import { Button } from "@/components/ui/button";
 
 const AuthCallback = () => {
-  useEffect(() => {
+  const { isLoaded, isSignedIn, getToken } = useAuth();
+  const autoFired = useRef(false);
+
+  const buildDeepLink = async () => {
     const search = window.location.search;
     const hash = window.location.hash;
-    window.location.href = `betteropnr://auth-callback${search}${hash}`;
-  }, []);
+
+    if (isSignedIn) {
+      const supabaseToken = await getToken({ template: "supabase" }).catch(() => null);
+      const sessionToken  = await getToken().catch(() => null);
+      const params = new URLSearchParams(search.slice(1));
+      if (supabaseToken) params.set("__sbt", supabaseToken);
+      if (sessionToken)  params.set("__st",  sessionToken!);
+      const qs = params.toString() ? `?${params.toString()}` : "";
+      return `betteropnr://auth-callback${qs}${hash}`;
+    }
+
+    return `betteropnr://auth-callback${search}${hash}`;
+  };
+
+  useEffect(() => {
+    if (!isLoaded || autoFired.current) return;
+    autoFired.current = true;
+    buildDeepLink().then((url) => { window.location.href = url; });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoaded, isSignedIn]);
 
   const handleReturn = () => {
-    const search = window.location.search;
-    const hash = window.location.hash;
-    window.location.href = `betteropnr://auth-callback${search}${hash}`;
+    buildDeepLink().then((url) => { window.location.href = url; });
   };
 
   return (

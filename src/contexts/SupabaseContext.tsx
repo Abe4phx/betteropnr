@@ -2,6 +2,7 @@ import { createContext, useContext, useMemo, ReactNode, useEffect, useState } fr
 import { useSession } from '@clerk/clerk-react';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/integrations/supabase/types';
+import { isNativeApp } from '@/lib/platformDetection';
 
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
@@ -19,11 +20,22 @@ export const SupabaseProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     const getToken = async () => {
+      // In native mode, prefer the token obtained via the hosted-auth deep link
+      if (isNativeApp()) {
+        const nativeToken =
+          localStorage.getItem("betteropnr_native_supabase_token") ||
+          localStorage.getItem("betteropnr_native_session_token");
+        if (nativeToken) {
+          setSupabaseAccessToken(nativeToken);
+          return;
+        }
+      }
+
       if (!session) {
         setSupabaseAccessToken(null);
         return;
       }
-      
+
       try {
         const token = await session.getToken({ template: 'supabase' });
         setSupabaseAccessToken(token);

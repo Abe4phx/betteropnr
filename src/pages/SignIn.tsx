@@ -66,7 +66,27 @@ const SignIn = () => {
       console.log("[appUrlOpen] full URL:", event.url);
       if (event.url.startsWith("betteropnr://auth-callback")) {
         Browser.close();
-        navigate("/generator", { replace: true });
+        const raw = event.url;
+        const qIdx = raw.indexOf("?");
+        const hIdx = raw.indexOf("#");
+        const search = qIdx !== -1 ? raw.slice(qIdx, hIdx !== -1 ? hIdx : undefined) : "";
+        const hash   = hIdx !== -1 ? raw.slice(hIdx) : "";
+
+        const params = new URLSearchParams(search.slice(1));
+        const sbt = params.get("__sbt");
+        const st  = params.get("__st");
+        if (sbt) localStorage.setItem("betteropnr_native_supabase_token", sbt);
+        if (st)  localStorage.setItem("betteropnr_native_session_token",  st);
+
+        // Pass remaining Clerk params (e.g. __clerk_handshake) to sso-callback if present
+        params.delete("__sbt");
+        params.delete("__st");
+        const remaining = params.toString();
+        if (remaining || hash) {
+          navigate(`/sso-callback${remaining ? "?" + remaining : ""}${hash}`, { replace: true });
+        } else {
+          navigate("/generator", { replace: true });
+        }
         return;
       }
     });
