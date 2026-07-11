@@ -1805,6 +1805,224 @@ These labels are intended for future generation metadata, evaluation, analytics,
 
 ---
 
+# 7. Novelty and Attention
+
+## Purpose
+
+This section defines how BetterOpnr should create messages that are memorable because they are relevant, not because they are random.
+
+The objective is not to maximize surprise or originality.
+
+The objective is to produce messages that stand out by noticing something meaningful and expressing it in a natural way.
+
+---
+
+# Research-Backed Findings
+
+### Finding: Novel stimuli are more likely to capture attention, but attention alone does not produce positive evaluation.
+
+**Evidence type:** Research-Backed Finding
+
+**Claim**
+
+Research across cognitive psychology indicates that people naturally orient toward information that is novel or unexpected.
+
+However, attention and positive evaluation are separate outcomes. A message may capture attention while still being confusing, inappropriate, or unlikeable.
+
+**Confidence**
+
+High
+
+**Known limitations**
+
+- Most novelty research is not specific to dating.
+- Novelty can increase cognitive effort if it becomes too unexpected.
+- What feels novel depends on the recipient's experience and expectations.
+
+---
+
+### BetterOpnr Interpretation
+
+Novelty should emerge from relevance.
+
+The strongest opening messages usually become memorable because they notice something specific that other people overlook.
+
+Novelty should not come from:
+
+- randomness
+- forced humor
+- bizarre comparisons
+- shock value
+- intentionally confusing language
+
+---
+
+# BetterOpnr Product Concept
+
+## Distinctive Relevance
+
+**Classification:** BetterOpnr Product Heuristic
+
+### Definition
+
+Distinctive Relevance measures whether a message is simultaneously:
+
+- profile-specific
+- natural
+- memorable
+- easy to continue
+
+Distinctive Relevance is achieved when a message feels personally written rather than statistically generated.
+
+---
+
+## High Distinctive Relevance
+
+Examples include:
+
+- noticing an uncommon profile detail
+- connecting two related profile elements
+- making a thoughtful observation
+- asking about something specific instead of something generic
+
+Example:
+
+> Your bookshelf says more about you than your bio does—which book gets recommended way too often?
+
+---
+
+## Low Distinctive Relevance
+
+Examples include:
+
+- generic compliments
+- interchangeable questions
+- random jokes unrelated to the profile
+- compliments that could be sent to anyone
+- novelty for novelty's sake
+
+Example:
+
+> If your personality were a kitchen appliance, what would it be?
+
+The message is unexpected but unsupported by context.
+
+---
+
+# BetterOpnr Product Heuristic
+
+### Heuristic: Surprise Through Specificity
+
+**Evidence type:** BetterOpnr Product Heuristic
+
+**Heuristic**
+
+BetterOpnr should create memorable messages by making specific observations rather than introducing unrelated novelty.
+
+Specificity is generally a more sustainable source of originality than randomness.
+
+**Evidence available**
+
+- Attention research
+- Cognitive psychology
+- Internal product reasoning
+
+**Evidence missing**
+
+- BetterOpnr production data
+- Direct comparison of specificity versus randomness
+- Platform-specific experimentation
+
+**Confidence**
+
+Moderate
+
+**Status**
+
+Hypothesis
+
+---
+
+# Generation Rules
+
+When generating messages, BetterOpnr should:
+
+- prioritize specific observations over generic compliments
+- prefer recipient-specific wording
+- avoid interchangeable openings
+- make novelty emerge from context
+- avoid bizarre comparisons unless clearly supported by profile tone
+- preserve conversational clarity
+
+---
+
+# Evaluation Rules
+
+When evaluating a generated message, ask:
+
+1. Could this opener be sent to hundreds of other profiles?
+2. Does the memorable element come from the recipient's profile?
+3. Is the wording natural?
+4. Does the message remain easy to answer?
+5. Does novelty increase interest without increasing confusion?
+
+Indicators of poor novelty include:
+
+- random metaphors
+- forced cleverness
+- profile-independent jokes
+- attention-seeking without conversational value
+
+---
+
+# Future Experiment
+
+## Hypothesis 02-007
+
+Messages using profile-specific observations will produce higher BetterOpnr Low-Edit Acceptance Rates than messages relying primarily on generic novelty or humor.
+
+### Primary Metric
+
+Low-Edit Acceptance Rate
+
+### Secondary Metrics
+
+- Acceptance Rate
+- Regeneration Rate
+- Average edit distance
+- Strategy selection rate
+
+### Success Criteria
+
+Increase Low-Edit Acceptance Rate while maintaining conversational clarity and authenticity.
+
+---
+
+# BetterOpnr Strategy Labels Introduced
+
+The following internal labels are introduced by this section:
+
+- Distinctive Relevance
+- Specific Observation
+- Observation Hook
+- Recipient-Specific Novelty
+- Generic Opener
+- Contextual Surprise
+
+These labels are intended for future generation metadata, evaluation, analytics, and experimentation. They are not displayed to users.
+
+---
+
+# Open Questions
+
+- How much novelty is optimal before clarity begins to decline?
+- Which profile details create the strongest distinctive observations?
+- Does humor amplify or weaken distinctive relevance?
+- When should BetterOpnr intentionally avoid novelty?
+- Can Distinctive Relevance be scored automatically before generation?
+
+---
+
 ## Revision History
 
 | Version | Date       | Status | Summary                                          |
@@ -1815,3 +2033,4 @@ These labels are intended for future generation metadata, evaluation, analytics,
 | 0.4     | 2026-07-11 | Draft  | Added Self-Disclosure section. |
 | 0.5     | 2026-07-11 | Draft  | Added Uncertainty in Early Interaction section. |
 | 0.6     | 2026-07-11 | Draft  | Added Similarity and Points of Connection section. |
+| 0.7     | 2026-07-11 | Draft  | Added Novelty and Attention section. |
