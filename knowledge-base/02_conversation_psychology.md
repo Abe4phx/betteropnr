@@ -423,9 +423,228 @@ Increase Low-Edit Acceptance Rate without increasing message length or Regenerat
 
 ---
 
+# 3. Reciprocity
+
+## Purpose
+
+This section defines how BetterOpnr should encourage balanced conversation rather than one-sided information exchange.
+
+The objective is to help users participate in a conversation instead of conducting an interview. Strong conversations typically involve both people gradually contributing observations, reactions, opinions, and experiences.
+
+---
+
+# Research-Backed Findings
+
+### Finding: Conversations often become more engaging when both participants contribute.
+
+**Evidence type:** Research-Backed Finding
+
+**Claim**
+
+Interpersonal communication research suggests that reciprocal participation—including reciprocal self-disclosure and mutual responsiveness—helps conversations develop over time.
+
+Balanced exchanges generally encourage continued interaction more effectively than one-sided information gathering.
+
+**Confidence**
+
+Moderate
+
+**Known limitations**
+
+* Most supporting research studies face-to-face interactions or established relationships.
+* The appropriate level of reciprocity depends on conversation stage.
+* Excessive disclosure too early may create discomfort.
+
+---
+
+### BetterOpnr Interpretation
+
+An opening message should not ask the recipient to do all of the conversational work.
+
+Whenever appropriate, BetterOpnr should encourage the sender to contribute something before expecting the recipient to respond.
+
+That contribution may be:
+
+* an observation
+* an opinion
+* a light emotional reaction
+* a playful assumption
+* a brief personal preference
+* a shared experience
+
+The contribution should remain proportional to the stage of the interaction.
+
+---
+
+# BetterOpnr Product Concept
+
+## Conversation Balance
+
+**Classification:** BetterOpnr Product Heuristic
+
+### Definition
+
+Conversation Balance measures whether both participants are invited to contribute naturally to the interaction.
+
+Messages with strong Conversation Balance encourage mutual participation without requiring either person to carry the conversation alone.
+
+Conversation Balance is different from message length.
+
+A short message can have excellent Conversation Balance, while a long message can still place nearly all conversational responsibility on the recipient.
+
+---
+
+## High Conversation Balance
+
+Examples include:
+
+* observation followed by a relevant question
+* opinion followed by curiosity
+* light self-disclosure followed by an invitation to share
+* playful assumption followed by an opportunity to agree, disagree, or elaborate
+
+Example:
+
+> I respect anyone willing to wake up early for mountain hikes. I still haven't figured out how people do it. What's your favorite trail?
+
+The sender contributes an opinion before inviting participation.
+
+---
+
+## Low Conversation Balance
+
+Examples include:
+
+* repeated requests for information
+* interview-style questioning
+* messages expecting emotional disclosure without offering any of the sender's perspective
+* demanding explanations
+* one-sided curiosity
+
+Example:
+
+> Where did you grow up? What do you do? Why did you move here?
+
+The recipient is responsible for carrying nearly all of the interaction.
+
+---
+
+# BetterOpnr Product Heuristic
+
+### Heuristic: Give Before You Request
+
+**Evidence type:** BetterOpnr Product Heuristic
+
+**Heuristic**
+
+Messages that provide a small conversational contribution before requesting information are likely to feel more natural and engaging than messages consisting only of requests.
+
+The contribution does not need to be personal or vulnerable.
+
+Its primary purpose is to demonstrate participation.
+
+**Evidence available**
+
+* Interpersonal communication research
+* General conversation principles
+* Internal product reasoning
+
+**Evidence missing**
+
+* BetterOpnr production data
+* Controlled product experiments
+
+**Confidence**
+
+Low
+
+**Status**
+
+Hypothesis
+
+---
+
+# Generation Rules
+
+When generating messages, BetterOpnr should:
+
+* encourage reciprocal participation
+* contribute before requesting information when appropriate
+* avoid making the recipient responsible for carrying the interaction
+* match the level of contribution to the conversation stage
+* avoid excessive self-disclosure during opening interactions
+
+---
+
+# Evaluation Rules
+
+When evaluating a generated message, ask:
+
+1. Has the sender contributed anything meaningful?
+2. Does the recipient have a comfortable way to participate?
+3. Is conversational effort reasonably balanced?
+4. Does the message avoid interview dynamics?
+5. Is the contribution appropriate for an opening interaction?
+
+Indicators of poor Conversation Balance include:
+
+* multiple requests with no contribution
+* emotional disclosure that feels premature
+* one-sided curiosity
+* conversational burden placed entirely on the recipient
+
+---
+
+# Future Experiment
+
+## Hypothesis 02-003
+
+Messages containing a contextual contribution before a request for information will produce a higher BetterOpnr Low-Edit Acceptance Rate than messages consisting primarily of information requests.
+
+### Primary Metric
+
+Low-Edit Acceptance Rate
+
+### Secondary Metrics
+
+* Acceptance Rate
+* Regeneration Rate
+* Average edit distance
+
+### Success Criteria
+
+A measurable increase in Low-Edit Acceptance Rate without increasing average message length or Regeneration Rate.
+
+---
+
+# BetterOpnr Strategy Labels Introduced
+
+The following strategy labels are introduced by this section for future analytics and experimentation:
+
+* Contextual Contribution
+* Opinion Before Question
+* Observation Before Question
+* Shared Experience Prompt
+* Conversation Balance
+
+These labels are product taxonomy only. They are not shown to users.
+
+---
+
+# Open Questions
+
+* Does Conversation Balance vary by communication style?
+* When should BetterOpnr intentionally generate statement-only openers?
+* How much contribution feels natural before an opening question?
+* Does playful disagreement improve Conversation Balance?
+* Can Conversation Balance be scored reliably before generation?
+
+---
+
 ## Revision History
 
 | Version | Date       | Status | Summary                                          |
 | ------- | ---------- | ------ | ------------------------------------------------ |
 | 0.1     | 2026-07-11 | Draft  | Added Cognitive Effort & Reply Friction section. |
 | 0.2     | 2026-07-11 | Draft  | Added Question Asking & Responsiveness section.  |
+| 0.3     | 2026-07-11 | Draft  | Added Reciprocity section. |
