@@ -641,6 +641,427 @@ These labels are product taxonomy only. They are not shown to users.
 
 ---
 
+# 4. Self-Disclosure
+
+## Purpose
+
+This section defines how BetterOpnr should use small amounts of personal information to make messages feel mutual, human, and easier to continue.
+
+The objective is not to encourage users to reveal sensitive or deeply personal information in an opening message. The objective is to contribute enough personality, perspective, or experience to support a balanced interaction.
+
+---
+
+# Research-Backed Findings
+
+### Finding: Self-disclosure and perceived responsiveness can contribute to interpersonal closeness.
+
+**Evidence type:** Research-Backed Finding
+
+**Claim**
+
+Interpersonal-process research indicates that self-disclosure can contribute to experienced intimacy when it occurs alongside partner disclosure and perceived responsiveness.
+
+Self-disclosure alone is not sufficient. How the other person responds and whether the disclosure feels understood or acknowledged also matter.
+
+**Source**
+
+Laurenceau, J.-P., Barrett, L. F., and Pietromonaco, P. R. “Intimacy as an Interpersonal Process: The Importance of Self-Disclosure, Partner Disclosure, and Perceived Partner Responsiveness in Interpersonal Exchanges.” Journal of Personality and Social Psychology, 1998.
+
+PubMed ID: 9599440
+
+**Population or dataset**
+
+Participants completed event-contingent diary reports after social interactions over one- or two-week periods.
+
+**Method summary**
+
+The studies examined associations among personal disclosure, partner disclosure, perceived partner responsiveness, and experienced intimacy during individual interactions.
+
+**Confidence**
+
+Moderate
+
+**Known limitations**
+
+- The research was not designed to measure dating-app opener performance.
+- The findings concern interpersonal exchanges more broadly.
+- Intimacy is not an appropriate immediate objective for every opening interaction.
+- The benefits of disclosure depend partly on how the other person responds.
+
+**Product implication**
+
+BetterOpnr may use small, stage-appropriate disclosures to give a recipient something personal to respond to, but should not assume that disclosure automatically creates attraction or closeness.
+
+---
+
+### Finding: Reciprocal disclosure patterns can influence trust and liking during online interaction.
+
+**Evidence type:** Research-Backed Finding
+
+**Claim**
+
+An experimental study of computer-mediated interaction between strangers found that turn-by-turn reciprocal self-disclosure was associated with greater interpersonal trust and liking than delayed or nonreciprocal disclosure patterns under the tested conditions.
+
+**Source**
+
+Chen, Q., and colleagues. “The Benefits of Reciprocal Self-Disclosure During Online Interaction Depend on the Pattern of Reciprocity.” 2024.
+
+PubMed ID: 37931920
+
+**Population or dataset**
+
+Participants engaged in online interactions with strangers under different reciprocal-disclosure conditions.
+
+**Method summary**
+
+The study compared turn-taking reciprocity, extended reciprocity, and nonreciprocity across two phases of computer-mediated interaction.
+
+**Confidence**
+
+Moderate
+
+**Known limitations**
+
+- The interaction format was experimental and may differ from dating applications.
+- The study examined synchronous exchanges rather than isolated opening messages.
+- The result does not establish that greater disclosure is always better.
+- Culture, platform, user intent, and disclosure topic may affect outcomes.
+
+**Product implication**
+
+BetterOpnr should favor gradual, turn-based contribution rather than encouraging the user to reveal several personal details before the recipient has reciprocated.
+
+---
+
+### Finding: People often respond to disclosure with a comparable level of disclosure.
+
+**Evidence type:** Research-Backed Finding
+
+**Claim**
+
+Research and reviews of self-disclosure describe a reciprocity tendency in which recipients often respond with information at a roughly comparable level of intimacy.
+
+The tendency is contextual rather than universal.
+
+**Sources**
+
+Kreiner, H., and colleagues. “Self-Disclosure Here and Now: Combining Retrospective Perceived Assessment With Dynamic Behavioral Measures.” Frontiers in Psychology, 2019.
+
+Barak, A., and Gluck-Ofri, O. “Degree and Reciprocity of Self-Disclosure in Online Forums.” CyberPsychology & Behavior, 2007.
+
+PubMed IDs: 30971976 and 17594265
+
+**Confidence**
+
+Moderate
+
+**Known limitations**
+
+- Some evidence comes from online forums rather than dating interactions.
+- Comparable disclosure may be inappropriate when the original disclosure is excessive.
+- Reciprocity can vary with culture, personality, mood, trust, relationship stage, and communication channel.
+- A recipient may choose not to reciprocate even when the disclosure is appropriate.
+
+**Product implication**
+
+BetterOpnr can use modest disclosure to invite mutual participation, but should keep the disclosure level low enough that the recipient can respond without pressure.
+
+---
+
+# BetterOpnr Interpretation
+
+A small disclosure can improve an opener when it:
+
+- gives the recipient something concrete to react to
+- explains why the sender is asking
+- reveals a preference or point of view
+- reduces an interview-like dynamic
+- makes the message sound more personal
+- remains proportionate to the relationship stage
+
+Disclosure becomes harmful or uncomfortable when it:
+
+- introduces emotional intensity before rapport exists
+- requests matching vulnerability from the recipient
+- reveals sensitive information unnecessarily
+- creates an obligation to reassure or support the sender
+- dominates the message
+- shifts attention away from the recipient’s profile
+- appears strategically manufactured rather than natural
+
+BetterOpnr should treat self-disclosure as a conversational contribution, not as a technique for forcing intimacy.
+
+---
+
+# BetterOpnr Product Concept
+
+## Disclosure Depth
+
+**Classification:** BetterOpnr Product Heuristic
+
+### Definition
+
+Disclosure Depth represents how private, emotionally significant, or personally consequential a statement is.
+
+BetterOpnr should distinguish among at least three initial levels.
+
+### Level 1: Preference or Light Personal Detail
+
+Examples:
+
+- a food preference
+- a travel opinion
+- a harmless habit
+- a favorite activity
+- a light personal reaction
+- a low-stakes experience
+
+Example:
+
+> I’m usually a beach-trip person, but that mountain view might change my mind. Where was it?
+
+This level is generally the most appropriate for opening interactions.
+
+### Level 2: Personal Experience or Moderate Perspective
+
+Examples:
+
+- a meaningful travel experience
+- a personal goal
+- a moderate fear or insecurity
+- a family or career experience
+- a value-based opinion
+
+Example:
+
+> I started hiking after moving here, and I’m still trying to find a trail that doesn’t humble me. Which one would you recommend?
+
+This level may be appropriate when it remains brief, relevant, and low-pressure.
+
+### Level 3: Sensitive or Emotionally Intense Disclosure
+
+Examples:
+
+- trauma
+- mental-health history
+- significant grief
+- financial distress
+- sexual history
+- serious relationship conflict
+- deeply personal insecurity
+- identifying or security-sensitive information
+
+This level is generally inappropriate for generated opening messages.
+
+---
+
+## Disclosure Burden
+
+**Classification:** BetterOpnr Product Heuristic
+
+### Definition
+
+Disclosure Burden is the emotional or conversational responsibility a personal statement places on the recipient.
+
+A message has high Disclosure Burden when the recipient may feel expected to:
+
+- reassure the sender
+- provide emotional support
+- reveal equally sensitive information
+- manage an uncomfortable topic
+- respond compassionately despite limited rapport
+- continue an interaction they did not invite
+
+BetterOpnr should minimize Disclosure Burden during early interactions.
+
+---
+
+# BetterOpnr Product Heuristic
+
+### Heuristic: Reveal a Preference, Not a Personal History
+
+**Evidence type:** BetterOpnr Product Heuristic
+
+**Heuristic**
+
+In opening interactions, a brief preference, opinion, or low-stakes experience is generally more appropriate than a sensitive history or emotionally intense disclosure.
+
+The disclosure should support the primary conversational topic rather than becoming the topic by default.
+
+**Rationale**
+
+Light disclosure may help a message feel reciprocal and personal without requiring the recipient to manage vulnerability from a stranger.
+
+**Evidence available**
+
+- Interpersonal-process research
+- Research on reciprocal online disclosure
+- General communication principles
+- Internal product reasoning
+
+**Evidence missing**
+
+- BetterOpnr production data
+- Direct testing across dating platforms
+- Segmented results by user style and dating intention
+- Recipient-reported comfort
+
+**Exceptions or risks**
+
+- Some users prefer direct or emotionally substantive conversation.
+- A moderate disclosure may be appropriate when the recipient explicitly raises a meaningful subject.
+- Even a low-stakes disclosure can feel scripted when it is unrelated to the profile.
+- Cultural expectations regarding disclosure vary.
+
+**Confidence**
+
+Moderate for limiting sensitive disclosure in openers.
+
+Low for claiming that light disclosure improves BetterOpnr acceptance or dating outcomes.
+
+**Measurement plan**
+
+Compare messages containing a relevant light disclosure with messages containing an observation alone, while holding profile context, question type, tone, and approximate length constant.
+
+**Status**
+
+Hypothesis
+
+---
+
+# Generation Rules
+
+When generating opening messages, BetterOpnr should:
+
+- prefer Level 1 disclosures when a personal contribution would improve the message
+- keep disclosures brief and relevant to the primary topic
+- use disclosure to explain a reaction, opinion, or question
+- preserve attention on the recipient and the shared conversational topic
+- avoid implying that the recipient owes equivalent disclosure
+- avoid sensitive or identifying personal information
+- avoid generating emotional vulnerability as a tactic
+- avoid disclosures that require reassurance
+- avoid inventing experiences, preferences, or personal facts for the user
+
+BetterOpnr should only use a personal detail when:
+
+1. the user explicitly supplied it,
+2. the user selected it as a preference, or
+3. the wording remains generic enough not to falsely claim a specific experience.
+
+---
+
+# Evaluation Rules
+
+When evaluating a generated message, ask:
+
+1. Is the disclosure true or supported by information supplied by the user?
+2. Is it relevant to the primary conversational topic?
+3. Is its depth appropriate for the conversation stage?
+4. Does it help create mutual participation?
+5. Can the recipient respond without providing equivalent vulnerability?
+6. Does it avoid creating emotional or social pressure?
+7. Would the message remain understandable if the disclosure were shortened?
+8. Is the sender contributing without taking over the conversation?
+
+### Automatic Failure Conditions
+
+A generated opener should fail evaluation when it:
+
+- fabricates a personal experience
+- introduces trauma or serious emotional distress
+- requests reassurance from the recipient
+- pressures the recipient to reveal sensitive information
+- includes identifying, financial, medical, or security-sensitive details
+- uses vulnerability as a manipulation tactic
+- makes unsupported claims about the user’s history
+- creates substantially more emotional intensity than the profile context supports
+
+---
+
+# Future Experiment
+
+## Hypothesis 02-004
+
+Messages combining one contextual observation with one brief, relevant Level 1 disclosure will produce a higher Low-Edit Acceptance Rate than comparable messages containing a question without any sender contribution.
+
+### Primary Metric
+
+Low-Edit Acceptance Rate
+
+### Secondary Metrics
+
+- Acceptance Rate
+- Regeneration Rate
+- Average edit distance
+- Disclosure removal rate
+- Message-length change
+- “Sounds like me” rating, when available
+
+### Test Design
+
+Compare two generated variants based on the same profile detail:
+
+**Variant A**
+
+Contextual observation followed by a question.
+
+**Variant B**
+
+Contextual observation, one brief Level 1 disclosure, and the same or functionally equivalent question.
+
+Control where possible for:
+
+- message length
+- tone
+- humor
+- question type
+- profile detail
+- risk level
+- conversation stage
+
+### Success Criteria
+
+A measurable improvement in Low-Edit Acceptance Rate without:
+
+- increasing Regeneration Rate
+- causing users to remove the disclosure frequently
+- producing a meaningful decline in “Sounds like me” ratings
+- increasing average message length beyond the intended range
+
+---
+
+# BetterOpnr Strategy Labels Introduced
+
+The following internal labels are introduced by this section:
+
+- Light Self-Disclosure
+- Preference Disclosure
+- Experience Disclosure
+- Disclosure Before Question
+- Reciprocal Disclosure Prompt
+- Low Disclosure Burden
+- Stage-Matched Disclosure
+
+These labels are intended for future generation metadata, evaluation, analytics, and experimentation. They are not displayed to users.
+
+---
+
+# Open Questions
+
+- Do users prefer openers that contain a personal contribution, or do they remove it during editing?
+- Which Level 1 disclosure categories produce the highest Low-Edit Acceptance Rate?
+- Does disclosure perform differently for serious and casual dating intentions?
+- How should BetterOpnr generate disclosure when little is known about the user?
+- Should BetterOpnr ask users to establish a small library of verified preferences?
+- Does humor make a disclosure feel lighter, or can it make it appear less authentic?
+- At what conversation stage do Level 2 disclosures become appropriate?
+- Can Disclosure Depth and Disclosure Burden be scored consistently?
+- How should culture and language affect disclosure recommendations?
+- Which disclosures improve conversation balance without increasing message length?
+
+---
+
 ## Revision History
 
 | Version | Date       | Status | Summary                                          |
@@ -648,3 +1069,4 @@ These labels are product taxonomy only. They are not shown to users.
 | 0.1     | 2026-07-11 | Draft  | Added Cognitive Effort & Reply Friction section. |
 | 0.2     | 2026-07-11 | Draft  | Added Question Asking & Responsiveness section.  |
 | 0.3     | 2026-07-11 | Draft  | Added Reciprocity section. |
+| 0.4     | 2026-07-11 | Draft  | Added Self-Disclosure section. |
