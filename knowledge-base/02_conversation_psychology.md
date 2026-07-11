@@ -1285,6 +1285,526 @@ These labels are intended for future generation metadata, evaluation, analytics,
 
 ---
 
+# 6. Similarity and Points of Connection
+
+## Purpose
+
+This section defines how BetterOpnr should identify and use genuine points of connection without fabricating compatibility or reducing a person to a profile label.
+
+The objective is not to prove that the user and recipient are highly compatible from limited profile information.
+
+The objective is to recognize relevant overlap, use it to create a natural conversational entry point, and leave compatibility to be discovered through interaction.
+
+---
+
+# Research-Backed Findings
+
+### Finding: Perceived similarity can contribute to initial interpersonal attraction.
+
+**Evidence type:** Research-Backed Finding
+
+**Claim**
+
+Research on interpersonal attraction indicates that people may feel greater initial attraction toward someone they perceive as similar to themselves.
+
+Perceived similarity can involve:
+
+- attitudes
+- interests
+- values
+- preferences
+- personality impressions
+- experiences
+- communication style
+
+Some research suggests that perceived similarity may predict initial attraction more consistently than measured actual similarity.
+
+**Sources**
+
+Tidwell, N. D., Eastwick, P. W., and Finkel, E. J. “Perceived, Not Actual, Similarity Predicts Initial Attraction in a Live Romantic Context: Evidence From the Speed-Dating Paradigm.” Personal Relationships, 2013.
+
+Wortman, J., Wood, D., Furr, R. M., Fanciullo, J., and Harms, P. D. “The Relations Between Actual Similarity and Experienced Similarity.” Journal of Research in Personality, 2014.
+
+Olderbak, S. G., Malter, F., Wolf, P. S. A., Jones, D. N., and Figueredo, A. J. “Predicting Romantic Interest at Zero Acquaintance.” Evolutionary Behavioral Sciences, 2017.
+
+**Population or dataset**
+
+The cited work includes speed-dating interactions, initial encounters, and judgments made with limited acquaintance.
+
+**Method summary**
+
+Researchers compared participants’ measured similarity, perceived or experienced similarity, and reported attraction or romantic interest.
+
+**Confidence**
+
+Moderate
+
+**What the evidence does not show**
+
+- Similarity does not guarantee attraction.
+- Actual similarity does not consistently predict initial romantic interest.
+- A shared hobby does not establish broader compatibility.
+- The research does not prove that mentioning similarity in an opener increases dating-app replies.
+- Similarity is only one influence among many involved in romantic attraction.
+
+**Known limitations**
+
+- Some studies use speed-dating rather than asynchronous dating applications.
+- Participants may infer similarity after already feeling attracted.
+- Perceived similarity can be inaccurate.
+- Results may depend on which traits or attitudes are being compared.
+- Initial attraction is not equivalent to long-term compatibility or relationship satisfaction.
+
+**Product implication**
+
+BetterOpnr may use clearly supported common ground as a conversational entry point but should not claim deep compatibility from limited profile information.
+
+---
+
+### Finding: Similarity-based liking does not always translate into a desire to interact.
+
+**Evidence type:** Research-Backed Finding
+
+**Claim**
+
+Research suggests that attitude similarity may increase positive feelings toward another person, but those feelings do not always lead to willingness to interact or pursue affiliation.
+
+The relationship between similarity, liking, and behavior depends on additional factors, including whether interaction appears desirable, useful, comfortable, or socially appropriate.
+
+**Source**
+
+Philipp-Muller, A., Wallace, L. E., and Wegener, D. T. “Understanding When Similarity-Induced Affective Attraction Predicts Willingness to Affiliate.” Frontiers in Psychology, 2020.
+
+**Population or dataset**
+
+The research used controlled studies examining similarity-based affective attraction and willingness to affiliate.
+
+**Method summary**
+
+Participants evaluated similar or dissimilar others, and researchers measured both positive affective reactions and willingness to engage in future interaction.
+
+**Confidence**
+
+Moderate
+
+**What the evidence does not show**
+
+- Shared interests do not automatically create conversation.
+- A person may like someone’s profile without wanting to respond.
+- Similarity alone does not overcome poor wording, weak timing, unclear intent, or lack of attraction.
+- The study does not directly test dating-app opening messages.
+
+**Known limitations**
+
+- Controlled research settings differ from dating applications.
+- Willingness to affiliate is not identical to romantic interest.
+- Effects may depend on the significance and type of similarity.
+
+**Product implication**
+
+BetterOpnr should transform common ground into an engaging conversational opportunity rather than merely announcing that two people share something.
+
+---
+
+### Finding: Personality similarity appears to have limited value for explaining established relationship satisfaction.
+
+**Evidence type:** Research-Backed Finding
+
+**Claim**
+
+Research involving established couples suggests that personality similarity may explain little additional variation in relationship satisfaction once individual and partner personality characteristics are considered.
+
+**Source**
+
+Weidmann, R., Ledermann, T., Robins, R. W., Gomez, V., and Grob, A. “Trait and Facet Personality Similarity and Relationship and Life Satisfaction in Romantic Couples.” Journal of Research in Personality, 2023.
+
+**Population or dataset**
+
+The study examined 1,294 female-male romantic couples.
+
+**Method summary**
+
+Researchers measured partners’ personality traits and facets and evaluated whether similarity between partners was associated with relationship and life satisfaction.
+
+**Confidence**
+
+Moderate
+
+**What the evidence does not show**
+
+- This finding does not establish that differences are always preferable.
+- It does not directly address opening-message performance.
+- It does not mean that shared values or interests are irrelevant.
+- Long-term relationship satisfaction and initial attraction are distinct outcomes.
+
+**Known limitations**
+
+- The sample was limited to female-male couples.
+- Personality measures do not capture all forms of compatibility.
+- Relationship satisfaction may depend on many variables not represented by similarity scores.
+
+**Product implication**
+
+BetterOpnr should not treat similarity as proof that two people would form a successful relationship.
+
+Similarity should be used as conversation context, not as a compatibility verdict.
+
+---
+
+# BetterOpnr Interpretation
+
+Points of connection can make a message feel relevant because they give both people an immediately understandable topic.
+
+However, BetterOpnr must distinguish between:
+
+- an observed point of connection
+- a possible point of connection
+- a manufactured point of connection
+- a claim of compatibility
+
+An observed connection is directly supported by supplied information.
+
+Example:
+
+> You both listed live music as an interest.
+
+A possible connection is suggested but not confirmed.
+
+Example:
+
+> The recipient has a photo at a national park, and the user has said they enjoy hiking.
+
+A manufactured connection invents a user preference or experience.
+
+Example:
+
+> BetterOpnr claims the user loves national parks even though the user never provided that information.
+
+A compatibility claim draws a broad conclusion from limited overlap.
+
+Example:
+
+> You both like hiking, so you are clearly perfect for each other.
+
+BetterOpnr may use observed or carefully qualified possible connections.
+
+It must not manufacture commonality or claim meaningful compatibility from superficial evidence.
+
+---
+
+# BetterOpnr Product Concept
+
+## Connection Strength
+
+**Classification:** BetterOpnr Product Heuristic
+
+### Definition
+
+Connection Strength represents how clearly and meaningfully a potential point of connection is supported by the available context.
+
+BetterOpnr should classify connection strength before using commonality as a generation strategy.
+
+### Level 0: Unsupported Connection
+
+No reliable user information supports the claimed common ground.
+
+Example:
+
+> The recipient mentions skiing, but BetterOpnr has no information indicating that the user skis.
+
+BetterOpnr must not write:
+
+> Fellow skier here.
+
+### Level 1: Broad Possible Connection
+
+The available information suggests possible overlap, but the connection is not confirmed.
+
+Example:
+
+- The user likes outdoor activities.
+- The recipient has a hiking photo.
+
+Appropriate framing:
+
+> That view might be enough to convince me to improve my hiking skills. Where was it?
+
+Inappropriate framing:
+
+> I’m a serious hiker too.
+
+### Level 2: Confirmed Shared Interest
+
+Both the user and recipient have explicitly identified the same or closely related interest.
+
+Example:
+
+- Both list cooking.
+- Both mention dogs.
+- Both enjoy live music.
+
+Appropriate framing:
+
+> We may need to settle the important question early: best kind of live show—tiny venue or huge arena?
+
+### Level 3: Specific Shared Experience or Preference
+
+Both people have supplied a more distinctive and relevant overlap.
+
+Example:
+
+- Both traveled to Iceland.
+- Both support the same niche sport.
+- Both mention learning the same language.
+- Both have experience with the same unusual hobby.
+
+This level can support stronger personalization, provided the details are accurate.
+
+---
+
+## Connection Relevance
+
+**Classification:** BetterOpnr Product Heuristic
+
+### Definition
+
+Connection Relevance measures whether a shared detail offers enough conversational substance to justify using it in a message.
+
+A connection may be genuine but too weak or generic to produce a strong opener.
+
+Examples of lower-relevance overlap:
+
+- both like music
+- both enjoy food
+- both like traveling
+- both watch movies
+
+Examples of potentially higher-relevance overlap:
+
+- both prefer small live-music venues
+- both attempted the same difficult recipe
+- both visited the same uncommon destination
+- both participate in the same specialized hobby
+
+BetterOpnr should prefer distinctive overlap when it remains natural and accurate.
+
+---
+
+# BetterOpnr Product Heuristic
+
+### Heuristic: Use Common Ground as an Entry Point, Not a Conclusion
+
+**Evidence type:** BetterOpnr Product Heuristic
+
+**Heuristic**
+
+When a genuine point of connection is available, BetterOpnr should use it to begin exploration rather than declaring that the two people are compatible.
+
+**Rationale**
+
+A shared interest can reduce conversational friction and provide an accessible topic, but limited profile overlap does not establish attraction, compatibility, or relationship potential.
+
+**Evidence available**
+
+- Research concerning perceived similarity and initial attraction
+- Research distinguishing liking from willingness to affiliate
+- Research showing limitations of actual similarity
+- Internal product reasoning
+
+**Evidence missing**
+
+- BetterOpnr production data
+- Direct testing of similarity-based openers
+- Segmented results by type of similarity
+- Recipient-reported response comfort
+- Reliable outcome data across dating platforms
+
+**Exceptions or risks**
+
+- A shared interest may be too generic to feel personal.
+- Overemphasizing similarity may sound strategic or artificial.
+- The recipient may not consider the shared detail important.
+- The sender may prefer a contrasting or curiosity-based strategy.
+- Repeatedly emphasizing sameness can suppress individuality.
+
+**Confidence**
+
+Moderate that fabricated similarity should be prohibited.
+
+Low that confirmed similarity will improve BetterOpnr acceptance or recipient reply outcomes.
+
+**Measurement plan**
+
+Compare relevant similarity-based messages with profile-specific messages that do not reference user-recipient overlap.
+
+Control where possible for:
+
+- profile detail
+- length
+- question type
+- tone
+- humor
+- risk
+- specificity
+- conversation stage
+
+**Status**
+
+Hypothesis
+
+---
+
+# Generation Rules
+
+When generating from a point of connection, BetterOpnr should:
+
+- verify that the user information supporting the connection is available
+- distinguish confirmed overlap from possible overlap
+- prefer specific and conversationally useful common ground
+- use shared interests to open exploration
+- invite opinions, stories, preferences, or playful disagreement
+- preserve individuality rather than implying that similarity makes the people interchangeable
+- qualify uncertain overlap appropriately
+- allow the recipient to disagree or interpret the connection differently
+- avoid overstating the significance of a shared detail
+- avoid assuming that interest labels represent expertise or identity
+
+BetterOpnr should not:
+
+- invent a shared interest
+- invent a shared experience
+- claim the user has visited a place without evidence
+- imply compatibility from one profile detail
+- claim that two people are a perfect match
+- treat broad categories such as music, travel, food, or fitness as inherently distinctive
+- force a common-ground strategy when a stronger contextual observation is available
+
+---
+
+# Evaluation Rules
+
+When evaluating a similarity-based message, ask:
+
+1. Is the claimed connection supported by available information about both people?
+2. Is the connection confirmed, possible, or unsupported?
+3. Is uncertainty communicated honestly?
+4. Is the shared detail distinctive enough to support conversation?
+5. Does the message explore the connection rather than declare compatibility?
+6. Does the message reveal individual perspective in addition to commonality?
+7. Could the recipient respond with an opinion, story, correction, or preference?
+8. Would the message still make sense if the similarity were less meaningful to the recipient than expected?
+9. Is the wording natural rather than engineered to emphasize sameness?
+10. Is another profile detail more conversationally useful?
+
+### Automatic Failure Conditions
+
+A similarity-based opener should fail evaluation when it:
+
+- fabricates a user interest or experience
+- misrepresents a possible connection as confirmed
+- claims deep compatibility from limited evidence
+- falsely implies that the sender visited a location
+- falsely claims expertise or participation
+- depends on a sensitive inferred identity
+- uses demographic similarity in an uncomfortable or discriminatory way
+- reduces the recipient to a category or stereotype
+
+---
+
+# Future Experiment
+
+## Hypothesis 02-006
+
+Messages using a confirmed, specific point of connection as an exploratory conversation entry will produce a higher BetterOpnr Low-Edit Acceptance Rate than messages using broad or unconfirmed commonality.
+
+### Primary Metric
+
+Low-Edit Acceptance Rate
+
+### Secondary Metrics
+
+- Acceptance Rate
+- Regeneration Rate
+- Average edit distance
+- Similarity-reference removal rate
+- Strategy selection rate
+- “Sounds like me” rating, when available
+
+### Test Design
+
+Compare three message conditions derived from comparable profile contexts:
+
+**Variant A: Confirmed Specific Connection**
+
+Uses a specific overlap supported by user and recipient information.
+
+**Variant B: Broad Confirmed Connection**
+
+Uses a broad shared category such as travel, music, or food.
+
+**Variant C: Recipient-Only Context**
+
+Uses a profile detail without claiming shared interest.
+
+Control where possible for:
+
+- message length
+- tone
+- question type
+- humor
+- risk
+- reply path
+- profile specificity
+- conversation stage
+
+### Success Criteria
+
+A measurable improvement in Low-Edit Acceptance Rate for confirmed, specific connections without:
+
+- increasing Regeneration Rate
+- increasing removal of the connection during editing
+- reducing “Sounds like me” ratings
+- producing more unsupported claims
+- causing messages to feel formulaic
+
+---
+
+# BetterOpnr Strategy Labels Introduced
+
+The following internal labels are introduced by this section:
+
+- Confirmed Common Ground
+- Possible Common Ground
+- Specific Shared Interest
+- Shared Experience
+- Shared Preference
+- Connection-Based Question
+- Similarity Exploration
+- Common Ground With Contrast
+- Recipient-Only Context
+- Unsupported Similarity
+
+These labels are intended for future generation metadata, evaluation, analytics, and experimentation. They are not displayed to users.
+
+---
+
+# Open Questions
+
+- Which categories of shared interest produce the highest Low-Edit Acceptance Rate?
+- Does specific overlap consistently outperform broad overlap?
+- How much user information is required before BetterOpnr can reliably identify common ground?
+- Should users be able to maintain a verified preference and interest profile?
+- When does mentioning similarity sound overly strategic?
+- Can light disagreement create stronger conversation than agreement?
+- How should BetterOpnr use complementary differences?
+- Does perceived similarity operate differently across dating intentions?
+- Are value-based similarities more useful later than hobby-based similarities?
+- How should cultural context affect the use of common ground?
+- Can Connection Strength and Connection Relevance be scored consistently?
+- When should BetterOpnr ignore an available similarity and choose a more distinctive recipient-only detail?
+
+---
+
 ## Revision History
 
 | Version | Date       | Status | Summary                                          |
@@ -1294,3 +1814,4 @@ These labels are intended for future generation metadata, evaluation, analytics,
 | 0.3     | 2026-07-11 | Draft  | Added Reciprocity section. |
 | 0.4     | 2026-07-11 | Draft  | Added Self-Disclosure section. |
 | 0.5     | 2026-07-11 | Draft  | Added Uncertainty in Early Interaction section. |
+| 0.6     | 2026-07-11 | Draft  | Added Similarity and Points of Connection section. |
