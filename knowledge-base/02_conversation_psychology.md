@@ -2023,6 +2023,567 @@ These labels are intended for future generation metadata, evaluation, analytics,
 
 ---
 
+# 8. Warmth, Validation, and Perceived Interest
+
+## Purpose
+
+This section defines how BetterOpnr should communicate interest, attention, and positive regard without creating pressure, false intimacy, or exaggerated praise.
+
+The objective is not to make every message highly complimentary or emotionally expressive.
+
+The objective is to help the recipient feel that the sender noticed something meaningful, responded to it appropriately, and is participating with genuine interest.
+
+---
+
+# Research-Backed Findings
+
+### Finding: Feeling heard involves perceived attention, understanding, empathy, and respect.
+
+**Evidence type:** Research-Backed Finding
+
+**Claim**
+
+Research on feeling heard and active listening indicates that people’s experience of being heard depends not only on another person’s observable behavior but also on whether that behavior is perceived as attentive, empathic, understanding, and respectful.
+
+**Source**
+
+Roos, C. A., and colleagues. “Feeling Heard: Operationalizing a Key Concept for Social Relations.” PLOS ONE, 2023.
+
+PubMed Central ID: PMC10688667
+
+**Population or dataset**
+
+The research program developed and evaluated a multidimensional measure of feeling heard across interpersonal contexts.
+
+**Method summary**
+
+The authors reviewed related listening and responsiveness research and tested components associated with the subjective experience of being heard.
+
+**Confidence**
+
+Moderate
+
+**What the evidence does not show**
+
+- It does not prove that validation increases dating-app reply rates.
+- Feeling heard in an established conversation is not identical to receiving an opening message.
+- A profile reference alone does not guarantee that the recipient feels understood.
+- Validation is not always appropriate when the sender lacks sufficient information.
+
+**Known limitations**
+
+- The construct applies broadly across social relationships rather than specifically to dating applications.
+- Feeling heard usually develops through interaction, not a single isolated sentence.
+- Cultural and individual expectations regarding listening and validation vary.
+
+**Product implication**
+
+BetterOpnr should generate messages that demonstrate accurate attention to the supplied context without claiming to understand the recipient more deeply than the available information supports.
+
+---
+
+### Finding: Perceived responsiveness is associated with intimacy, closeness, and relationship quality.
+
+**Evidence type:** Research-Backed Finding
+
+**Claim**
+
+Relationship research describes perceived responsiveness as the experience that another person understands, validates, and cares for important aspects of the self.
+
+Across close-relationship research, perceiving a partner as responsive is associated with greater closeness, satisfaction, commitment, and intimacy-related outcomes.
+
+**Sources**
+
+Canevello, A., and Crocker, J. “Creating Good Relationships: Responsiveness, Relationship Quality, and Interpersonal Goals.” Journal of Personality and Social Psychology, 2010.
+
+Jolink, T. A., Chang, Y.-P., and Algoe, S. B. “Perceived Partner Responsiveness Forecasts Behavioral Intimacy as Measured by Affectionate Touch.” Personality and Social Psychology Bulletin, 2021.
+
+PubMed Central IDs: PMC2891543 and PMC8801651
+
+**Population or dataset**
+
+The cited work includes longitudinal studies of interpersonal relationships and observational or daily-report studies involving romantic couples.
+
+**Method summary**
+
+Researchers examined associations among perceived responsiveness, interpersonal goals, relationship quality, and subsequent intimacy-related behavior.
+
+**Confidence**
+
+Moderate
+
+**What the evidence does not show**
+
+- The findings do not demonstrate that an opener should simulate established-partner responsiveness.
+- Perceived responsiveness in a close relationship is not equivalent to warmth from a stranger.
+- Warm language alone does not establish responsiveness.
+- The findings do not prove that compliments increase attraction or replies.
+- Correlational associations do not establish that responsiveness causes every measured relationship outcome.
+
+**Known limitations**
+
+- Much of the research concerns established relationships.
+- Existing rapport may influence both perceived responsiveness and relationship quality.
+- Behaviors appropriate between partners may be inappropriate between strangers.
+- Results should not be generalized into premature emotional intimacy.
+
+**Product implication**
+
+BetterOpnr should borrow the early-interaction elements of responsiveness—accurate attention, appropriate acknowledgment, and respectful interest—without imitating the intimacy level of an established relationship.
+
+---
+
+### Finding: Responsiveness can influence attraction, but effects may differ across people and contexts.
+
+**Evidence type:** Research-Backed Finding
+
+**Claim**
+
+Experimental research involving interactions with responsive strangers found that responsiveness influenced attraction-related judgments under some conditions, but effects differed by participant gender and the pathway through which responsiveness was interpreted.
+
+**Source**
+
+Birnbaum, G. E., and colleagues. “Why Do Men Prefer Nice Women? Gender Typicality Mediates the Effect of Responsiveness on Perceived Attractiveness in Initial Acquaintanceships.” Personality and Social Psychology Bulletin, 2014.
+
+PubMed ID: 25062930
+
+**Population or dataset**
+
+The research used experimental interactions between previously unacquainted participants.
+
+**Method summary**
+
+Across multiple studies, researchers manipulated or measured responsiveness and evaluated perceived attractiveness, gender typicality, sexual arousal, and relationship interest.
+
+**Confidence**
+
+Moderate within the studied conditions.
+
+Low for generalized dating-app product conclusions.
+
+**What the evidence does not show**
+
+- Responsiveness did not affect all participants in the same way.
+- The research does not support a universal rule that “being nice creates attraction.”
+- The results do not establish an optimal opener tone.
+- The findings should not be used to reinforce gender stereotypes in generation.
+- Responsiveness cannot compensate for absent attraction or incompatible intentions.
+
+**Known limitations**
+
+- The studies involved heterosexual interaction contexts.
+- Gendered interpretations may be culturally specific.
+- Laboratory interactions differ from asynchronous dating applications.
+- Attraction judgments may depend on many variables not controlled by BetterOpnr.
+
+**Product implication**
+
+BetterOpnr should treat responsiveness as a context-sensitive communication quality rather than a guaranteed attraction tactic.
+
+---
+
+# BetterOpnr Interpretation
+
+Warmth, validation, and perceived interest are related but distinct.
+
+## Warmth
+
+Warmth is the degree to which a message communicates friendliness, goodwill, and comfortable social interest.
+
+Warmth may be expressed through:
+
+- positive emotional tone
+- respectful curiosity
+- light enthusiasm
+- approachable wording
+- non-demanding interest
+- natural acknowledgment
+
+Warmth should not require exaggerated praise.
+
+## Validation
+
+Validation is the acknowledgment that another person’s stated experience, preference, effort, or perspective is understandable or worthy of attention.
+
+Appropriate opening-message validation may include:
+
+- recognizing effort shown in a profile
+- acknowledging an interesting perspective
+- responding to a stated enthusiasm
+- treating a profile answer seriously enough to engage with it
+
+Validation does not require agreement.
+
+BetterOpnr should not validate:
+
+- unsupported assumptions
+- harmful conduct
+- sensitive experiences it does not understand
+- inferred emotions that the recipient never expressed
+- beliefs merely to gain approval
+
+## Perceived Interest
+
+Perceived Interest is the degree to which the recipient can reasonably recognize that the sender is interested in interacting with them specifically.
+
+Interest may be communicated through:
+
+- selecting a meaningful profile detail
+- asking a relevant question
+- expressing a specific positive reaction
+- engaging with the recipient’s perspective
+- contributing effort proportionate to the conversation stage
+
+Interest should be recognizable without becoming intense, possessive, or presumptuous.
+
+---
+
+# BetterOpnr Product Concept
+
+## Warmth Calibration
+
+**Classification:** BetterOpnr Product Heuristic
+
+### Definition
+
+Warmth Calibration represents whether the message communicates enough positive social interest for its context without exceeding the level supported by the conversation stage.
+
+BetterOpnr should classify warmth broadly as:
+
+### Low Warmth
+
+Characteristics may include:
+
+- neutral or detached wording
+- minimal acknowledgment
+- factual questioning
+- language that may sound transactional
+- absence of positive emotional tone
+
+Example:
+
+> Where was this taken?
+
+Low warmth is not automatically inappropriate, but it may feel impersonal when no other conversational contribution is present.
+
+### Moderate Warmth
+
+Characteristics may include:
+
+- a specific positive reaction
+- respectful curiosity
+- light enthusiasm
+- an approachable tone
+- interest without emotional intensity
+
+Example:
+
+> That view looks worth the climb. Where was it?
+
+Moderate warmth should generally be the default range for opening interactions.
+
+### High Warmth
+
+Characteristics may include:
+
+- strong admiration
+- emotionally expressive praise
+- affectionate wording
+- language implying meaningful personal interest
+- substantial enthusiasm
+
+Example:
+
+> I already love how passionate you are about this—you seem genuinely incredible.
+
+High warmth may feel disproportionate when the sender and recipient have not interacted.
+
+---
+
+## Validation Accuracy
+
+**Classification:** BetterOpnr Product Heuristic
+
+### Definition**
+
+Validation Accuracy measures whether an acknowledgment is supported by information the recipient actually supplied.
+
+High Validation Accuracy:
+
+> Your answer about learning to cook from your grandmother was thoughtful. What dish did she teach you first?
+
+The validation refers to an explicit profile detail.
+
+Low Validation Accuracy:
+
+> You seem like someone who has overcome a lot and become stronger because of it.
+
+The message assigns an emotional history that the profile may not support.
+
+BetterOpnr should prefer narrow, observable acknowledgment over broad personality conclusions.
+
+---
+
+## Interest Specificity
+
+**Classification:** BetterOpnr Product Heuristic
+
+### Definition
+
+Interest Specificity measures whether positive interest is directed toward something distinctive about the recipient rather than expressed through interchangeable praise.
+
+Lower Interest Specificity:
+
+> You’re beautiful.
+
+> You seem amazing.
+
+> I love your profile.
+
+Higher Interest Specificity:
+
+> Your answer about refusing to use recipes made me laugh. What’s the best thing you’ve successfully improvised?
+
+The second message shows what specifically earned the sender’s attention and creates a reply path.
+
+Interest Specificity does not require avoiding appearance compliments entirely. It requires recognizing that generic appearance praise often provides limited conversational substance.
+
+---
+
+# BetterOpnr Product Heuristic
+
+### Heuristic: Acknowledge Before You Admire
+
+**Evidence type:** BetterOpnr Product Heuristic
+
+**Heuristic**
+
+In opening interactions, BetterOpnr should generally prefer accurate acknowledgment of a specific detail over broad admiration of the recipient.
+
+A message should demonstrate attention before making expansive positive judgments.
+
+**Rationale**
+
+Specific acknowledgment may communicate interest while avoiding exaggerated praise, unsupported personality claims, and pressure to respond positively.
+
+**Evidence available**
+
+- Research on feeling heard
+- Research on perceived responsiveness
+- Experimental evidence that responsiveness can affect attraction-related judgments under some conditions
+- Internal product reasoning
+
+**Evidence missing**
+
+- BetterOpnr production data
+- Direct comparison of acknowledgment-based and compliment-based openers
+- Recipient-reported comfort
+- Platform-specific response outcomes
+- Segmentation by user and recipient preferences
+
+**Exceptions or risks**
+
+- A profile may contain little material beyond photographs.
+- Some users prefer direct compliments.
+- Specific acknowledgment can feel mechanical when phrased unnaturally.
+- Over-analysis of a profile detail may feel intrusive.
+- Warmth expectations vary across cultures and communication styles.
+
+**Confidence**
+
+Moderate that unsupported, intense praise should be avoided.
+
+Low that acknowledgment-based messages will outperform all compliment-based messages.
+
+**Measurement plan**
+
+Compare profile-specific acknowledgment with generic positive praise while controlling for approximate length, reply path, tone, and profile detail.
+
+**Status**
+
+Hypothesis
+
+---
+
+# Generation Rules
+
+When generating opening messages, BetterOpnr should:
+
+- default to moderate, stage-appropriate warmth
+- communicate recognizable interest without excessive intensity
+- acknowledge specific profile information accurately
+- prefer narrow observations over broad personality judgments
+- connect positive reactions to an identifiable detail
+- make compliments conversationally useful when possible
+- allow the recipient to disagree, clarify, or expand
+- preserve the user’s natural communication style
+- avoid making the user sound more emotionally expressive than intended
+- distinguish validation from automatic agreement
+- avoid using warmth as a disguise for manipulation or pressure
+
+When generating compliments, BetterOpnr should prefer:
+
+- effort
+- style
+- expression
+- perspective
+- humor
+- skill
+- taste
+- a profile-specific choice
+
+over unsupported claims about:
+
+- character
+- emotional history
+- compatibility
+- moral worth
+- relationship potential
+- private personality traits
+
+Appearance compliments may be used only when requested or contextually appropriate, and should not:
+
+- sexualize without support
+- focus on intimate body areas
+- imply entitlement to attention
+- become the entire conversational strategy
+- use language that could apply indiscriminately to many recipients
+
+---
+
+# Evaluation Rules
+
+When evaluating a generated message, ask:
+
+1. Does the message communicate recognizable interest?
+2. Is the warmth appropriate for an opening interaction?
+3. Is the acknowledgment supported by explicit profile information?
+4. Does the message avoid claiming to understand the recipient deeply?
+5. Is positive attention tied to a specific detail?
+6. Does the recipient have something to respond to beyond accepting a compliment?
+7. Does the message sound like the user rather than an unusually enthusiastic persona?
+8. Is the validation respectful without becoming automatic agreement?
+9. Does the message avoid emotional pressure?
+10. Would the wording remain comfortable if the recipient did not share the sender’s interest?
+
+### Automatic Failure Conditions
+
+A generated opener should fail evaluation when it:
+
+- fabricates an emotional history
+- claims deep understanding without evidence
+- uses excessive admiration unsupported by context
+- implies emotional intimacy before interaction
+- pressures the recipient to accept a compliment
+- sexualizes the recipient without contextual support
+- makes possessive or entitled statements
+- validates harmful or unsafe conduct
+- infers sensitive identity or personal circumstances
+- uses flattery primarily to manipulate a response
+- describes the recipient as perfect, destined, or uniquely compatible based on limited information
+
+---
+
+# Future Experiment
+
+## Hypothesis 02-008
+
+Messages using one accurate, profile-specific acknowledgment with moderate warmth will produce a higher BetterOpnr Low-Edit Acceptance Rate than messages using broad, interchangeable praise.
+
+### Primary Metric
+
+Low-Edit Acceptance Rate
+
+### Secondary Metrics
+
+- Acceptance Rate
+- Regeneration Rate
+- Average edit distance
+- Compliment removal rate
+- Warmth reduction rate
+- Strategy selection rate
+- “Sounds like me” rating, when available
+
+### Test Design
+
+Compare three generated variants using the same recipient profile:
+
+**Variant A: Specific Acknowledgment**
+
+Recognizes an explicit profile detail and creates a reply path.
+
+**Variant B: Generic Positive Praise**
+
+Expresses broad admiration without identifying a distinctive reason.
+
+**Variant C: Neutral Contextual Observation**
+
+Uses the same profile area without positive validation.
+
+Control where possible for:
+
+- message length
+- question type
+- humor
+- risk
+- specificity
+- conversation stage
+- profile detail
+- user communication style
+
+### Success Criteria
+
+A measurable improvement in Low-Edit Acceptance Rate for specific acknowledgment without:
+
+- increasing Regeneration Rate
+- causing users to remove positive language frequently
+- reducing “Sounds like me” ratings
+- creating longer messages than intended
+- increasing unsupported personality claims
+
+---
+
+# BetterOpnr Strategy Labels Introduced
+
+The following internal labels are introduced by this section:
+
+- Specific Acknowledgment
+- Profile-Based Validation
+- Moderate Warmth
+- Warm Interest
+- Interest Signaling
+- Specific Compliment
+- Effort Compliment
+- Perspective Compliment
+- Style Compliment
+- Generic Praise
+- Unsupported Admiration
+- High-Warmth Opener
+- Validation Without Agreement
+
+These labels are intended for future generation metadata, evaluation, analytics, and experimentation. They are not displayed to users.
+
+---
+
+# Open Questions
+
+- Which forms of acknowledgment produce the highest Low-Edit Acceptance Rate?
+- When do appearance compliments help rather than reduce conversational substance?
+- How should warmth differ by user communication style?
+- Does moderate warmth perform differently across dating intentions?
+- Can Validation Accuracy be scored reliably?
+- Can Interest Specificity be measured independently from general specificity?
+- When does profile acknowledgment begin to feel overly analytical?
+- How should BetterOpnr handle profiles with almost no written information?
+- Do users systematically reduce warmth while editing generated messages?
+- Which compliment categories are most likely to sound authentic?
+- How should culture and language change warmth calibration?
+- When is respectful disagreement more engaging than validation?
+- Does humor make warmth feel more natural or less sincere?
+- Should BetterOpnr allow users to select a preferred warmth level?
+
+---
+
 ## Revision History
 
 | Version | Date       | Status | Summary                                          |
@@ -2034,3 +2595,4 @@ These labels are intended for future generation metadata, evaluation, analytics,
 | 0.5     | 2026-07-11 | Draft  | Added Uncertainty in Early Interaction section. |
 | 0.6     | 2026-07-11 | Draft  | Added Similarity and Points of Connection section. |
 | 0.7     | 2026-07-11 | Draft  | Added Novelty and Attention section. |
+| 0.8     | 2026-07-11 | Draft  | Added Warmth, Validation, and Perceived Interest section. |
