@@ -1062,6 +1062,229 @@ These labels are intended for future generation metadata, evaluation, analytics,
 
 ---
 
+# 5. Uncertainty in Early Interaction
+
+## Purpose
+
+This section defines how BetterOpnr should reduce unnecessary uncertainty while preserving enough curiosity to make a conversation worth continuing.
+
+The objective is not to eliminate all uncertainty. Early attraction often depends on discovery, novelty, and gradual learning.
+
+Instead, BetterOpnr should reduce the kinds of uncertainty that create hesitation while preserving the kinds that encourage conversation.
+
+---
+
+# Research-Backed Findings
+
+### Finding: People use early communication to reduce uncertainty about strangers.
+
+**Evidence type:** Research-Backed Finding
+
+**Claim**
+
+Communication research suggests that people often use initial conversations to better understand another person’s intentions, personality, trustworthiness, and compatibility.
+
+As uncertainty decreases, interactions may become more comfortable and predictable.
+
+**Confidence**
+
+Moderate
+
+**Known limitations**
+
+- The theory was developed for interpersonal communication broadly, not specifically online dating.
+- Later research has shown that uncertainty is not always negative.
+- Some uncertainty can increase curiosity and engagement.
+- Individual preferences vary considerably.
+
+---
+
+### BetterOpnr Interpretation
+
+Not all uncertainty should be reduced.
+
+BetterOpnr should distinguish between:
+
+**Helpful uncertainty**
+
+- future stories
+- shared experiences
+- humor
+- playful curiosity
+- personality discovery
+
+and
+
+**Harmful uncertainty**
+
+- unclear intent
+- confusing wording
+- contradictory tone
+- uncertainty about how to respond
+- uncertainty about whether the message is genuine
+
+The goal is to remove friction, not mystery.
+
+---
+
+# BetterOpnr Product Concept
+
+## Productive Uncertainty
+
+**Classification:** BetterOpnr Product Heuristic
+
+### Definition
+
+Productive Uncertainty is uncertainty that naturally encourages another person to continue the conversation.
+
+Examples include:
+
+- wanting to hear the story behind a photo
+- wondering why someone holds an opinion
+- playful curiosity
+- discovering shared interests gradually
+
+Productive Uncertainty creates momentum.
+
+---
+
+## Unproductive Uncertainty
+
+Examples include:
+
+- "What does this message even mean?"
+- "Is this AI?"
+- "Why are they asking this?"
+- "What am I supposed to say?"
+- "Is this supposed to be funny?"
+
+Unproductive Uncertainty creates hesitation instead of curiosity.
+
+---
+
+# BetterOpnr Product Heuristic
+
+### Heuristic: Remove Friction, Preserve Curiosity
+
+**Evidence type:** BetterOpnr Product Heuristic
+
+**Heuristic**
+
+Opening messages should reduce uncertainty about the sender’s conversational intent while preserving enough curiosity for the interaction to continue naturally.
+
+BetterOpnr should not attempt to explain everything immediately.
+
+Instead, messages should provide:
+
+- clear intent
+- understandable context
+- one conversational direction
+
+while leaving room for discovery.
+
+**Evidence available**
+
+- Uncertainty Reduction Theory
+- General interpersonal communication research
+- Internal product reasoning
+
+**Evidence missing**
+
+- BetterOpnr production data
+- Controlled experiments measuring curiosity versus clarity
+- Platform-specific validation
+
+**Confidence**
+
+Low
+
+**Status**
+
+Hypothesis
+
+---
+
+# Generation Rules
+
+When generating an opening message, BetterOpnr should:
+
+- make the conversational objective obvious
+- avoid ambiguous wording
+- avoid forcing the recipient to guess the sender’s intent
+- preserve opportunities for future discovery
+- avoid explaining every thought completely
+- leave natural room for follow-up conversation
+
+---
+
+# Evaluation Rules
+
+When evaluating a generated message, ask:
+
+1. Does the recipient understand why this message was written?
+2. Is the sender's intent reasonably clear?
+3. Does the message leave something interesting to discover later?
+4. Does curiosity come from the conversation rather than confusion?
+5. Would most recipients know how to continue naturally?
+
+Indicators of excessive harmful uncertainty include:
+
+- unclear jokes
+- unexplained references
+- abrupt topic changes
+- confusing tone
+- uncertain conversational direction
+
+---
+
+# Future Experiment
+
+## Hypothesis 02-005
+
+Messages that reduce conversational confusion while preserving one element of curiosity will produce higher BetterOpnr Low-Edit Acceptance Rates than messages that are either overly explanatory or unnecessarily ambiguous.
+
+### Primary Metric
+
+Low-Edit Acceptance Rate
+
+### Secondary Metrics
+
+- Acceptance Rate
+- Regeneration Rate
+- Average edit distance
+
+### Success Criteria
+
+Increase Low-Edit Acceptance Rate without increasing average message length or reducing perceived personality.
+
+---
+
+# BetterOpnr Strategy Labels Introduced
+
+The following internal labels are introduced by this section:
+
+- Productive Curiosity
+- Productive Uncertainty
+- Curiosity Gap
+- Clear Intent
+- Conversation Hook
+- Discovery Prompt
+
+These labels are intended for future generation metadata, evaluation, analytics, and experimentation. They are not displayed to users.
+
+---
+
+# Open Questions
+
+- How much curiosity is ideal in an opening message?
+- Does curiosity vary by user personality?
+- Do humorous messages benefit from greater uncertainty?
+- How should BetterOpnr balance mystery and clarity?
+- Can Productive Uncertainty be scored automatically?
+- Which profile types benefit most from curiosity-driven openers?
+
+---
+
 ## Revision History
 
 | Version | Date       | Status | Summary                                          |
@@ -1070,3 +1293,4 @@ These labels are intended for future generation metadata, evaluation, analytics,
 | 0.2     | 2026-07-11 | Draft  | Added Question Asking & Responsiveness section.  |
 | 0.3     | 2026-07-11 | Draft  | Added Reciprocity section. |
 | 0.4     | 2026-07-11 | Draft  | Added Self-Disclosure section. |
+| 0.5     | 2026-07-11 | Draft  | Added Uncertainty in Early Interaction section. |
