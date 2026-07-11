@@ -224,8 +224,208 @@ A statistically meaningful improvement in Low-Edit Acceptance Rate without incre
 
 ---
 
+# 2. Question Asking & Responsiveness
+
+## Purpose
+
+This section defines how BetterOpnr should use questions to create conversation rather than simply collect information.
+
+The objective is not to maximize the number of questions in a message. The objective is to encourage natural, enjoyable exchanges where both people contribute to the conversation.
+
+---
+
+# Research-Backed Findings
+
+### Finding: Questions encourage conversation when they demonstrate genuine interest.
+
+**Evidence type:** Research-Backed Finding
+
+**Claim**
+
+Question asking generally encourages conversation because it signals curiosity and gives another person a clear opportunity to participate.
+
+However, the quality, timing, and relevance of a question matter more than simply asking one.
+
+**Confidence**
+
+Moderate
+
+**Known limitations**
+
+* Most research evaluates face-to-face conversations rather than dating apps.
+* Poorly timed or repetitive questions may reduce conversational quality.
+* Excessive questioning can shift the interaction from conversation to interrogation.
+
+---
+
+### BetterOpnr Interpretation
+
+Questions should create opportunities for interaction, not place the burden of carrying the conversation entirely on the recipient.
+
+The strongest questions are usually connected to:
+
+* an observation
+* shared context
+* a previous message
+* a profile detail
+* a playful assumption
+
+Questions should rarely appear without a conversational reason.
+
+---
+
+# BetterOpnr Product Concept
+
+## Conversational Responsiveness
+
+**Classification:** BetterOpnr Product Heuristic
+
+### Definition
+
+Conversational Responsiveness measures how naturally a message invites another person to continue the interaction.
+
+A responsive question creates an obvious conversational direction while also revealing something about the sender.
+
+---
+
+## High Conversational Responsiveness
+
+Examples include questions that:
+
+* build from profile context
+* reference something already discussed
+* invite opinions instead of factual answers
+* include light humor
+* contain a small amount of self-expression
+
+Example:
+
+> Your profile makes hiking look way more fun than I usually think it is. What's been your favorite trail so far?
+
+The question is supported by context and reveals something about the sender.
+
+---
+
+## Low Conversational Responsiveness
+
+Examples include:
+
+* rapid-fire interview questions
+* generic prompts
+* disconnected topic changes
+* questions with obvious yes/no answers when richer conversation is possible
+* questions that require emotional disclosure too early
+
+Example:
+
+> Where do you work? What do you do? Where are you from? What do you do for fun?
+
+Each question may be reasonable individually, but together they create unnecessary conversational burden.
+
+---
+
+# BetterOpnr Product Heuristic
+
+### Heuristic: Contribute Before You Ask
+
+**Evidence type:** BetterOpnr Product Heuristic
+
+**Heuristic**
+
+Questions are likely to feel more natural when the sender contributes an observation, reaction, or small disclosure before requesting information.
+
+The message should feel like participation rather than information gathering.
+
+**Evidence available**
+
+* Interpersonal communication research
+* General conversational principles
+* Internal product reasoning
+
+**Evidence missing**
+
+* BetterOpnr production data
+* Controlled product experiments
+
+**Confidence**
+
+Low
+
+**Status**
+
+Hypothesis
+
+---
+
+# Generation Rules
+
+When generating questions, BetterOpnr should:
+
+* Prefer one meaningful question over multiple unrelated questions.
+* Connect questions to existing context whenever possible.
+* Include an observation, opinion, or reaction before asking for information when appropriate.
+* Favor open conversational directions instead of rigid factual questioning.
+* Avoid asking for information already available in the profile.
+
+BetterOpnr should avoid generating messages that resemble surveys or interviews.
+
+---
+
+# Evaluation Rules
+
+When evaluating a generated message, ask:
+
+1. Does the question naturally follow from the context?
+2. Does it encourage conversation instead of information collection?
+3. Has the sender contributed something before asking?
+4. Could the recipient answer comfortably?
+5. Would answering naturally create another conversational opportunity?
+
+Indicators of poor question quality include:
+
+* multiple unrelated questions
+* generic conversation starters
+* profile-blind questions
+* premature personal questions
+* questions with no obvious conversational purpose
+
+---
+
+# Future Experiment
+
+## Hypothesis 02-002
+
+Messages that combine one contextual observation with one relevant question will produce a higher BetterOpnr Low-Edit Acceptance Rate than messages consisting primarily of questions.
+
+### Primary Metric
+
+Low-Edit Acceptance Rate
+
+### Secondary Metrics
+
+* Acceptance Rate
+* Regeneration Rate
+* Average edit distance
+
+### Success Criteria
+
+Increase Low-Edit Acceptance Rate without increasing message length or Regeneration Rate.
+
+---
+
+# Open Questions
+
+* How many questions feel natural in an opening message?
+* Do playful assumptions outperform direct questions in some contexts?
+* When is a statement stronger than a question?
+* Should BetterOpnr intentionally generate question-free openers for some user personalities?
+* Which types of questions produce the least editing by users?
+
+---
+
 ## Revision History
 
 | Version | Date       | Status | Summary                                          |
 | ------- | ---------- | ------ | ------------------------------------------------ |
 | 0.1     | 2026-07-11 | Draft  | Added Cognitive Effort & Reply Friction section. |
+| 0.2     | 2026-07-11 | Draft  | Added Question Asking & Responsiveness section.  |
