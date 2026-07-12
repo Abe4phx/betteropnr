@@ -2584,6 +2584,275 @@ These labels are intended for future generation metadata, evaluation, analytics,
 
 ---
 
+# 9. Progressive Intimacy and Stage Matching
+
+## Purpose
+
+This section defines how BetterOpnr should adapt communication as conversations develop.
+
+The objective is to recognize that the same message may feel appropriate at one stage of a conversation and inappropriate at another.
+
+Conversation should evolve through gradual increases in familiarity, trust, emotional investment, and personal disclosure rather than abrupt jumps in intimacy.
+
+---
+
+# Research-Backed Findings
+
+### Finding: Relationships typically develop through gradual reciprocal interaction.
+
+**Evidence type:** Research-Backed Finding
+
+**Claim**
+
+Research across interpersonal communication and relationship development indicates that familiarity, trust, and intimacy generally emerge through repeated reciprocal interaction rather than immediate disclosure or emotional intensity.
+
+Communication norms change as relationships progress.
+
+**Confidence**
+
+High
+
+**Known limitations**
+
+- Progression differs substantially across individuals.
+- Online conversations do not always follow traditional relationship-development patterns.
+- Some conversations intentionally remain casual.
+- The evidence does not prescribe a fixed sequence of stages.
+
+---
+
+### BetterOpnr Interpretation
+
+BetterOpnr should adapt recommendations according to the current conversational stage.
+
+Strategies that are appropriate after several exchanges may feel unnatural in an opening message.
+
+Likewise, conversations that remain overly cautious after substantial rapport may begin to feel repetitive or stagnant.
+
+The objective is to match conversational depth to demonstrated rapport.
+
+---
+
+# BetterOpnr Product Concept
+
+## Conversation Stage
+
+**Classification:** BetterOpnr Product Heuristic
+
+### Stage 1 — Opening
+
+Primary goals:
+
+- establish comfort
+- demonstrate attention
+- create an easy reply
+- reduce unnecessary uncertainty
+
+Preferred strategies:
+
+- contextual observation
+- moderate warmth
+- low disclosure depth
+- profile-specific questions
+
+Avoid:
+
+- emotional vulnerability
+- compatibility claims
+- future planning
+- excessive compliments
+
+---
+
+### Stage 2 — Early Conversation
+
+Primary goals:
+
+- build momentum
+- exchange opinions
+- introduce light personal preferences
+- identify shared interests
+
+Preferred strategies:
+
+- reciprocal disclosure
+- playful curiosity
+- shared experiences
+- conversation expansion
+
+Avoid:
+
+- interrogations
+- emotional dependence
+- premature exclusivity
+
+---
+
+### Stage 3 — Established Conversation
+
+Primary goals:
+
+- deepen understanding
+- increase trust
+- explore values
+- develop stronger emotional connection
+
+Preferred strategies:
+
+- moderate disclosure
+- meaningful storytelling
+- humor tailored to the conversation
+- deeper questions
+
+Avoid:
+
+- repetitive small talk
+- abrupt emotional escalation
+
+---
+
+### Stage 4 — Transition to Meeting
+
+Primary goals:
+
+- confirm mutual interest
+- reduce logistical uncertainty
+- maintain conversational momentum
+
+Preferred strategies:
+
+- natural invitations
+- collaborative planning
+- confidence without pressure
+
+Avoid:
+
+- guilt
+- urgency
+- manipulation
+- entitlement
+
+---
+
+# BetterOpnr Product Heuristic
+
+### Heuristic: Match Depth to Rapport
+
+**Evidence type:** BetterOpnr Product Heuristic
+
+**Heuristic**
+
+Every generated message should reflect the amount of rapport that has actually been established rather than the amount of rapport the sender hopes already exists.
+
+Conversation should progress through demonstrated interaction, not assumed intimacy.
+
+**Evidence available**
+
+- Relationship-development research
+- Communication theory
+- Internal product reasoning
+
+**Evidence missing**
+
+- BetterOpnr production data
+- Stage-specific experiments
+- Platform-specific validation
+
+**Confidence**
+
+Moderate
+
+**Status**
+
+Hypothesis
+
+---
+
+# Generation Rules
+
+When generating messages, BetterOpnr should:
+
+- identify the likely conversation stage
+- match disclosure to that stage
+- match warmth to that stage
+- match humor to that stage
+- match curiosity to that stage
+- avoid skipping stages unnecessarily
+- preserve conversational momentum
+
+---
+
+# Evaluation Rules
+
+When evaluating a generated message, ask:
+
+1. Does the message fit the current conversation stage?
+2. Is the disclosure proportional?
+3. Is the warmth appropriate?
+4. Does the message assume rapport that has not yet been earned?
+5. Does it naturally encourage progression?
+
+Automatic failures include:
+
+- excessive familiarity
+- premature future planning
+- emotional dependency
+- unsupported intimacy
+- manipulative urgency
+
+---
+
+# Future Experiment
+
+## Hypothesis 02-009
+
+Stage-matched messages will produce higher BetterOpnr Low-Edit Acceptance Rates than messages generated without considering conversation stage.
+
+### Primary Metric
+
+Low-Edit Acceptance Rate
+
+### Secondary Metrics
+
+- Acceptance Rate
+- Regeneration Rate
+- Average edit distance
+- Stage override frequency
+
+### Success Criteria
+
+Improve Low-Edit Acceptance Rate while reducing user edits related to message tone, disclosure depth, and warmth.
+
+---
+
+# BetterOpnr Strategy Labels Introduced
+
+The following internal labels are introduced by this section:
+
+- Stage 1 Opening
+- Stage 2 Momentum
+- Stage 3 Deepening
+- Stage 4 Meeting Transition
+- Stage-Matched Warmth
+- Stage-Matched Disclosure
+- Stage-Matched Humor
+- Rapport Calibration
+
+These labels are intended for future generation metadata, evaluation, analytics, and experimentation. They are not displayed to users.
+
+---
+
+# Open Questions
+
+- How accurately can BetterOpnr infer conversation stage?
+- Should users be allowed to override the detected stage?
+- Which strategies transition conversations most naturally between stages?
+- How quickly should disclosure increase?
+- Can rapport be measured from conversation history alone?
+- Which editing patterns indicate stage mismatch?
+
+---
+
 ## Revision History
 
 | Version | Date       | Status | Summary                                          |
@@ -2596,3 +2865,4 @@ These labels are intended for future generation metadata, evaluation, analytics,
 | 0.6     | 2026-07-11 | Draft  | Added Similarity and Points of Connection section. |
 | 0.7     | 2026-07-11 | Draft  | Added Novelty and Attention section. |
 | 0.8     | 2026-07-11 | Draft  | Added Warmth, Validation, and Perceived Interest section. |
+| 0.9     | 2026-07-11 | Draft  | Added Progressive Intimacy and Stage Matching section. |
