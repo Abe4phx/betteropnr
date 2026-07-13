@@ -290,6 +290,157 @@ No premature intimacy is implied.
 
 ---
 
+# Example 02 — Minimal Profile
+
+**Example ID:** EX-002
+
+## Profile Context
+
+Bio:
+
+"Just ask 🙂"
+
+Photos:
+
+- Mirror selfie
+- Group photo with friends
+- Coffee shop
+
+Interests:
+
+None listed
+
+## Available Evidence
+
+Recipient Profile Evidence:
+
+- Mirror selfie
+- Group photo
+- Coffee shop photo
+- Bio: "Just ask 🙂"
+
+Verified User Evidence:
+
+- None supplied for this example.
+
+Unsupported Assumptions:
+
+- Recipient enjoys coffee.
+- Recipient is outgoing.
+- Recipient is extroverted.
+- Recipient enjoys nightlife.
+- Recipient is sarcastic.
+- Recipient wants playful banter.
+- Recipient is looking for a serious relationship.
+- Recipient enjoys travel.
+- Recipient is confident.
+
+## Objective
+
+Generate an opening message that feels personal despite extremely limited information, while avoiding fabricated assumptions. This case measures BetterOpnr's ability to produce a useful, natural, and easy-to-send message when almost no profile information is available, optimizing for Low-Edit Acceptance Rate while resisting the primary failure mode of hallucinating unsupported details about the recipient.
+
+## Generation Decision
+
+- Primary Strategy: Recipient-Only Context
+- Secondary Strategy: Low Reply Friction
+- Conversation Stage: Stage 1 — Opening
+- Primary Optimization: Low-Edit Acceptance Rate
+- Reason for Selection: The available evidence is intentionally sparse. The strongest decision is to acknowledge the profile's minimal information without inventing personality traits, interests, or compatibility.
+
+## Decision Constraints
+
+Generation must:
+
+- Use only available profile evidence.
+- Remain Stage 1 appropriate.
+- Keep Reply Friction low.
+- Avoid assumptions.
+- Create an easy reply path.
+- Feel natural enough to send immediately.
+
+Generation must not:
+
+- Invent interests.
+- Assume personality.
+- Assume relationship goals.
+- Claim common ground.
+- Force humor.
+- Create artificial novelty.
+- Escalate intimacy.
+
+## Alternative Generation
+
+"So... what should I ask first?"
+
+## Why It Wasn't Selected
+
+Although playful, this message depends entirely on the bio and provides no conversational contribution from the sender.
+
+It creates a weaker Conversation Balance and places most of the effort on the recipient.
+
+## BetterOpnr Opener
+
+"I feel like 'Just ask 🙂' is both an invitation and a little bit of a challenge. So I'll start simple—what's something you wish more people asked you about?"
+
+## Why It Works
+
+The opener:
+
+- acknowledges the profile honestly
+- avoids inventing information
+- contributes an observation before asking a question
+- creates a clear reply path
+- demonstrates curiosity without interrogation
+- preserves moderate warmth
+- treats limited profile information as context rather than a limitation
+
+Most importantly, it succeeds by resisting unsupported assumptions.
+
+## Rejected Strategies
+
+- Strategy: Confirmed Common Ground
+  Reason for rejection: No verified overlap exists.
+
+- Strategy: Specific Observation
+  Reason for rejection: The available photos are too generic to support a distinctive observation confidently.
+
+- Strategy: Humor First
+  Reason for rejection: The profile provides insufficient evidence that humor is the safest opening strategy.
+
+## BetterOpnr Strategies Used
+
+- Recipient-Only Context
+- Observation Before Question
+- Conversation Balance
+- Low Reply Friction
+- Moderate Warmth
+
+## Psychology Principles Applied
+
+- Cognitive Effort & Reply Friction
+- Reciprocity
+- Uncertainty in Early Interaction
+- Warmth, Validation & Perceived Interest
+- Progressive Intimacy & Stage Matching
+
+## Expected Evaluator Scores
+
+- Reply Friction: Very Low
+- Conversation Balance: High
+- Distinctive Relevance: Moderate
+- Warmth Calibration: Moderate
+- Interest Specificity: Moderate
+- Disclosure Depth: Level 0
+- Connection Strength: Recipient Only
+- Stage Match: Excellent
+- Risk Level: Very Low
+
+## Possible Variations
+
+- "I respect the confidence of a bio that just says 'Just ask 🙂'. What's something that's way more interesting about you than people usually guess?"
+
+---
+
 ## Revision History
 
 | Version | Date | Status | Summary |
@@ -297,3 +448,4 @@ No premature intimacy is implied.
 | 0.1 | 2026-07-12 | Draft | Created Example Library and added Example 01 — Travel Photo. |
 | 0.2 | 2026-07-13 | Draft | Refactored Example 01 into the BetterOpnr Decision Library format. |
 | 0.3 | 2026-07-13 | Draft | Added Decision Constraints and finalized the Decision Library template. |
+| 0.4 | 2026-07-13 | Draft | Added and normalized EX-002 Minimal Profile benchmark case. |
