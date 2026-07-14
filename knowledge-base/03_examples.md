@@ -1629,6 +1629,189 @@ The message explores the experience behind the side project without turning the 
 
 ---
 
+**Example ID:** EX-010
+
+# Example 10 — Books and Movies Without Trivia Testing
+
+## Profile Context
+
+Bio:
+
+"Give me a great character-driven movie or a book that ruins my sleep schedule."
+
+Photos include:
+
+- Reading in a coffee shop
+- Outside an independent movie theater
+- Casual portrait
+- Bookshelf
+
+Interests:
+
+Books
+Independent films
+Coffee shops
+
+## Available Evidence
+
+Recipient Profile Evidence:
+
+- The recipient enjoys books.
+- The recipient enjoys character-driven movies.
+- The recipient has a photo reading in a coffee shop.
+- The recipient has a photo outside an independent movie theater.
+- The recipient has a bookshelf photo.
+- The recipient lists books, independent films, and coffee shops as interests.
+- The bio uses light exaggeration about staying up late to read.
+
+Verified User Evidence:
+
+- The user enjoys movies.
+- The user prefers stories with memorable characters.
+- The user does not read frequently.
+
+Unsupported Assumptions:
+
+- The recipient reads every day.
+- The recipient prefers literary fiction.
+- The recipient dislikes mainstream movies.
+- The recipient is intellectually serious.
+- The recipient wants recommendations from the user.
+- The recipient has seen the same movies as the user.
+- The recipient judges people by their reading habits.
+- Shared storytelling preferences imply compatibility.
+- The books shown belong to the recipient.
+- The recipient wants to discuss detailed film theory.
+
+## Objective
+
+Generate an opener that explores the recipient's perspective on storytelling without turning the conversation into trivia, a recommendation request, or a test of cultural knowledge. The message should use the user's verified interest in memorable characters while honestly avoiding the implication that the user is an active reader.
+
+## Generation Decision
+
+- Primary Strategy: Perspective Exploration
+- Secondary Strategy: Light Self-Disclosure
+- Conversation Stage: Stage 1 — Opening
+- Primary Optimization: Low-Edit Acceptance Rate
+- Reason for Selection: The profile emphasizes character-driven stories across books and movies. The user has verified interest in memorable characters but limited reading habits, so the strongest strategy is to explore what makes a character compelling rather than pretending shared literary expertise or asking for a list of favorites.
+
+## Decision Constraints
+
+Generation must:
+
+- Use only verified recipient and user evidence.
+- Remain appropriate for Stage 1.
+- Keep Reply Friction low.
+- Include one brief and truthful user disclosure.
+- Explore perspective rather than factual knowledge.
+- Create one clear reply path.
+- Preserve moderate warmth.
+- Allow answers from either books or movies.
+- Remain natural and immediately sendable.
+
+Generation must not:
+
+- Pretend the user reads frequently.
+- Ask the recipient to prove cultural knowledge.
+- Turn the opener into movie or book trivia.
+- Ask for several recommendations.
+- Infer intelligence or personality from media preferences.
+- Assume the recipient dislikes popular entertainment.
+- Claim shared favorite books, movies, or characters.
+- Ask multiple unrelated questions.
+- Suggest watching a movie together.
+- Make compatibility claims.
+
+## Alternative Generation
+
+"What's your favorite book or movie?"
+
+## Why It Wasn't Selected
+
+The question is relevant but broad, generic, and difficult to answer without choosing between many possibilities.
+
+It also provides no contribution from the sender and encourages a title exchange rather than a conversation about the recipient's perspective.
+
+## BetterOpnr Opener
+
+"I don't read nearly as much as I should, but a great character can keep me invested in almost any story. What makes a character memorable for you?"
+
+## Why It Works
+
+The opener:
+
+- uses verified information about both people
+- includes a brief and honest user disclosure
+- explores the recipient's perspective rather than testing knowledge
+- creates one clear reply path
+- allows the recipient to answer through either books or movies
+- avoids pretending the user is an active reader
+- avoids generic favorite-title wording
+- preserves moderate warmth
+- encourages explanation, opinion, or storytelling
+- keeps the recipient's interests at the center of the interaction
+
+The message creates conversation around how the recipient experiences stories rather than asking them to supply a list of titles.
+
+## Rejected Strategies
+
+- Strategy: Favorite Title Question
+  Reason for rejection: Asking for a favorite book or movie is broad, interchangeable, and may require unnecessary effort to answer.
+
+- Strategy: Recommendation Request
+  Reason for rejection: Requesting recommendations places the conversational burden on the recipient and may feel like information gathering.
+
+- Strategy: Film or Book Trivia
+  Reason for rejection: Trivia tests knowledge instead of creating mutual conversation.
+
+- Strategy: Intellectual Compliment
+  Reason for rejection: Describing the recipient as intelligent, cultured, or deep would infer personality from media preferences.
+
+- Strategy: Confirmed Common Ground
+  Reason for rejection: Both people appreciate character-driven stories, but the user does not have verified reading habits or specific shared titles.
+
+## BetterOpnr Strategies Used
+
+- Perspective Exploration
+- Light Self-Disclosure
+- Disclosure Before Question
+- Conversation Balance
+- Productive Curiosity
+- Specific Acknowledgment
+- Moderate Warmth
+- Low Reply Friction
+
+## Psychology Principles Applied
+
+- Cognitive Effort & Reply Friction
+- Question Asking & Responsiveness
+- Reciprocity
+- Self-Disclosure
+- Similarity and Points of Connection
+- Novelty and Attention
+- Warmth, Validation & Perceived Interest
+- Progressive Intimacy & Stage Matching
+
+## Expected Evaluator Scores
+
+- Reply Friction: Very Low
+- Conversation Balance: Very High
+- Distinctive Relevance: High
+- Warmth Calibration: Moderate
+- Interest Specificity: High
+- Disclosure Depth: Level 1
+- Connection Strength: Broad Confirmed Connection
+- Stage Match: Excellent
+- Risk Level: Low
+
+## Possible Variations
+
+- "Movies are more my lane than books, but memorable characters usually decide whether I care about either one. Who's a character you still think about?"
+
+- "Your profile makes a strong case for character-driven stories. Is it usually the character's flaws, growth, or personality that pulls you in?"
+
+---
+
 ## Revision History
 
 | Version | Date | Status | Summary |
@@ -1644,3 +1827,4 @@ The message explores the experience behind the side project without turning the 
 | 0.9 | 2026-07-14 | Draft | Added EX-007 Fitness Without Identity Assumptions benchmark case. |
 | 1.0 | 2026-07-14 | Draft | Added EX-008 Music and Taste Without Identity Assumptions benchmark case. |
 | 1.1 | 2026-07-14 | Draft | Added EX-009 Career and Ambition Without Interviewing benchmark case. |
+| 1.2 | 2026-07-14 | Draft | Added EX-010 Books and Movies Without Trivia Testing benchmark case. |
