@@ -1282,6 +1282,174 @@ The message recognizes effort while leaving the recipient free to define what th
 
 ---
 
+**Example ID:** EX-008
+
+# Example 08 — Music and Taste Without Identity Assumptions
+
+## Profile Context
+
+Bio:
+
+"Always looking for my next concert."
+
+Photos include:
+
+- Outdoor concert
+- Casual portrait
+- Friends at a music festival
+
+Interests:
+
+Live music
+Indie music
+Coffee
+
+## Available Evidence
+
+Recipient Profile Evidence:
+
+- The recipient enjoys live music.
+- The recipient attends concerts.
+- The recipient attended a music festival.
+- The recipient lists indie music as an interest.
+- Coffee is listed as an interest.
+
+Verified User Evidence:
+
+- The user enjoys live music.
+- The user listens to a wide variety of music.
+
+Unsupported Assumptions:
+
+- The recipient's favorite artist is indie.
+- The recipient attends concerts frequently.
+- Music is central to the recipient's identity.
+- The recipient plays an instrument.
+- The recipient prefers festivals over smaller venues.
+- The recipient wants a music-focused relationship.
+- The user likes the same artists.
+- Shared interest automatically implies compatibility.
+
+## Objective
+
+Generate an opener that explores the recipient's taste without assuming identity, compatibility, or shared musical preferences. Build reciprocity through a small verified user disclosure while creating a natural opportunity for the recipient to express personal preference.
+
+## Generation Decision
+
+- Primary Strategy: Preference Exploration
+- Secondary Strategy: Light Self-Disclosure
+- Conversation Stage: Stage 1 — Opening
+- Primary Optimization: Low-Edit Acceptance Rate
+- Reason for Selection: The profile contains clear music-related interests and the user has verified interest in live music. The strongest strategy is to explore preference rather than factual knowledge, artist trivia, or compatibility.
+
+## Decision Constraints
+
+Generation must:
+
+- Use only verified evidence.
+- Remain appropriate for Stage 1.
+- Keep Reply Friction low.
+- Include one brief user disclosure.
+- Explore preference rather than expertise.
+- Create one easy reply path.
+- Preserve moderate warmth.
+- Remain natural and immediately sendable.
+
+Generation must not:
+
+- Assume favorite artists.
+- Assume personality from music taste.
+- Turn the opener into trivia.
+- Pretend shared musical knowledge.
+- Make compatibility claims.
+- Suggest attending a concert together.
+- Ask multiple music questions.
+- Use generic "favorite band" wording.
+
+## Alternative Generation
+
+"Who's your favorite band?"
+
+## Why It Wasn't Selected
+
+Although relevant, the question is generic, interview-like, and provides no conversational contribution from the sender.
+
+It creates little Distinctive Relevance and could appear on thousands of profiles.
+
+## BetterOpnr Opener
+
+"I'll listen to almost anything live if the atmosphere is good, so I'm always curious about what makes a concert memorable for someone else. What's been your favorite live show so far?"
+
+## Why It Works
+
+The opener:
+
+- uses verified interests from both people
+- contributes a brief user disclosure
+- explores experience rather than trivia
+- encourages storytelling
+- avoids assuming musical identity
+- avoids compatibility claims
+- creates one clear reply path
+- preserves moderate warmth
+- keeps the recipient as the primary focus
+
+The conversation becomes about memorable experiences rather than testing music knowledge.
+
+## Rejected Strategies
+
+- Strategy: Favorite Artist Question
+  Reason for rejection: Generic and low in Distinctive Relevance.
+
+- Strategy: Shared Taste Claim
+  Reason for rejection: No verified evidence supports overlapping musical preferences.
+
+- Strategy: Music Trivia
+  Reason for rejection: Trivia creates evaluation instead of conversation.
+
+- Strategy: Concert Invitation
+  Reason for rejection: Suggesting future plans exceeds Stage 1 rapport.
+
+## BetterOpnr Strategies Used
+
+- Preference Exploration
+- Light Self-Disclosure
+- Conversation Balance
+- Productive Curiosity
+- Moderate Warmth
+- Recipient-Only Context
+- Low Reply Friction
+
+## Psychology Principles Applied
+
+- Cognitive Effort & Reply Friction
+- Question Asking & Responsiveness
+- Reciprocity
+- Self-Disclosure
+- Similarity and Points of Connection
+- Warmth, Validation & Perceived Interest
+- Progressive Intimacy & Stage Matching
+
+## Expected Evaluator Scores
+
+- Reply Friction: Very Low
+- Conversation Balance: Very High
+- Distinctive Relevance: High
+- Warmth Calibration: Moderate
+- Interest Specificity: High
+- Disclosure Depth: Level 1
+- Connection Strength: Broad Confirmed Connection
+- Stage Match: Excellent
+- Risk Level: Low
+
+## Possible Variations
+
+- "Live music is one of those things that's almost impossible to judge from a playlist alone. What's the concert you still think about?"
+
+- "I like that your profile talks about concerts instead of favorite artists. Which live show surprised you the most?"
+
+---
+
 ## Revision History
 
 | Version | Date | Status | Summary |
@@ -1295,3 +1463,4 @@ The message recognizes effort while leaving the recipient free to define what th
 | 0.7 | 2026-07-14 | Draft | Added EX-005 Food and Cooking benchmark case. |
 | 0.8 | 2026-07-14 | Draft | Added EX-006 Humor and Tone Matching benchmark case. |
 | 0.9 | 2026-07-14 | Draft | Added EX-007 Fitness Without Identity Assumptions benchmark case. |
+| 1.0 | 2026-07-14 | Draft | Added EX-008 Music and Taste Without Identity Assumptions benchmark case. |
