@@ -441,6 +441,171 @@ Most importantly, it succeeds by resisting unsupported assumptions.
 
 ---
 
+**Example ID:** EX-003
+
+# Example 03 — Single Pet Photo
+
+## Profile Context
+
+Bio:
+
+"Fluent in sarcasm and dog hair."
+
+Photos include:
+
+- One photo with a golden retriever
+- Two individual portraits
+- One restaurant photo
+
+Interests:
+
+Dogs
+Brunch
+Comedy
+
+## Available Evidence
+
+Recipient Profile Evidence:
+
+- The recipient has a golden retriever photo.
+- The recipient explicitly lists dogs as an interest.
+- The bio references dog hair.
+- The recipient lists brunch and comedy as interests.
+
+Verified User Evidence:
+
+- None supplied for this example.
+
+Unsupported Assumptions:
+
+- The dog belongs to the recipient.
+- The dog's name, age, temperament, or breed beyond visible appearance.
+- The recipient prefers dogs over people.
+- The recipient wants humor-first messaging.
+- The recipient regularly takes the dog to brunch.
+- The user owns or likes dogs.
+- The recipient is highly sarcastic in conversation.
+
+## Objective
+
+Generate an opener that uses the pet-related profile context without relying on a generic compliment, inventing details about the dog, or forcing an exaggerated joke. The message should create an easy reply path and feel natural enough to send with minimal editing.
+
+## Generation Decision
+
+- Primary Strategy: Specific Observation
+- Secondary Strategy: Playful Choice Question
+- Conversation Stage: Stage 1 — Opening
+- Primary Optimization: Low-Edit Acceptance Rate
+- Reason for Selection: The dog photo and dog-hair reference provide the strongest verified conversational context. A light choice question creates a clear reply path while avoiding unsupported assumptions about ownership, personality, or shared experience.
+
+## Decision Constraints
+
+Generation must:
+
+- Use only verified profile evidence.
+- Remain appropriate for Stage 1.
+- Keep Reply Friction low.
+- Use moderate warmth.
+- Create one clear reply path.
+- Keep the pet reference conversational rather than overly complimentary.
+- Avoid claiming that the user owns or loves dogs.
+- Remain natural and immediately sendable.
+
+Generation must not:
+
+- Invent the dog's name or personality.
+- Assume the dog belongs to the recipient.
+- Claim shared pet ownership.
+- Use "dog mom" or similar identity labels without evidence.
+- Make the dog the recipient's entire personality.
+- Use sexualized or appearance-based praise.
+- Force sarcasm merely because the bio mentions it.
+- Ask multiple unrelated questions.
+
+## Alternative Generation
+
+"Your dog is adorable. What's their name?"
+
+## Why It Wasn't Selected
+
+The message is relevant and easy to answer, but it relies on a generic pet compliment and assumes the dog belongs to the recipient.
+
+It also creates limited Distinctive Relevance because similar wording could be sent to almost any profile containing a pet photo.
+
+## BetterOpnr Opener
+
+"The dog hair warning feels responsibly transparent. Be honest—does the golden retriever run the house, or just the photo selection?"
+
+## Why It Works
+
+The opener:
+
+- uses two verified profile details
+- transforms the bio into a playful observation
+- creates one clear and low-effort reply path
+- allows the recipient to confirm or correct the assumption
+- uses light humor without becoming random
+- demonstrates attention without claiming shared experience
+- avoids generic praise
+- maintains moderate warmth and Stage 1 rapport
+
+The message treats the pet as a conversational hook without reducing the recipient to a pet-owner stereotype.
+
+## Rejected Strategies
+
+- Strategy: Confirmed Common Ground
+  Reason for rejection: No verified user information confirms that the user owns or likes dogs.
+
+- Strategy: Generic Pet Compliment
+  Reason for rejection: "Your dog is cute" is relevant but interchangeable and offers limited conversational substance.
+
+- Strategy: Sarcasm-Heavy Opener
+  Reason for rejection: The bio mentions sarcasm, but aggressively matching that tone could feel forced before the recipient's actual communication style is known.
+
+- Strategy: Brunch Question
+  Reason for rejection: Brunch is listed as an interest, but the dog-hair bio and pet photo provide a more distinctive and connected conversational signal.
+
+## BetterOpnr Strategies Used
+
+- Specific Observation
+- Contextual Surprise
+- Playful Choice Question
+- Observation Before Question
+- Productive Curiosity
+- Moderate Warmth
+- Recipient-Only Context
+- Low Reply Friction
+
+## Psychology Principles Applied
+
+- Cognitive Effort & Reply Friction
+- Question Asking & Responsiveness
+- Reciprocity
+- Uncertainty in Early Interaction
+- Novelty & Attention
+- Warmth, Validation & Perceived Interest
+- Progressive Intimacy & Stage Matching
+
+## Expected Evaluator Scores
+
+- Reply Friction: Very Low
+- Conversation Balance: High
+- Distinctive Relevance: High
+- Warmth Calibration: Moderate
+- Interest Specificity: High
+- Disclosure Depth: Level 0
+- Connection Strength: Recipient Only
+- Stage Match: Excellent
+- Risk Level: Low
+
+## Possible Variations
+
+- "I appreciate the advance notice about the dog hair. Is the golden retriever actually in charge, or just very convincing in photos?"
+
+- "The dog hair disclaimer raises an important question: does the golden retriever approve the brunch locations too?"
+
+---
+
 ## Revision History
 
 | Version | Date | Status | Summary |
@@ -449,3 +614,4 @@ Most importantly, it succeeds by resisting unsupported assumptions.
 | 0.2 | 2026-07-13 | Draft | Refactored Example 01 into the BetterOpnr Decision Library format. |
 | 0.3 | 2026-07-13 | Draft | Added Decision Constraints and finalized the Decision Library template. |
 | 0.4 | 2026-07-13 | Draft | Added and normalized EX-002 Minimal Profile benchmark case. |
+| 0.5 | 2026-07-13 | Draft | Added EX-003 Single Pet Photo benchmark case. |
