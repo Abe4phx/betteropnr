@@ -1450,6 +1450,185 @@ The conversation becomes about memorable experiences rather than testing music k
 
 ---
 
+**Example ID:** EX-009
+
+# Example 09 — Career and Ambition Without Interviewing
+
+## Profile Context
+
+Bio:
+
+"Product designer by day. Building a small furniture studio on the side."
+
+Photos include:
+
+- Working at a design desk
+- Finished wooden side table
+- Casual portrait
+- Weekend market booth
+
+Interests:
+
+Design
+Woodworking
+Startups
+
+## Available Evidence
+
+Recipient Profile Evidence:
+
+- The recipient works as a product designer.
+- The recipient is building a furniture studio on the side.
+- The recipient has a photo of a finished wooden side table.
+- The recipient has a photo at a weekend market booth.
+- The recipient lists design, woodworking, and startups as interests.
+
+Verified User Evidence:
+
+- The user enjoys building side projects.
+- The user does not have woodworking experience.
+
+Unsupported Assumptions:
+
+- The recipient wants to leave their current job.
+- The furniture studio is profitable.
+- The recipient is highly ambitious.
+- The recipient works long hours.
+- The recipient wants business advice.
+- The recipient is an entrepreneur.
+- The side table was made entirely by the recipient.
+- The recipient wants a partner with similar career goals.
+- The user understands product design or woodworking.
+- Shared side-project interest implies compatibility.
+
+## Objective
+
+Generate an opener that acknowledges the recipient's creative side project and invites a personal story without sounding like a recruiter, investor, networking contact, or business consultant. The message should use the user's verified side-project experience to build reciprocity while keeping the tone social and Stage 1 appropriate.
+
+## Generation Decision
+
+- Primary Strategy: Shared Experience Prompt
+- Secondary Strategy: Light Self-Disclosure
+- Conversation Stage: Stage 1 — Opening
+- Primary Optimization: Low-Edit Acceptance Rate
+- Reason for Selection: The recipient's side project provides a distinctive conversational signal, and the user has verified experience building side projects. The strongest strategy is to use that limited overlap to explore motivation and enjoyment rather than asking about revenue, career plans, or professional credentials.
+
+## Decision Constraints
+
+Generation must:
+
+- Use only verified recipient and user evidence.
+- Remain appropriate for Stage 1.
+- Keep Reply Friction low.
+- Include one brief and truthful user disclosure.
+- Focus on the personal experience of building something.
+- Create one clear reply path.
+- Preserve moderate warmth.
+- Sound social rather than professional.
+- Remain natural and immediately sendable.
+
+Generation must not:
+
+- Ask about revenue, customers, funding, or growth.
+- Ask why the recipient has not left their job.
+- Infer ambition, discipline, or work ethic.
+- Offer business advice.
+- Sound like a recruiter or networking message.
+- Pretend the user understands woodworking.
+- Claim strong compatibility based on side projects.
+- Ask several career questions.
+- Turn the opener into praise without conversation.
+- Assume the recipient made every item shown.
+
+## Alternative Generation
+
+"That's impressive. What made you decide to start a furniture business?"
+
+## Why It Wasn't Selected
+
+The message is relevant, but "that's impressive" is broad praise, and "furniture business" may overstate the recipient's own description of a small studio.
+
+The question also sounds formal and interview-like, placing the recipient in a position to explain a career decision rather than continue a relaxed social conversation.
+
+## BetterOpnr Opener
+
+"I build side projects too, although none of mine have produced an actual piece of furniture. What part of starting the studio has been the most satisfying so far?"
+
+## Why It Works
+
+The opener:
+
+- uses verified information about both people
+- contributes a brief and relevant user disclosure
+- acknowledges the tangible nature of the recipient's project without exaggerating it
+- invites a personal reflection rather than a business report
+- creates one clear and comfortable reply path
+- avoids assuming profitability, ambition, or career intent
+- preserves moderate warmth
+- keeps the interaction social rather than transactional
+- allows the recipient to discuss craft, customers, learning, or another meaningful aspect
+
+The message explores the experience behind the side project without turning the recipient into a professional prospect.
+
+## Rejected Strategies
+
+- Strategy: Career Interview Question
+  Reason for rejection: Questions about long-term goals or career transitions would sound formal and create unnecessary pressure.
+
+- Strategy: Business Performance Question
+  Reason for rejection: Asking about sales, customers, or profitability is intrusive and unsupported for an opening interaction.
+
+- Strategy: Achievement Compliment
+  Reason for rejection: Broad praise such as "you must be incredibly driven" would infer identity from limited evidence.
+
+- Strategy: Technical Woodworking Question
+  Reason for rejection: The user has no verified woodworking knowledge, making a detailed technical question likely to sound performative.
+
+- Strategy: Strong Common Ground Claim
+  Reason for rejection: Both people build side projects, but the work, motivations, and experience may be substantially different.
+
+## BetterOpnr Strategies Used
+
+- Shared Experience Prompt
+- Light Self-Disclosure
+- Disclosure Before Question
+- Conversation Balance
+- Specific Acknowledgment
+- Productive Curiosity
+- Moderate Warmth
+- Low Reply Friction
+
+## Psychology Principles Applied
+
+- Cognitive Effort & Reply Friction
+- Question Asking & Responsiveness
+- Reciprocity
+- Self-Disclosure
+- Similarity and Points of Connection
+- Novelty and Attention
+- Warmth, Validation & Perceived Interest
+- Progressive Intimacy & Stage Matching
+
+## Expected Evaluator Scores
+
+- Reply Friction: Very Low
+- Conversation Balance: Very High
+- Distinctive Relevance: High
+- Warmth Calibration: Moderate
+- Interest Specificity: High
+- Disclosure Depth: Level 1
+- Connection Strength: Broad Confirmed Connection
+- Stage Match: Excellent
+- Risk Level: Low
+
+## Possible Variations
+
+- "I have a soft spot for side projects, but mine have never required woodworking tools. What part of building the studio has been more fun than you expected?"
+
+- "A day job plus a furniture studio is a pretty interesting combination. I build projects on the side too—what made this the one you wanted to pursue?"
+
+---
+
 ## Revision History
 
 | Version | Date | Status | Summary |
@@ -1464,3 +1643,4 @@ The conversation becomes about memorable experiences rather than testing music k
 | 0.8 | 2026-07-14 | Draft | Added EX-006 Humor and Tone Matching benchmark case. |
 | 0.9 | 2026-07-14 | Draft | Added EX-007 Fitness Without Identity Assumptions benchmark case. |
 | 1.0 | 2026-07-14 | Draft | Added EX-008 Music and Taste Without Identity Assumptions benchmark case. |
+| 1.1 | 2026-07-14 | Draft | Added EX-009 Career and Ambition Without Interviewing benchmark case. |
