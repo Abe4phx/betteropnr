@@ -1104,6 +1104,184 @@ The humor exists to support conversation rather than become the conversation.
 
 ---
 
+**Example ID:** EX-007
+
+# Example 07 — Fitness Without Identity Assumptions
+
+## Profile Context
+
+Bio:
+
+"Training for my first half marathon and trying not to complain about it too much."
+
+Photos include:
+
+- Running on a trail
+- Race-day photo
+- Casual portrait
+- Coffee shop
+
+Interests:
+
+Running
+Fitness
+Podcasts
+
+## Available Evidence
+
+Recipient Profile Evidence:
+
+- The recipient is training for a first half marathon.
+- The recipient has a running photo.
+- The recipient has a race-day photo.
+- The recipient lists running, fitness, and podcasts as interests.
+- The bio uses light self-aware humor.
+
+Verified User Evidence:
+
+- The user goes to the gym regularly.
+- The user does not run long distances.
+
+Unsupported Assumptions:
+
+- The recipient is highly disciplined.
+- The recipient is competitive.
+- The recipient is trying to lose weight.
+- The recipient is training for health reasons.
+- The recipient enjoys every part of training.
+- The recipient wants a fitness-focused partner.
+- The recipient is an expert runner.
+- The user understands half-marathon training.
+- The recipient wants advice.
+- The recipient follows a strict diet.
+
+## Objective
+
+Generate an opener that acknowledges the recipient's visible effort and stated goal without turning fitness into a personality judgment, body comment, achievement speech, or compatibility claim. The message should use the user's verified lack of long-distance running experience to create honest reciprocity and an easy reply path.
+
+## Generation Decision
+
+- Primary Strategy: Light Self-Disclosure
+- Secondary Strategy: Effort Acknowledgment
+- Conversation Stage: Stage 1 — Opening
+- Primary Optimization: Low-Edit Acceptance Rate
+- Reason for Selection: The profile provides a clear fitness goal and a lightly humorous tone. The user has relevant but non-equivalent fitness experience, so the strongest strategy is to acknowledge the training effort while honestly positioning the user as curious rather than knowledgeable.
+
+## Decision Constraints
+
+Generation must:
+
+- Use only verified recipient and user evidence.
+- Remain appropriate for Stage 1.
+- Acknowledge effort without inferring personality.
+- Keep Reply Friction low.
+- Create one clear reply path.
+- Use moderate warmth.
+- Preserve the recipient's self-aware tone.
+- Keep the user disclosure brief and truthful.
+- Remain natural and immediately sendable.
+
+Generation must not:
+
+- Comment on the recipient's body.
+- Infer discipline, ambition, competitiveness, or lifestyle identity.
+- Give unsolicited training advice.
+- Pretend the user is a runner.
+- Claim shared fitness goals.
+- Assume the recipient enjoys training.
+- Ask several technical questions.
+- Make a compatibility claim.
+- Use motivational clichés.
+- Turn the opener into praise without conversation.
+
+## Alternative Generation
+
+"Training for a half marathon takes serious discipline. What made you decide to do it?"
+
+## Why It Wasn't Selected
+
+The question is relevant, but the phrase "takes serious discipline" assigns a personality trait based on a single goal.
+
+It also sounds more like an interview question and misses the opportunity to use the user's verified lack of long-distance running experience to create balanced participation.
+
+## BetterOpnr Opener
+
+"I'm consistent at the gym, but long-distance running still feels like a completely different species of exercise. What part of half-marathon training has surprised you most?"
+
+## Why It Works
+
+The opener:
+
+- acknowledges the recipient's training without overpraising it
+- uses a brief and verified user disclosure
+- avoids pretending the user understands endurance running
+- creates one focused and easy reply path
+- invites a story or opinion rather than a factual training report
+- preserves moderate warmth
+- avoids body commentary
+- avoids inferring discipline, competitiveness, or lifestyle identity
+- matches the profile's self-aware tone without forcing humor
+
+The message recognizes effort while leaving the recipient free to define what the experience means to them.
+
+## Rejected Strategies
+
+- Strategy: Achievement Compliment
+  Reason for rejection: Praising discipline or dedication would infer stable personality traits from limited evidence.
+
+- Strategy: Technical Training Question
+  Reason for rejection: Asking about mileage, pacing, or training plans could sound performative because the user has no verified endurance-running expertise.
+
+- Strategy: Confirmed Common Ground
+  Reason for rejection: Regular gym attendance and half-marathon training are related but not equivalent experiences and should not be framed as strong commonality.
+
+- Strategy: Body or Appearance Compliment
+  Reason for rejection: The profile supports conversation about a stated goal, not commentary on the recipient's body.
+
+- Strategy: Motivational Encouragement
+  Reason for rejection: Generic encouragement may sound patronizing or create less conversational substance than curiosity about the recipient's experience.
+
+## BetterOpnr Strategies Used
+
+- Light Self-Disclosure
+- Preference Disclosure
+- Effort Acknowledgment
+- Disclosure Before Question
+- Conversation Balance
+- Specific Acknowledgment
+- Moderate Warmth
+- Low Reply Friction
+
+## Psychology Principles Applied
+
+- Cognitive Effort & Reply Friction
+- Question Asking & Responsiveness
+- Reciprocity
+- Self-Disclosure
+- Similarity and Points of Connection
+- Warmth, Validation & Perceived Interest
+- Progressive Intimacy & Stage Matching
+
+## Expected Evaluator Scores
+
+- Reply Friction: Very Low
+- Conversation Balance: Very High
+- Distinctive Relevance: High
+- Warmth Calibration: Moderate
+- Interest Specificity: High
+- Disclosure Depth: Level 1
+- Connection Strength: Broad Possible Connection
+- Stage Match: Excellent
+- Risk Level: Low
+
+## Possible Variations
+
+- "I can handle a regular gym routine, but half-marathon training sounds like its own universe. What part has been easier or harder than you expected?"
+
+- "Long-distance running is outside my expertise, so I'm curious: what's been the most unexpectedly enjoyable part of training?"
+
+---
+
 ## Revision History
 
 | Version | Date | Status | Summary |
@@ -1116,3 +1294,4 @@ The humor exists to support conversation rather than become the conversation.
 | 0.6 | 2026-07-13 | Draft | Added EX-004 Hiking and Outdoors benchmark case. |
 | 0.7 | 2026-07-14 | Draft | Added EX-005 Food and Cooking benchmark case. |
 | 0.8 | 2026-07-14 | Draft | Added EX-006 Humor and Tone Matching benchmark case. |
+| 0.9 | 2026-07-14 | Draft | Added EX-007 Fitness Without Identity Assumptions benchmark case. |
