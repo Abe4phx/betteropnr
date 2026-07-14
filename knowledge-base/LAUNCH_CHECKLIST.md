@@ -10,19 +10,27 @@ This checklist defines the minimum quality bar required before BetterOpnr's publ
 
 ## Benchmark Validation
 
-- [ ] EX-001 through EX-010 reviewed
+- [x] EX-001 through EX-010 reviewed
 - [ ] No unsupported factual assumptions
 - [ ] No ownership assumptions
 - [ ] No direct profile quoting
 - [ ] Strong strategy diversity
 - [ ] Every opener naturally encourages a reply
-- [ ] No generic fallback-style messages
+- [x] No generic fallback-style messages
 
 ## Prompt Quality
 
-- [ ] Phase 2A guide finalized
-- [ ] Prompt wording frozen for launch
+- [x] Phase 2A guide finalized
+- [x] Prompt wording frozen for launch
 - [ ] No known recurring benchmark failures
+
+## Accepted Launch Risks
+
+- Rare unsupported factual or ownership assumptions may still occur because model output is probabilistic.
+- Some openers may use an implicit rather than explicit reply path.
+- Strategy diversity may occasionally be weaker than requested.
+- These risks are accepted for the initial launch because they are isolated rather than systemic and users receive multiple opener options.
+- Recurring failures will be documented and addressed using production feedback.
 
 ---
 
@@ -124,3 +132,9 @@ Version 0.1
 Status: Draft
 
 Summary: Initial launch readiness checklist.
+
+Version 0.2
+
+Status: Draft
+
+Summary: Recorded completed AI benchmark validation, froze the launch prompt, and documented accepted residual AI risks.
