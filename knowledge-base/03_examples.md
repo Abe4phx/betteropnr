@@ -773,6 +773,177 @@ The message uses outdoor context to explore preference rather than treating the 
 
 ---
 
+**Example ID:** EX-005
+
+# Example 05 — Food and Cooking
+
+## Profile Context
+
+Bio:
+
+"Trying to perfect homemade pasta and accepting volunteers for quality control."
+
+Photos include:
+
+- Homemade pasta dish
+- Dinner at a small restaurant
+- Casual portrait
+- Farmers market
+
+Interests:
+
+Cooking
+Italian food
+Farmers markets
+
+## Available Evidence
+
+Recipient Profile Evidence:
+
+- The recipient explicitly mentions making homemade pasta.
+- The recipient jokingly asks for quality-control volunteers.
+- The recipient has a photo of a homemade pasta dish.
+- The recipient lists cooking, Italian food, and farmers markets as interests.
+- The profile supports a light, playful tone.
+
+Verified User Evidence:
+
+- The user enjoys Italian food.
+- The user does not cook often.
+
+Unsupported Assumptions:
+
+- The pasta in the photo was made entirely from scratch.
+- The recipient is an expert cook.
+- The recipient wants the user to invite themselves over.
+- The recipient regularly hosts dinner guests.
+- The recipient is looking for a partner who cooks.
+- The user knows how to make pasta.
+- The recipient's favorite food is pasta.
+- The quality-control invitation is a literal invitation to meet.
+
+## Objective
+
+Generate an opener that builds reciprocity by contributing one verified user preference before asking a relevant question. The message should engage with the recipient's playful profile tone without turning the opener into a request for food, an invitation to their home, or an interview about cooking.
+
+## Generation Decision
+
+- Primary Strategy: Preference Disclosure
+- Secondary Strategy: Opinion Before Question
+- Conversation Stage: Stage 1 — Opening
+- Primary Optimization: Low-Edit Acceptance Rate
+- Reason for Selection: Verified user information supports a small contribution about enjoying Italian food while remaining honest about limited cooking experience. Pairing that contribution with a focused question creates stronger Conversation Balance than asking the recipient to explain their cooking process without offering anything in return.
+
+## Decision Constraints
+
+Generation must:
+
+- Use only verified recipient and user evidence.
+- Remain appropriate for Stage 1.
+- Include one brief Level 1 disclosure.
+- Keep Reply Friction low.
+- Create one clear reply path.
+- Match the profile's light playfulness without exaggerating it.
+- Keep the focus on the recipient's pasta interest.
+- Remain natural and immediately sendable.
+
+Generation must not:
+
+- Pretend the user knows how to make pasta.
+- Ask to be invited over.
+- Treat the quality-control line as consent to arrange a date.
+- Make sexual or suggestive food jokes.
+- Ask several cooking questions.
+- Overstate the recipient's skill.
+- Claim compatibility based on liking Italian food.
+- Make the disclosure longer than the recipient-focused content.
+
+## Alternative Generation
+
+"That pasta looks amazing. What's your favorite thing to cook?"
+
+## Why It Wasn't Selected
+
+The message is relevant and easy to understand, but it relies on generic praise and asks the recipient to carry the interaction.
+
+It also ignores the verified user preference that could make the exchange more reciprocal and personal without introducing unsupported common ground.
+
+## BetterOpnr Opener
+
+"I'm much better at appreciating Italian food than making it, so homemade pasta already has my respect. What part took the longest to get right?"
+
+## Why It Works
+
+The opener:
+
+- uses verified information about both people
+- contributes a brief, low-stakes user preference
+- keeps the disclosure relevant to the recipient's profile
+- creates one focused and answerable question
+- invites the recipient to share effort or experience
+- avoids pretending the user has cooking expertise
+- communicates moderate warmth without exaggerated praise
+- matches the profile's playful tone without forcing a joke
+- creates balanced participation rather than an interview dynamic
+
+The message uses reciprocity to make the question feel earned while preserving the recipient as the primary focus.
+
+## Rejected Strategies
+
+- Strategy: Generic Food Compliment
+  Reason for rejection: Saying the pasta looks amazing is relevant but interchangeable and creates little conversational substance.
+
+- Strategy: Quality-Control Volunteer Joke
+  Reason for rejection: Volunteering to taste the food could sound like an immediate invitation request or premature meeting escalation.
+
+- Strategy: Confirmed Common Ground
+  Reason for rejection: Both people have relevant food interests, but enjoying Italian food and making homemade pasta are not equivalent experiences and should not be framed as strong compatibility.
+
+- Strategy: Technical Cooking Question
+  Reason for rejection: Asking about flour type, hydration, or equipment could sound performative because the user has no verified cooking expertise.
+
+## BetterOpnr Strategies Used
+
+- Preference Disclosure
+- Light Self-Disclosure
+- Opinion Before Question
+- Disclosure Before Question
+- Conversation Balance
+- Specific Acknowledgment
+- Moderate Warmth
+- Low Reply Friction
+
+## Psychology Principles Applied
+
+- Cognitive Effort & Reply Friction
+- Question Asking & Responsiveness
+- Reciprocity
+- Self-Disclosure
+- Similarity and Points of Connection
+- Novelty and Attention
+- Warmth, Validation & Perceived Interest
+- Progressive Intimacy & Stage Matching
+
+## Expected Evaluator Scores
+
+- Reply Friction: Very Low
+- Conversation Balance: Very High
+- Distinctive Relevance: High
+- Warmth Calibration: Moderate
+- Interest Specificity: High
+- Disclosure Depth: Level 1
+- Connection Strength: Broad Confirmed Connection
+- Stage Match: Excellent
+- Risk Level: Low
+
+## Possible Variations
+
+- "Italian food is one of my strongest interests and one of my weakest cooking skills. What was the hardest part of learning homemade pasta?"
+
+- "I can confidently support the pasta quality-control process, but I'd be useless in production. Which part took the most practice?"
+
+---
+
 ## Revision History
 
 | Version | Date | Status | Summary |
@@ -783,3 +954,4 @@ The message uses outdoor context to explore preference rather than treating the 
 | 0.4 | 2026-07-13 | Draft | Added and normalized EX-002 Minimal Profile benchmark case. |
 | 0.5 | 2026-07-13 | Draft | Added EX-003 Single Pet Photo benchmark case. |
 | 0.6 | 2026-07-13 | Draft | Added EX-004 Hiking and Outdoors benchmark case. |
+| 0.7 | 2026-07-14 | Draft | Added EX-005 Food and Cooking benchmark case. |
