@@ -606,6 +606,173 @@ The message treats the pet as a conversational hook without reducing the recipie
 
 ---
 
+**Example ID:** EX-004
+
+# Example 04 — Hiking and Outdoors
+
+## Profile Context
+
+Bio:
+
+"Weekends are for getting outside."
+
+Photos include:
+
+- Mountain summit photo
+- Tent beside a lake
+- Casual portrait
+
+Interests:
+
+Hiking
+Camping
+National parks
+
+## Available Evidence
+
+Recipient Profile Evidence:
+
+- The recipient explicitly mentions spending weekends outside.
+- The recipient has a mountain summit photo.
+- The recipient has a camping photo beside a lake.
+- The recipient lists hiking, camping, and national parks as interests.
+
+Verified User Evidence:
+
+- None supplied for this example.
+
+Unsupported Assumptions:
+
+- The user enjoys hiking or camping.
+- The recipient hikes every weekend.
+- The mountain photo was taken locally.
+- The recipient completed a difficult climb.
+- The recipient prefers mountains over other outdoor activities.
+- The recipient is highly athletic.
+- The recipient wants an adventure-focused partner.
+- The recipient is experienced enough to recommend difficult trails.
+
+## Objective
+
+Generate a profile-specific outdoor opener that avoids the generic "Where was this taken?" question, does not invent shared interests, and gives the recipient an easy opportunity to discuss a meaningful preference or experience.
+
+## Generation Decision
+
+- Primary Strategy: Specific Observation
+- Secondary Strategy: Preference Question
+- Conversation Stage: Stage 1 — Opening
+- Primary Optimization: Low-Edit Acceptance Rate
+- Reason for Selection: The profile contains several verified outdoor signals, making the strongest strategy a recipient-only observation that explores how the person experiences the outdoors rather than merely identifying a photo location.
+
+## Decision Constraints
+
+Generation must:
+
+- Use only verified recipient evidence.
+- Remain appropriate for Stage 1.
+- Keep Reply Friction low.
+- Create one clear reply path.
+- Avoid claiming shared outdoor experience.
+- Use moderate warmth.
+- Make the question more conversational than a location request.
+- Stay natural and immediately sendable.
+
+Generation must not:
+
+- Claim the user hikes, camps, or visits national parks.
+- Assume the summit was difficult.
+- Assume the recipient is highly athletic.
+- Ask several outdoor questions at once.
+- Treat outdoor activity as the recipient's entire identity.
+- Make a compatibility claim.
+- Use exaggerated adventure language.
+- Infer the location of any photo.
+
+## Alternative Generation
+
+"Where was that hiking photo taken?"
+
+## Why It Wasn't Selected
+
+The question is relevant and easy to answer, but it focuses on identifying a location rather than learning something meaningful about the recipient.
+
+It has low Distinctive Relevance because it could be used on nearly any outdoor profile and gives the sender no conversational contribution.
+
+## BetterOpnr Opener
+
+"Your profile makes a strong case for spending weekends outside. Which wins for you: reaching the summit or finding the perfect place to set up camp?"
+
+## Why It Works
+
+The opener:
+
+- combines multiple verified profile signals
+- creates a clear preference-based reply path
+- transforms profile evidence instead of merely restating it
+- avoids assuming that the user shares the same interests
+- encourages the recipient to reveal personality through a low-stakes choice
+- uses moderate warmth without exaggerated praise
+- remains specific while allowing several natural responses
+- avoids the generic location-question pattern
+
+The message uses outdoor context to explore preference rather than treating the profile as a geography quiz.
+
+## Rejected Strategies
+
+- Strategy: Confirmed Common Ground
+  Reason for rejection: No verified user evidence confirms an outdoor interest or shared experience.
+
+- Strategy: Location Question
+  Reason for rejection: Asking where the photo was taken is relevant but generic and offers limited conversational depth.
+
+- Strategy: Achievement Compliment
+  Reason for rejection: Praising the summit as an impressive accomplishment would assume the difficulty of the hike and the recipient's role in completing it.
+
+- Strategy: Adventure Compatibility Claim
+  Reason for rejection: The profile supports an outdoor interest but does not establish compatibility with the user.
+
+## BetterOpnr Strategies Used
+
+- Specific Observation
+- Preference Question
+- Recipient-Only Context
+- Observation Before Question
+- Productive Curiosity
+- Moderate Warmth
+- Low Reply Friction
+- Distinctive Relevance
+
+## Psychology Principles Applied
+
+- Cognitive Effort & Reply Friction
+- Question Asking & Responsiveness
+- Reciprocity
+- Uncertainty in Early Interaction
+- Similarity and Points of Connection
+- Novelty and Attention
+- Warmth, Validation & Perceived Interest
+- Progressive Intimacy & Stage Matching
+
+## Expected Evaluator Scores
+
+- Reply Friction: Very Low
+- Conversation Balance: High
+- Distinctive Relevance: High
+- Warmth Calibration: Moderate
+- Interest Specificity: High
+- Disclosure Depth: Level 0
+- Connection Strength: Recipient Only
+- Stage Match: Excellent
+- Risk Level: Low
+
+## Possible Variations
+
+- "Your profile is making a convincing argument for getting outside more. Are you more interested in the hike itself or the view at the end?"
+
+- "Summit photo and lakeside camping is a strong weekend lineup. Which one do you look forward to more?"
+
+---
+
 ## Revision History
 
 | Version | Date | Status | Summary |
@@ -615,3 +782,4 @@ The message treats the pet as a conversational hook without reducing the recipie
 | 0.3 | 2026-07-13 | Draft | Added Decision Constraints and finalized the Decision Library template. |
 | 0.4 | 2026-07-13 | Draft | Added and normalized EX-002 Minimal Profile benchmark case. |
 | 0.5 | 2026-07-13 | Draft | Added EX-003 Single Pet Photo benchmark case. |
+| 0.6 | 2026-07-13 | Draft | Added EX-004 Hiking and Outdoors benchmark case. |
