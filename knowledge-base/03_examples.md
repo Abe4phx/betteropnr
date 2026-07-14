@@ -944,6 +944,166 @@ The message uses reciprocity to make the question feel earned while preserving t
 
 ---
 
+**Example ID:** EX-006
+
+# Example 06 — Humor and Tone Matching
+
+## Profile Context
+
+Bio:
+
+"Professionally keeping my plants alive. Emotionally attached to tacos."
+
+Photos include:
+
+- Smiling selfie
+- Holding a taco
+- Houseplants by a window
+- Casual group photo
+
+Interests:
+
+Plants
+Tacos
+Comedy
+
+## Available Evidence
+
+Recipient Profile Evidence:
+
+- The bio uses playful humor.
+- The recipient references tacos.
+- The recipient references houseplants.
+- The recipient lists comedy as an interest.
+- The overall profile tone is lighthearted.
+
+Verified User Evidence:
+
+- None supplied for this example.
+
+Unsupported Assumptions:
+
+- The recipient is highly sarcastic.
+- The recipient wants constant jokes.
+- The recipient enjoys absurd humor.
+- The recipient is extroverted.
+- The recipient is looking for someone funny.
+- The recipient owns many plants.
+- The tacos shown are the recipient's favorite food.
+
+## Objective
+
+Generate an opener that matches the recipient's playful tone without trying to outperform it. Primary communication objective: match tone without exceeding it.
+
+## Generation Decision
+
+- Primary Strategy: Tone Matching
+- Secondary Strategy: Playful Observation
+- Conversation Stage: Stage 1 — Opening
+- Primary Optimization: Low-Edit Acceptance Rate
+- Reason for Selection: The recipient has already established a playful tone. The strongest decision is to lightly continue that tone rather than introducing unrelated humor or trying to be significantly funnier than the profile itself.
+
+## Decision Constraints
+
+Generation must:
+
+- Match the recipient's tone.
+- Use only verified profile evidence.
+- Keep Reply Friction low.
+- Remain Stage 1 appropriate.
+- Create one easy reply path.
+- Preserve moderate warmth.
+- Feel naturally conversational.
+
+Generation must not:
+
+- Try to "win" the joke.
+- Use edgy humor.
+- Use sarcasm unsupported by the profile.
+- Force a punchline.
+- Become overly clever.
+- Introduce random humor.
+- Escalate familiarity.
+
+## Alternative Generation
+
+"So... how many tacos does it take before a plant starts judging you?"
+
+## Why It Wasn't Selected
+
+Although playful, the joke is disconnected from the recipient's profile and asks the recipient to understand the joke before engaging with the conversation.
+
+It optimizes for cleverness rather than connection.
+
+## BetterOpnr Opener
+
+"I appreciate that your bio somehow made tacos and houseplants sound equally important life priorities. Which one has been easier to keep alive?"
+
+## Why It Works
+
+The opener:
+
+- builds directly from the recipient's existing humor
+- contributes an observation before asking a question
+- extends the profile's joke instead of replacing it
+- creates an easy reply path
+- preserves moderate warmth
+- feels conversational rather than performative
+- keeps the recipient as the center of attention
+
+The humor exists to support conversation rather than become the conversation.
+
+## Rejected Strategies
+
+- Strategy: Humor First
+  Reason for rejection: Trying to be funnier than the profile increases the risk of sounding artificial.
+
+- Strategy: Generic Taco Joke
+  Reason for rejection: The joke could apply to many profiles and creates low Distinctive Relevance.
+
+- Strategy: Serious Plant Question
+  Reason for rejection: Ignoring the recipient's playful tone misses an opportunity to build rapport naturally.
+
+- Strategy: Confirmed Common Ground
+  Reason for rejection: No verified user evidence supports shared interests.
+
+## BetterOpnr Strategies Used
+
+- Tone Matching
+- Playful Observation
+- Observation Before Question
+- Moderate Warmth
+- Low Reply Friction
+- Recipient-Only Context
+
+## Psychology Principles Applied
+
+- Cognitive Effort & Reply Friction
+- Reciprocity
+- Novelty and Attention
+- Warmth, Validation & Perceived Interest
+- Progressive Intimacy & Stage Matching
+
+## Expected Evaluator Scores
+
+- Reply Friction: Very Low
+- Conversation Balance: High
+- Distinctive Relevance: High
+- Warmth Calibration: Moderate
+- Interest Specificity: High
+- Disclosure Depth: Level 0
+- Connection Strength: Recipient Only
+- Stage Match: Excellent
+- Risk Level: Low
+
+## Possible Variations
+
+- "I respect anyone willing to publicly rank tacos alongside houseplants. Which one gets more attention on an average weekend?"
+
+- "Your bio feels like someone had to make a very difficult choice between gardening and tacos and wisely refused."
+
+---
+
 ## Revision History
 
 | Version | Date | Status | Summary |
@@ -955,3 +1115,4 @@ The message uses reciprocity to make the question feel earned while preserving t
 | 0.5 | 2026-07-13 | Draft | Added EX-003 Single Pet Photo benchmark case. |
 | 0.6 | 2026-07-13 | Draft | Added EX-004 Hiking and Outdoors benchmark case. |
 | 0.7 | 2026-07-14 | Draft | Added EX-005 Food and Cooking benchmark case. |
+| 0.8 | 2026-07-14 | Draft | Added EX-006 Humor and Tone Matching benchmark case. |
