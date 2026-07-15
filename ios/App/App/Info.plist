@@ -1,11 +1,12 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-        <string>BetterOpnr</string>
+	<string>BetterOpnr</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -18,10 +19,26 @@
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
 	<string>$(MARKETING_VERSION)</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>com.abe.BetterOpnr</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>betteropnr</string>
+			</array>
+		</dict>
+	</array>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>LSApplicationCategoryType</key>
+	<string />
 	<key>LSRequiresIPhoneOS</key>
-	<true/>
+	<true />
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string
+    >BetterOpnr uses photos you choose from your library to analyze dating profiles and generate AI-powered feedback.</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
@@ -44,17 +61,12 @@
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
 	<key>UIViewControllerBasedStatusBarAppearance</key>
-	<true/>
-	<key>CFBundleURLTypes</key>
-	<array>
-		<dict>
-			<key>CFBundleURLName</key>
-			<string>app.lovable.betteropnr</string>
-			<key>CFBundleURLSchemes</key>
-			<array>
-				<string>betteropnr</string>
-			</array>
-		</dict>
-	</array>
+	<true />
+<key>NSCameraUsageDescription</key>
+<string>Take photos for profile analysis.</string>
+
+<key>NSPhotoLibraryAddUsageDescription</key>
+<string>Save images when you choose to export or share.</string>
+
 </dict>
 </plist>
