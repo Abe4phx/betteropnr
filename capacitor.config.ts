@@ -1,7 +1,7 @@
 import { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'app.lovable.betteropnr',
+  appId: 'com.abe.BetterOpnr',
   appName: 'BetterOpnr',
   webDir: 'dist',
   server: {
