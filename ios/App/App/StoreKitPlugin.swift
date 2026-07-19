@@ -53,7 +53,7 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
                     switch verification {
                     case .verified(let tx):
                         await tx.finish()
-                        call.resolve(transactionPayload(tx))
+                        call.resolve(transactionPayload(tx, jws: verification.jwsRepresentation))
                     case .unverified(_, let err):
                         call.reject("Unverified: \(err.localizedDescription)")
                     }
@@ -94,19 +94,22 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
     }
 
     // Builds the JS-facing payload for one verified transaction, including
-    // the raw Apple-signed JWS (jwsRepresentation, exposed here as
-    // "signedTransactionInfo") so the backend can independently verify it.
-    // Only ever called with an already-verified Transaction — see the
-    // .verified case in purchase() and the filter in activeEntitlements()
-    // below. Never called with an unverified or revoked transaction.
-    private func transactionPayload(_ tx: Transaction) -> [String: Any] {
+    // the raw Apple-signed JWS so the backend can independently verify it.
+    // jwsRepresentation lives on VerificationResult<Transaction> itself, not
+    // on the unwrapped Transaction — callers must pass the JWS string from
+    // the VerificationResult they matched .verified(tx) against; it cannot
+    // be read off `tx` after the fact. Only ever called with an
+    // already-verified Transaction — see the .verified case in purchase()
+    // and the filter in activeEntitlements() below. Never called with an
+    // unverified or revoked transaction.
+    private func transactionPayload(_ tx: Transaction, jws: String) -> [String: Any] {
         var payload: [String: Any] = [
             "transactionId": String(tx.id),
             "originalTransactionId": String(tx.originalID),
             "productId": tx.productID,
             "purchaseDate": ISO8601DateFormatter().string(from: tx.purchaseDate),
             "environment": tx.environment.rawValue,
-            "signedTransactionInfo": tx.jwsRepresentation,
+            "signedTransactionInfo": jws,
         ]
         if let expirationDate = tx.expirationDate {
             payload["expirationDate"] = ISO8601DateFormatter().string(from: expirationDate)
@@ -124,17 +127,19 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
     private func activeEntitlements() async throws -> [String: Any] {
         var activeIds: [String] = []
         var activeTransaction: Transaction?
+        var activeTransactionJws: String?
         for await result in Transaction.currentEntitlements {
             if case .verified(let tx) = result, tx.revocationDate == nil {
                 activeIds.append(tx.productID)
                 if activeTransaction == nil {
                     activeTransaction = tx
+                    activeTransactionJws = result.jwsRepresentation
                 }
             }
         }
         var result: [String: Any] = ["isSubscribed": !activeIds.isEmpty, "productIds": activeIds]
-        if let tx = activeTransaction {
-            result["activeTransaction"] = transactionPayload(tx)
+        if let tx = activeTransaction, let jws = activeTransactionJws {
+            result["activeTransaction"] = transactionPayload(tx, jws: jws)
         }
         return result
     }
