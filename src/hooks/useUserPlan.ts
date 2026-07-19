@@ -1,24 +1,23 @@
 import { useEffect, useState } from 'react';
-import { useUser, useAuth } from '@clerk/clerk-react';
 import { useClerkSyncContext } from '@/contexts/ClerkSyncContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useNativeAwareAuth } from '@/hooks/useNativeAwareAuth';
 
 export const useUserPlan = () => {
-  const { user } = useUser();
-  const { getToken } = useAuth();
-  const { isSynced } = useClerkSyncContext();
+  const { userId, getAuthToken } = useNativeAwareAuth();
+  const { isSynced, isNativeSubscribed, planSyncVersion } = useClerkSyncContext();
   const [plan, setPlan] = useState<string>('free');
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchUserPlan = async () => {
       // Wait for user AND sync to be ready
-      if (!user || !isSynced) {
+      if (!userId || !isSynced) {
         return;
       }
 
       try {
-        const token = await getToken();
+        const token = await getAuthToken();
         if (!token) {
           console.error('No auth token available for getPlan');
           setLoading(false);
@@ -43,7 +42,15 @@ export const useUserPlan = () => {
     };
 
     fetchUserPlan();
-  }, [user, isSynced, getToken]);
+    // planSyncVersion: bumped by ClerkSyncContext after any successful
+    // sync-apple-subscription call, so every mounted instance of this hook
+    // re-fetches the backend plan without an app restart.
+  }, [userId, isSynced, getAuthToken, planSyncVersion]);
 
-  return { plan, loading };
+  // STOREKIT_STARTUP_CHECK: A verified native StoreKit subscription unlocks
+  // premium UI immediately, without waiting on (or requiring) a backend
+  // plan value. Never downgrades a plan the backend already reports as paid.
+  const effectivePlan = isNativeSubscribed && plan === 'free' ? 'pro' : plan;
+
+  return { plan: effectivePlan, loading };
 };

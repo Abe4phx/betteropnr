@@ -3,11 +3,14 @@ import { useUser } from '@clerk/clerk-react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Check, Sparkles, Zap, Crown, ExternalLink } from 'lucide-react';
+import { Check, Sparkles, Zap, Crown } from 'lucide-react';
 import { toast } from 'sonner';
 import { Switch } from '@/components/ui/switch';
 import { motion } from 'framer-motion';
 import { isNativeApp, getPlatform } from '@/lib/platformDetection';
+import { purchaseMonthly, purchaseYearly, restorePurchases, extractSignedTransaction } from '@/lib/storekit';
+import { useAuthedFunctionInvoke } from '@/hooks/useAuthedFunctionInvoke';
+import { useClerkSyncContext } from '@/contexts/ClerkSyncContext';
 
 
 interface PaywallModalProps {
@@ -26,24 +29,76 @@ const PRICE_IDS = {
 
 export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
   const { user } = useUser();
+  const { invoke } = useAuthedFunctionInvoke();
+  const { markNativeSubscribed, notifyPlanSynced } = useClerkSyncContext();
   const [loading, setLoading] = useState(false);
   const [isYearly, setIsYearly] = useState(false);
-  
+  const [restoring, setRestoring] = useState(false);
+
   // Check if running on iOS native app (Apple IAP required)
   const isIOSNative = isNativeApp() && getPlatform() === 'ios';
 
   type BillingPlan = "monthly" | "yearly";
 
+  // STOREKIT_BACKEND_SYNC: sends the verified signed transaction to the
+  // authenticated sync-apple-subscription function, which independently
+  // re-verifies it server-side before updating the backend plan. Returns
+  // whether the backend sync succeeded — never assume success from a local
+  // StoreKit result alone.
+  const syncAppleSubscription = async (signedTransactionInfo: string): Promise<boolean> => {
+    try {
+      const { data, error } = await invoke<{ verified: boolean; error?: string }>(
+        'sync-apple-subscription',
+        { body: { signedTransactionInfo } },
+      );
+      if (error || !data?.verified) {
+        console.error('[PaywallModal] Apple subscription sync failed:', error ?? data?.error);
+        return false;
+      }
+      notifyPlanSynced();
+      return true;
+    } catch (err) {
+      console.error('[PaywallModal] Apple subscription sync threw:', err);
+      return false;
+    }
+  };
+
   const handleUpgrade = async (plan: BillingPlan) => {
-    // On iOS native, show message to upgrade via web
     if (isIOSNative) {
-      toast.info('Subscriptions cannot be purchased in the iOS app. Please open betteropnr.com to upgrade or manage your plan.', {
-        duration: 5000,
-        action: {
-          label: 'Open',
-          onClick: () => window.open('https://betteropnr.com/billing', '_blank'),
-        },
-      });
+      setLoading(true);
+      try {
+        const result = plan === 'yearly' ? await purchaseYearly() : await purchaseMonthly();
+        const signedTransactionInfo = extractSignedTransaction(result);
+        if (result && signedTransactionInfo) {
+          // StoreKit itself already verified this transaction — unlock the
+          // UI immediately regardless of backend sync timing.
+          markNativeSubscribed();
+          const syncOk = await syncAppleSubscription(signedTransactionInfo);
+          if (syncOk) {
+            toast.success('Subscription activated!');
+            onOpenChange(false);
+          } else {
+            // Do not tell the user the purchase failed — it succeeded on
+            // Apple's side. Keep the paywall open so Restore Purchases
+            // remains available as a retry path.
+            toast(
+              'Purchase successful — finishing account activation. If this doesn’t update shortly, try Restore Purchases.',
+            );
+          }
+        } else if (result) {
+          // Purchase resolved but no signed transaction was returned —
+          // should not normally happen, but never claim success silently.
+          console.error('[PaywallModal] Purchase result missing signedTransactionInfo');
+          toast.error('Could not verify your purchase. Please try again.');
+        }
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : 'Purchase failed.';
+        if (msg !== 'USER_CANCELLED' && msg !== 'PENDING') {
+          toast.error(msg);
+        }
+      } finally {
+        setLoading(false);
+      }
       return;
     }
 
@@ -73,6 +128,40 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
       toast.error(err.message ?? 'Checkout failed');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRestore = async () => {
+    if (restoring) return;
+    setRestoring(true);
+    try {
+      const status = await restorePurchases();
+      const signedTransactionInfo = extractSignedTransaction(status);
+      if (status.isSubscribed && signedTransactionInfo) {
+        markNativeSubscribed();
+        const syncOk = await syncAppleSubscription(signedTransactionInfo);
+        if (syncOk) {
+          toast.success('Subscription restored!');
+          onOpenChange(false);
+        } else {
+          toast(
+            'Subscription found — finishing account activation. Please try again in a moment if this persists.',
+          );
+        }
+      } else if (status.isSubscribed) {
+        // Active entitlement found but no signed transaction was returned
+        // — should not normally happen, but fail safely rather than
+        // silently claiming success.
+        console.error('[PaywallModal] Restore result missing signedTransactionInfo');
+        toast.error('Could not verify your subscription. Please try again.');
+      } else {
+        toast('No active subscription found to restore.');
+      }
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : 'Restore failed. Please try again.';
+      toast.error(msg);
+    } finally {
+      setRestoring(false);
     }
   };
 
@@ -111,34 +200,12 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
               Upgrade to BetterOpnr Premium
             </DialogTitle>
             <DialogDescription className="text-center text-base text-muted-foreground">
-              {isIOSNative 
-                ? 'Subscriptions cannot be purchased in the iOS app. Please open betteropnr.com to upgrade or manage your plan.'
-                : 'Unlock advanced features and higher usage limits.'}
+              Unlock advanced features and higher usage limits.
             </DialogDescription>
             <p className="text-xs text-muted-foreground text-center mt-2">
               Subscription optional. The app works without upgrading.
             </p>
           </DialogHeader>
-
-          {/* iOS Native Notice */}
-          {isIOSNative && (
-            <motion.div 
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-primary/10 border border-primary/20 rounded-2xl p-4 mx-4 mt-4 text-center"
-            >
-              <p className="text-sm text-foreground mb-3">
-                Subscriptions cannot be purchased in the iOS app. Please open betteropnr.com to upgrade or manage your plan.
-              </p>
-              <Button
-                onClick={() => window.open('https://betteropnr.com/billing', '_blank')}
-                className="bg-bo-gradient"
-              >
-                <ExternalLink className="w-4 h-4 mr-2" />
-                Open betteropnr.com
-              </Button>
-            </motion.div>
-          )}
 
           <Tabs defaultValue="pro" className="w-full mt-6">
             <TabsList className={`grid w-full ${SHOW_CREATOR_TIER ? 'grid-cols-3' : 'grid-cols-2'} bg-muted/50 rounded-2xl p-1`}>
@@ -295,6 +362,20 @@ export const PaywallModal = ({ open, onOpenChange }: PaywallModalProps) => {
         <p className="text-xs text-muted-foreground text-center mt-6 px-4">
           Subscriptions automatically renew unless canceled at least 24 hours before the end of the current period.
         </p>
+
+        {isIOSNative && (
+          <div className="text-center mt-2">
+            <Button
+              type="button"
+              variant="link"
+              onClick={handleRestore}
+              disabled={restoring || loading}
+              className="text-xs text-muted-foreground h-auto p-0"
+            >
+              {restoring ? 'Restoring...' : 'Restore Purchases'}
+            </Button>
+          </div>
+        )}
         </motion.div>
       </DialogContent>
     </Dialog>

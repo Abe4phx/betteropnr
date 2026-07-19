@@ -53,11 +53,7 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
                     switch verification {
                     case .verified(let tx):
                         await tx.finish()
-                        call.resolve([
-                            "transactionId": String(tx.id),
-                            "productId": tx.productID,
-                            "purchaseDate": ISO8601DateFormatter().string(from: tx.purchaseDate),
-                        ])
+                        call.resolve(transactionPayload(tx))
                     case .unverified(_, let err):
                         call.reject("Unverified: \(err.localizedDescription)")
                     }
@@ -97,13 +93,49 @@ public class StoreKitPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
+    // Builds the JS-facing payload for one verified transaction, including
+    // the raw Apple-signed JWS (jwsRepresentation, exposed here as
+    // "signedTransactionInfo") so the backend can independently verify it.
+    // Only ever called with an already-verified Transaction — see the
+    // .verified case in purchase() and the filter in activeEntitlements()
+    // below. Never called with an unverified or revoked transaction.
+    private func transactionPayload(_ tx: Transaction) -> [String: Any] {
+        var payload: [String: Any] = [
+            "transactionId": String(tx.id),
+            "originalTransactionId": String(tx.originalID),
+            "productId": tx.productID,
+            "purchaseDate": ISO8601DateFormatter().string(from: tx.purchaseDate),
+            "environment": tx.environment.rawValue,
+            "signedTransactionInfo": tx.jwsRepresentation,
+        ]
+        if let expirationDate = tx.expirationDate {
+            payload["expirationDate"] = ISO8601DateFormatter().string(from: expirationDate)
+        }
+        return payload
+    }
+
+    // Returns { isSubscribed, productIds } (unchanged shape for existing
+    // callers) plus, when at least one entitlement is active, the full
+    // details of one representative active transaction (including its
+    // signed JWS) under "activeTransaction" so the client can sync it to
+    // the backend. Only ever considers verified, non-revoked entitlements —
+    // an unverified or revoked transaction is never treated as active and
+    // never included in the result.
     private func activeEntitlements() async throws -> [String: Any] {
         var activeIds: [String] = []
+        var activeTransaction: Transaction?
         for await result in Transaction.currentEntitlements {
             if case .verified(let tx) = result, tx.revocationDate == nil {
                 activeIds.append(tx.productID)
+                if activeTransaction == nil {
+                    activeTransaction = tx
+                }
             }
         }
-        return ["isSubscribed": !activeIds.isEmpty, "productIds": activeIds]
+        var result: [String: Any] = ["isSubscribed": !activeIds.isEmpty, "productIds": activeIds]
+        if let tx = activeTransaction {
+            result["activeTransaction"] = transactionPayload(tx)
+        }
+        return result
     }
 }
