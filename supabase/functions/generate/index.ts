@@ -40,6 +40,10 @@ const ALLOWED_ORIGINS = [
   'https://betteropnr.lovable.app',
   'https://betteropnr.com',
   'https://www.betteropnr.com',
+  'capacitor://localhost',
+  'ionic://localhost',
+  'http://localhost',
+  'https://localhost',
 ];
 // Also allow Lovable preview domains (pattern: *.lovable.app)
 function isAllowedOrigin(origin: string | null): boolean {
