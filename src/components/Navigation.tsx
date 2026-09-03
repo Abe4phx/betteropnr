@@ -24,19 +24,20 @@ export const Navigation = () => {
     username,
   } = useNativeAwareAuth();
   const { signOut } = useClerk();
-  const isAuthed = Boolean(
-    (isLoaded && user) || isNativeAuthenticated || isSignedIn,
-  );
   const guestMode = isGuest();
   const nativeGuestMode = isNativeApp() && guestMode;
+  // GUEST_MODE_PRECEDENCE: guest mode must never be treated as authenticated,
+  // even if a stale native token or leftover Clerk state would otherwise
+  // make one of these true.
+  const isAuthed = Boolean(
+    !guestMode && ((isLoaded && user) || isNativeAuthenticated || isSignedIn),
+  );
   const displayName =
     user?.username || user?.firstName || username || firstName || "Account";
   const { plan } = useUserPlan();
   const [showPaywallModal, setShowPaywallModal] = useState(false);
 
   const handleSignOut = async () => {
-    if (nativeGuestMode) return;
-
     localStorage.removeItem("betteropnr_native_supabase_token");
     localStorage.removeItem("betteropnr_native_session_token");
     localStorage.removeItem("betteropnr_guest_mode");

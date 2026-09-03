@@ -1,5 +1,4 @@
 import { useState, useEffect, useMemo, useRef } from "react";
-import { useUser, useAuth } from "@clerk/clerk-react";
 import { Link } from "react-router-dom";
 import { ProfileInput } from "@/components/ProfileInput";
 import { UserProfileInput } from "@/components/UserProfileInput";
@@ -20,21 +19,52 @@ import { useIsNewUser } from "@/hooks/useIsNewUser";
 import { useClerkSyncContext } from "@/contexts/ClerkSyncContext";
 import { PaywallModal } from "@/components/PaywallModal";
 import { UpgradeSuccessModal } from "@/components/UpgradeSuccessModal";
-import { GENERATOR_FUNCTIONS_BASE_URL, GENERATOR_ANON_KEY } from "@/config/generator";
+import {
+  GENERATOR_FUNCTIONS_BASE_URL,
+  GENERATOR_ANON_KEY,
+} from "@/config/generator";
 import { motion, useAnimation } from "framer-motion";
 import { LoadingSkeleton } from "@/components/ui/LoadingSkeleton";
 import { sparkBurst } from "@/lib/motionConfig";
 import { extractMatchName } from "@/lib/extractMatchName";
 import WritingAffiliateBlock from "@/components/WritingAffiliateBlock";
 import { isGuest } from "@/lib/guest";
-import { parseEdgeFunctionError, friendlyGenerationMessage } from "@/lib/generationErrors";
-import { canGuestGenerate, bumpGuestRunsUsed, getGuestRunsState, setGuestRunsUsedToMax, syncFromServer, OPENERS_PER_RUN } from "@/utils/guestLimits";
+import {
+  parseEdgeFunctionError,
+  friendlyGenerationMessage,
+} from "@/lib/generationErrors";
+import {
+  canGuestGenerate,
+  bumpGuestRunsUsed,
+  getGuestRunsState,
+  setGuestRunsUsedToMax,
+  syncFromServer,
+  OPENERS_PER_RUN,
+} from "@/utils/guestLimits";
 import { useNavigate } from "react-router-dom";
+import { useNativeAwareAuth } from "@/hooks/useNativeAwareAuth";
+import { intentionalNavigateToSignIn } from "@/lib/signInIntent";
 // GUEST_DEBUG: Dev-only diagnostics panel
 import GuestDebugPanel from "@/components/GuestDebugPanel";
 
 // GUEST_UPGRADE: localStorage key for persisting generator form state across auth
 const PENDING_STATE_KEY = "betteropnr_pending_generator_state";
+const GUEST_ID_KEY = "betteropnr_guest_id";
+
+function getOrCreateGuestId(): string {
+  try {
+    const existing = localStorage.getItem(GUEST_ID_KEY);
+    if (existing) return existing;
+    const id =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    localStorage.setItem(GUEST_ID_KEY, id);
+    return id;
+  } catch {
+    return "guest";
+  }
+}
 
 /*
   GUEST MODE VERIFICATION CHECKLIST:
@@ -48,8 +78,9 @@ const PENDING_STATE_KEY = "betteropnr_pending_generator_state";
   8) No service role key in client.
 */
 const Generator = () => {
-  const { user } = useUser();
-  const { getToken } = useAuth();
+  console.log("[GENERATOR PAGE MOUNTED]");
+  const { userId, firstName, email, isSignedIn, getAuthToken } =
+    useNativeAwareAuth();
   const {
     profileText,
     setProfileText,
@@ -69,40 +100,76 @@ const Generator = () => {
   const { isNewUser, isChecking } = useIsNewUser(isSynced);
   const [isGenerating, setIsGenerating] = useState(false);
   const [lockedSlots, setLockedSlots] = useState(0);
-  const [guestAllowedTones, setGuestAllowedTones] = useState<string[] | null>(null);
+  const [guestAllowedTones, setGuestAllowedTones] = useState<string[] | null>(
+    null,
+  );
   const [guestLimit, setGuestLimit] = useState(3); // server-synced daily limit
-  const [generatingFollowUpFor, setGeneratingFollowUpFor] = useState<string | null>(null);
-  const [generatingVariationFor, setGeneratingVariationFor] = useState<string | null>(null);
+  const [generatingFollowUpFor, setGeneratingFollowUpFor] = useState<
+    string | null
+  >(null);
+  const [generatingVariationFor, setGeneratingVariationFor] = useState<
+    string | null
+  >(null);
   const [showPaywallModal, setShowPaywallModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showGenerateSuccess, setShowGenerateSuccess] = useState(false);
   // GUEST_DEBUG: Track last response metadata for debug panel
   const [debugLastStatus, setDebugLastStatus] = useState<number | null>(null);
   const [debugLastError, setDebugLastError] = useState<string | null>(null);
-  const [debugLastGuestLimits, setDebugLastGuestLimits] = useState<{ remainingRunsToday: number; resetDateUtc: string } | null>(null);
+  const [debugLastGuestLimits, setDebugLastGuestLimits] = useState<{
+    remainingRunsToday: number;
+    resetDateUtc: string;
+  } | null>(null);
   const sparkControls = useAnimation();
   const resultsRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
   // GUEST_UX_LIMITS: Track guest state and remaining runs
-  const guestMode = !user && isGuest();
+  const guestMode = !isSignedIn && isGuest();
 
   // GUEST_UPGRADE: Save form state, set upgrade marker, and navigate to auth
-  const saveAndNavigate = (path: string, source: 'signup' | 'login' = 'signup') => {
+  const saveAndNavigate = (
+    path: string,
+    source: "signup" | "login" = "signup",
+  ) => {
     try {
-      localStorage.setItem(PENDING_STATE_KEY, JSON.stringify({
-        profileText,
-        userProfileText,
-        selectedTones,
-      }));
+      localStorage.setItem(
+        PENDING_STATE_KEY,
+        JSON.stringify({
+          profileText,
+          userProfileText,
+          selectedTones,
+        }),
+      );
       // GUEST_ANALYTICS: mark upgrade started for conversion tracking
       localStorage.setItem("betteropnr_guest_upgrade_started", "1");
-    } catch { /* fail silently */ }
+    } catch {
+      /* fail silently */
+    }
     // GUEST_ANALYTICS: track CTA click
-    trackEvent(source === 'signup' ? 'guest_click_signup_from_limit' : 'guest_click_login_from_limit', { mode: 'guest' });
-    navigate(path);
+    trackEvent(
+      source === "signup"
+        ? "guest_click_signup_from_limit"
+        : "guest_click_login_from_limit",
+      { mode: "guest" },
+    );
+    if (path === "/sign-in") {
+      console.error("[Generator] saveAndNavigate called", {
+        path,
+        source,
+        pathname: window.location.pathname,
+        stack: new Error().stack,
+      });
+      intentionalNavigateToSignIn(navigate, {
+        source: "generator_save_and_navigate",
+      });
+    } else {
+      navigate(path);
+    }
   };
-  const [guestRemaining, setGuestRemaining] = useState(() => guestMode ? getGuestRunsState().remaining : 0);
+  const [guestRemaining, setGuestRemaining] = useState(() =>
+    guestMode ? getGuestRunsState().remaining : 0,
+  );
 
   // GUEST_UX_LIMITS: Keep guestRemaining in sync when guestMode changes
   useEffect(() => {
@@ -114,52 +181,59 @@ const Generator = () => {
 
   // GUEST_UPGRADE: Restore form state after guest signs up/logs in
   useEffect(() => {
-    if (!user) return; // only for authenticated users
+    if (!userId) return; // only for authenticated users
     // GUEST_ANALYTICS: fire conversion event if upgrade marker exists
     try {
       if (localStorage.getItem("betteropnr_guest_upgrade_started") === "1") {
-        trackEvent('guest_converted_to_auth', { mode: 'auth' });
+        trackEvent("guest_converted_to_auth", { mode: "auth" });
         localStorage.removeItem("betteropnr_guest_upgrade_started");
       }
-    } catch { /* fail silently */ }
+    } catch {
+      /* fail silently */
+    }
     try {
       const raw = localStorage.getItem(PENDING_STATE_KEY);
       if (!raw) return;
       const saved = JSON.parse(raw);
       if (saved.profileText) setProfileText(saved.profileText);
       if (saved.userProfileText) setUserProfileText(saved.userProfileText);
-      if (Array.isArray(saved.selectedTones) && saved.selectedTones.length > 0) setSelectedTones(saved.selectedTones);
+      if (Array.isArray(saved.selectedTones) && saved.selectedTones.length > 0)
+        setSelectedTones(saved.selectedTones);
       localStorage.removeItem(PENDING_STATE_KEY);
     } catch {
       localStorage.removeItem(PENDING_STATE_KEY);
     }
-  }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     // Check if user just completed checkout
     const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('success') === 'true') {
+    if (urlParams.get("success") === "true") {
       setShowSuccessModal(true);
       // Clean up URL
-      window.history.replaceState({}, '', window.location.pathname);
+      window.history.replaceState({}, "", window.location.pathname);
     }
   }, []);
 
-  const generateOpeners = async (variationStyle?: 'safer' | 'warmer' | 'funnier' | 'shorter') => {
+  const generateOpeners = async (
+    variationStyle?: "safer" | "warmer" | "funnier" | "shorter",
+  ) => {
     if (!profileText.trim()) {
-      toast.error('Please enter some profile information');
+      toast.error("Please enter some profile information");
       return;
     }
-    
+
     if (selectedTones.length === 0) {
-      toast.error('Please select at least one tone');
+      toast.error("Please select at least one tone");
       return;
     }
 
     // GUEST_UX_LIMITS: Block guests who have exhausted daily limit
     if (guestMode) {
       if (!canGuestGenerate()) {
-        toast.error("You've used today's guest limit. Create a free account to keep generating.");
+        toast.error(
+          "You've used today's guest limit. Create a free account to keep generating.",
+        );
         setGuestRemaining(0);
         return;
       }
@@ -167,9 +241,9 @@ const Generator = () => {
     }
 
     // Check usage limits for free users (logged-in only)
-    if (!guestMode && plan === 'free' && usage.hasExceededOpenerLimit) {
+    if (!guestMode && plan === "free" && usage.hasExceededOpenerLimit) {
       setShowPaywallModal(true);
-      toast.error('Daily limit reached. Upgrade for unlimited openers!');
+      toast.error("Daily limit reached. Upgrade for unlimited openers!");
       return;
     }
 
@@ -178,19 +252,38 @@ const Generator = () => {
     sparkControls.start({
       scale: 1.1,
       opacity: 0,
-      transition: { duration: 0.8, ease: 'easeOut' }
+      transition: { duration: 0.8, ease: "easeOut" },
+    });
+
+    // GEN_TIMING: client-side request id, sent as X-Request-Id so it
+    // correlates with the [GEN TIMING] lines logged server-side for the
+    // same request. No PII in any of these log lines — timings only.
+    const genRequestId = crypto.randomUUID();
+    const genClientStartMs = performance.now();
+    console.log("[GEN TIMING][client]", {
+      requestId: genRequestId,
+      phase: "client_request_started",
+      mode: guestMode ? "guest" : "auth",
     });
 
     try {
       // GUEST_LIMITS: Guests don't have a Clerk user; skip auth check for them
-      if (!guestMode && !user?.id) {
-        toast.error('Please sign in to generate openers');
+      if (!guestMode && !userId) {
+        toast.error("Please sign in to generate openers");
         return;
       }
 
-      const token = guestMode ? null : await getToken();
+      const authTokenStartMs = performance.now();
+      const token = guestMode ? null : await getAuthToken();
+      if (!guestMode) {
+        console.log("[GEN TIMING][client]", {
+          requestId: genRequestId,
+          phase: "auth_token_retrieved",
+          phaseDurationMs: Math.round(performance.now() - authTokenStartMs),
+        });
+      }
       if (!guestMode && !token) {
-        toast.error('Authentication required');
+        toast.error("Authentication required");
         return;
       }
 
@@ -198,28 +291,53 @@ const Generator = () => {
       if (token) headers.Authorization = `Bearer ${token}`;
 
       // PROD_CLEANUP: dev-only instrumentation (no PII)
-      if (import.meta.env.DEV) console.log('[GEN_OPENERS]', { mode: guestMode ? 'guest' : 'auth', hasAuth: Boolean(headers.Authorization) });
+      if (import.meta.env.DEV)
+        console.log("[GEN_OPENERS]", {
+          mode: guestMode ? "guest" : "auth",
+          hasAuth: Boolean(headers.Authorization),
+        });
 
-      // GUEST_ROUTING: Route guests to /generate-guest with simplified payload
+      // GUEST_ROUTING: Route guests through /generate so they use the same
+      // profile-specific prompt quality rules as authenticated users.
       if (guestMode) {
-        const guestUrl = `${GENERATOR_FUNCTIONS_BASE_URL}/generate-guest`;
-        console.log("[GEN] Using generator host (guest):", new URL(guestUrl).host);
+        const guestUrl = `${GENERATOR_FUNCTIONS_BASE_URL}/generate`;
+        console.log(
+          "[GEN] Using generator host (guest):",
+          new URL(guestUrl).host,
+        );
+        const guestId = getOrCreateGuestId();
 
+        const guestFetchStartMs = performance.now();
         const guestRes = await fetch(guestUrl, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
             apikey: GENERATOR_ANON_KEY,
+            "X-Guest-Id": guestId,
+            "X-Request-Id": genRequestId,
             // IMPORTANT: no Authorization header for guests
           },
           body: JSON.stringify({
-            tone: selectedTones[0],
-            theirProfileText: profileText,
+            profileText,
+            userProfileText,
+            tones: selectedTones,
+            mode: "opener",
+            userId: "guest",
           }),
+        });
+        console.log("[GEN TIMING][client]", {
+          requestId: genRequestId,
+          phase: "client_response_received",
+          phaseDurationMs: Math.round(performance.now() - guestFetchStartMs),
+          status: guestRes.status,
         });
 
         let guestData: any = null;
-        try { guestData = await guestRes.json(); } catch { /* empty */ }
+        try {
+          guestData = await guestRes.json();
+        } catch {
+          /* empty */
+        }
 
         if (!guestRes.ok) {
           setDebugLastStatus(guestRes.status);
@@ -229,22 +347,43 @@ const Generator = () => {
             // Sync usage from response if available
             if (guestData?.usage) {
               if (guestData.usage.limit) setGuestLimit(guestData.usage.limit);
-              syncFromServer({ remainingRunsToday: Math.max(0, guestData.usage.limit - guestData.usage.used), resetDateUtc: '' });
+              syncFromServer({
+                remainingRunsToday: Math.max(
+                  0,
+                  guestData.usage.limit - guestData.usage.used,
+                ),
+                resetDateUtc: "",
+              });
               setGuestRemaining(0);
             } else {
               setGuestRunsUsedToMax();
               setGuestRemaining(0);
             }
             toast.error("Guest limit reached. Sign in to continue.", {
-              action: { label: "Sign in", onClick: () => saveAndNavigate("/sign-in", "login") },
+              action: {
+                label: "Sign in",
+                onClick: () => {
+                  console.error("[Generator] guest limit login clicked", {
+                    pathname: window.location.pathname,
+                    stack: new Error().stack,
+                  });
+                  saveAndNavigate("/sign-in", "login");
+                },
+              },
             });
             return;
           }
 
           if (guestRes.status === 400 || guestRes.status === 403) {
-            toast.error(guestData?.error || "Invalid request. Please try a different tone.");
+            toast.error(
+              guestData?.error ||
+                "Invalid request. Please try a different tone.",
+            );
             // Auto-reset tone to a valid guest tone
-            if (guestData?.allowedTones && Array.isArray(guestData.allowedTones)) {
+            if (
+              guestData?.allowedTones &&
+              Array.isArray(guestData.allowedTones)
+            ) {
               setGuestAllowedTones(guestData.allowedTones);
               setSelectedTones([guestData.allowedTones[0]]);
             } else {
@@ -253,7 +392,15 @@ const Generator = () => {
             return;
           }
 
-          toast.error(friendlyGenerationMessage(parseEdgeFunctionError({ message: guestData?.error, status: guestRes.status }), true));
+          toast.error(
+            friendlyGenerationMessage(
+              parseEdgeFunctionError({
+                message: guestData?.error,
+                status: guestRes.status,
+              }),
+              true,
+            ),
+          );
           return;
         }
 
@@ -261,13 +408,20 @@ const Generator = () => {
         setDebugLastStatus(200);
         setDebugLastError(null);
 
-        const guestOpeners: string[] = guestData?.openers ?? [];
+        const guestOpeners: string[] = guestData?.results ?? guestData?.openers ?? [];
         const guestLockedSlots: number = guestData?.lockedSlots ?? 0;
-        if (guestData?.allowedTones) setGuestAllowedTones(guestData.allowedTones);
-        if (guestData?.usage) {
+        if (guestData?.allowedTones)
+          setGuestAllowedTones(guestData.allowedTones);
+        if (guestData?.guestLimits) {
+          const remaining = syncFromServer(guestData.guestLimits);
+          setGuestRemaining(remaining);
+        } else if (guestData?.usage) {
           if (guestData.usage.limit) setGuestLimit(guestData.usage.limit);
-          const remaining = Math.max(0, guestData.usage.limit - guestData.usage.used);
-          syncFromServer({ remainingRunsToday: remaining, resetDateUtc: '' });
+          const remaining = Math.max(
+            0,
+            guestData.usage.limit - guestData.usage.used,
+          );
+          syncFromServer({ remainingRunsToday: remaining, resetDateUtc: "" });
           setGuestRemaining(remaining);
         } else {
           const newRemaining = bumpGuestRunsUsed();
@@ -277,16 +431,28 @@ const Generator = () => {
         const openers = guestOpeners.map((text: string, index: number) => ({
           id: `opener-${Date.now()}-${index}`,
           text,
-          tone: selectedTones[0].charAt(0).toUpperCase() + selectedTones[0].slice(1),
+          tone:
+            selectedTones[0].charAt(0).toUpperCase() +
+            selectedTones[0].slice(1),
         }));
 
         setGeneratedOpeners(openers);
         setLockedSlots(guestLockedSlots);
-        trackEvent('guest_generate_success', { mode: 'guest', count: openers.length });
-        toast.success('Openers generated!');
+        trackEvent("guest_generate_success", {
+          mode: "guest",
+          count: openers.length,
+        });
+        toast.success("Openers generated!");
         setShowGenerateSuccess(true);
         setTimeout(() => setShowGenerateSuccess(false), 3000);
-        setTimeout(() => resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 300);
+        setTimeout(
+          () =>
+            resultsRef.current?.scrollIntoView({
+              behavior: "smooth",
+              block: "start",
+            }),
+          300,
+        );
         return; // Done — skip auth path below
       }
 
@@ -294,7 +460,13 @@ const Generator = () => {
       const genUrl = `${GENERATOR_FUNCTIONS_BASE_URL}/generate`;
       console.log("[GEN] Using generator host:", new URL(genUrl).host);
 
-      const fetchHeaders: Record<string, string> = { "Content-Type": "application/json", "apikey": GENERATOR_ANON_KEY, ...headers };
+      const fetchHeaders: Record<string, string> = {
+        "Content-Type": "application/json",
+        apikey: GENERATOR_ANON_KEY,
+        "X-Request-Id": genRequestId,
+        ...headers,
+      };
+      const authFetchStartMs = performance.now();
       const res = await fetch(genUrl, {
         method: "POST",
         headers: fetchHeaders,
@@ -302,20 +474,33 @@ const Generator = () => {
           profileText,
           userProfileText,
           tones: selectedTones,
-          mode: 'opener',
+          mode: "opener",
           variationStyle,
-          userId: user?.id ?? 'guest',
-          userEmail: user?.primaryEmailAddress?.emailAddress ?? undefined,
+          userId: userId ?? "guest",
+          userEmail: email ?? undefined,
         }),
+      });
+      console.log("[GEN TIMING][client]", {
+        requestId: genRequestId,
+        phase: "client_response_received",
+        phaseDurationMs: Math.round(performance.now() - authFetchStartMs),
+        status: res.status,
       });
 
       let data: any = null;
       let error: any = null;
-      try { data = await res.json(); } catch { /* empty */ }
-      if (!res.ok) {
-        error = { message: data?.error || res.statusText, context: { status: res.status, body: data, response: data } };
+      try {
+        data = await res.json();
+      } catch {
+        /* empty */
       }
-      
+      if (!res.ok) {
+        error = {
+          message: data?.error || res.statusText,
+          context: { status: res.status, body: data, response: data },
+        };
+      }
+
       if (error) {
         // GUEST_HARDENING: Structured error parsing + friendly messages
         const parsed = parseEdgeFunctionError(error);
@@ -323,9 +508,12 @@ const Generator = () => {
         setDebugLastError(parsed.code || parsed.message);
 
         // Logged-in: paywall for daily-limit 403
-        if (parsed.status === 403 || parsed.message.toLowerCase().includes('daily limit')) {
+        if (
+          parsed.status === 403 ||
+          parsed.message.toLowerCase().includes("daily limit")
+        ) {
           setShowPaywallModal(true);
-          toast.error('Daily limit reached. Upgrade for unlimited openers!');
+          toast.error("Daily limit reached. Upgrade for unlimited openers!");
           return;
         }
 
@@ -333,9 +521,14 @@ const Generator = () => {
         return;
       }
 
-      if (!data?.results || !Array.isArray(data.results) || data.results.length === 0) {
-        if (import.meta.env.DEV) console.error('Invalid response from edge function:', data);
-        toast.error('No openers generated. Please try again.');
+      if (
+        !data?.results ||
+        !Array.isArray(data.results) ||
+        data.results.length === 0
+      ) {
+        if (import.meta.env.DEV)
+          console.error("Invalid response from edge function:", data);
+        toast.error("No openers generated. Please try again.");
         return;
       }
 
@@ -348,46 +541,64 @@ const Generator = () => {
       const openers = data.results.map((text: string, index: number) => ({
         id: `opener-${Date.now()}-${index}`,
         text,
-        tone: selectedTones[index % selectedTones.length].charAt(0).toUpperCase() + 
-              selectedTones[index % selectedTones.length].slice(1),
+        tone:
+          selectedTones[index % selectedTones.length].charAt(0).toUpperCase() +
+          selectedTones[index % selectedTones.length].slice(1),
       }));
 
       setGeneratedOpeners(openers);
-      
+
       // Increment usage count
       await incrementOpeners();
-      
-      trackEvent('generated_opener', { 
-        count: openers.length, 
-        tones: selectedTones.join(',') 
+
+      trackEvent("generated_opener", {
+        count: openers.length,
+        tones: selectedTones.join(","),
       });
-      toast.success('Openers generated!');
-      
+      toast.success("Openers generated!");
+
       // Show success checkmark on button
       setShowGenerateSuccess(true);
       setTimeout(() => setShowGenerateSuccess(false), 3000);
-      
+
       // Scroll to results after a brief delay
       setTimeout(() => {
-        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        resultsRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        });
       }, 300);
     } catch (error) {
       // GUEST_HARDENING: never show raw errors to user
-      console.error('Error generating openers:', error);
-      toast.error('Something went wrong generating openers. Please try again.');
+      const err = error instanceof Error ? error : new Error(String(error));
+      console.error("[GEN DEBUG] Error generating openers:", {
+        name: err.name,
+        message: err.message,
+        stack: err.stack,
+        json: JSON.stringify(error),
+      });
+      toast.error("Something went wrong generating openers. Please try again.");
     } finally {
+      console.log("[GEN TIMING][client]", {
+        requestId: genRequestId,
+        phase: "client_total_duration",
+        totalMs: Math.round(performance.now() - genClientStartMs),
+      });
       setIsGenerating(false);
     }
   };
 
-  const handleVariation = async (openerId: string, style: 'safer' | 'warmer' | 'funnier' | 'shorter') => {
+  const handleVariation = async (
+    openerId: string,
+    style: "safer" | "warmer" | "funnier" | "shorter",
+  ) => {
     setGeneratingVariationFor(openerId);
     toast.info(`Generating ${style} variation...`);
-    
+
     try {
-      const token = await getToken();
+      const token = await getAuthToken();
       if (!token) {
-        toast.error('Authentication required');
+        toast.error("Authentication required");
         setGeneratingVariationFor(null);
         return;
       }
@@ -396,75 +607,102 @@ const Generator = () => {
       console.log("[GEN] Using generator host:", new URL(varUrl).host);
       const varRes = await fetch(varUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "apikey": GENERATOR_ANON_KEY, Authorization: `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          apikey: GENERATOR_ANON_KEY,
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           profileText,
           userProfileText,
           tones: selectedTones,
-          mode: 'opener',
+          mode: "opener",
           variationStyle: style,
-          userId: user?.id,
-          userEmail: user?.primaryEmailAddress?.emailAddress,
+          userId,
+          userEmail: email ?? undefined,
         }),
       });
       let data: any = null;
       let error: any = null;
-      try { data = await varRes.json(); } catch { /* empty */ }
+      try {
+        data = await varRes.json();
+      } catch {
+        /* empty */
+      }
       if (!varRes.ok) {
-        error = { message: data?.error || varRes.statusText, context: { status: varRes.status, response: data } };
+        error = {
+          message: data?.error || varRes.statusText,
+          context: { status: varRes.status, response: data },
+        };
       }
 
       if (error) {
-        console.error('Variation edge function error:', error);
-        const status = (error as any)?.context?.status || (error as any)?.status;
-        const serverMsg = (error as any)?.context?.error || (error as any)?.context?.response?.error || (error as any)?.message;
+        console.error("Variation edge function error:", error);
+        const status =
+          (error as any)?.context?.status || (error as any)?.status;
+        const serverMsg =
+          (error as any)?.context?.error ||
+          (error as any)?.context?.response?.error ||
+          (error as any)?.message;
 
         if (status === 402) {
-          toast.error('AI credits exhausted. Please add credits to continue.');
+          toast.error("AI credits exhausted. Please add credits to continue.");
           return;
         }
         if (status === 429) {
-          toast.error('Rate limit exceeded. Please try again in a moment.');
+          toast.error("Rate limit exceeded. Please try again in a moment.");
           return;
         }
-        if (status === 403 || (serverMsg && String(serverMsg).toLowerCase().includes('daily limit'))) {
+        if (
+          status === 403 ||
+          (serverMsg && String(serverMsg).toLowerCase().includes("daily limit"))
+        ) {
           setShowPaywallModal(true);
-          toast.error('Daily limit reached. Upgrade for unlimited openers!');
+          toast.error("Daily limit reached. Upgrade for unlimited openers!");
           return;
         }
 
-        throw new Error(serverMsg || 'Failed to generate variation');
+        throw new Error(serverMsg || "Failed to generate variation");
       }
       const newOpener: Opener = {
         id: `opener-${Date.now()}`,
         text: data.results[0],
-        tone: selectedTones[0].charAt(0).toUpperCase() + selectedTones[0].slice(1),
+        tone:
+          selectedTones[0].charAt(0).toUpperCase() + selectedTones[0].slice(1),
       };
 
       // Replace the opener
-      const updatedOpeners = generatedOpeners.map(o => o.id === openerId ? newOpener : o);
+      const updatedOpeners = generatedOpeners.map((o) =>
+        o.id === openerId ? newOpener : o,
+      );
       setGeneratedOpeners(updatedOpeners);
-      
-      trackEvent('generated_variation', { style, originalId: openerId });
-      toast.success(`${style.charAt(0).toUpperCase() + style.slice(1)} variation generated!`);
+
+      trackEvent("generated_variation", { style, originalId: openerId });
+      toast.success(
+        `${
+          style.charAt(0).toUpperCase() + style.slice(1)
+        } variation generated!`,
+      );
     } catch (error) {
-      console.error('Error generating variation:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to generate variation');
+      console.error("Error generating variation:", error);
+      toast.error(
+        error instanceof Error ? error.message : "Failed to generate variation",
+      );
     } finally {
       setGeneratingVariationFor(null);
     }
   };
 
   const generateFollowUp = async (openerId: string) => {
-    const opener = generatedOpeners.find(o => o.id === openerId);
+    const opener = generatedOpeners.find((o) => o.id === openerId);
     if (!opener) return;
 
     setGeneratingFollowUpFor(openerId);
-    
+
     try {
-      const token = await getToken();
+      const token = await getAuthToken();
       if (!token) {
-        toast.error('Authentication required');
+        toast.error("Authentication required");
         setGeneratingFollowUpFor(null);
         return;
       }
@@ -473,44 +711,62 @@ const Generator = () => {
       console.log("[GEN] Using generator host:", new URL(fuUrl).host);
       const fuRes = await fetch(fuUrl, {
         method: "POST",
-        headers: { "Content-Type": "application/json", "apikey": GENERATOR_ANON_KEY, Authorization: `Bearer ${token}` },
+        headers: {
+          "Content-Type": "application/json",
+          apikey: GENERATOR_ANON_KEY,
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           profileText,
           userProfileText,
           tones: [opener.tone.toLowerCase()],
-          mode: 'followup',
+          mode: "followup",
           priorMessage: opener.text,
-          userId: user?.id,
-          userEmail: user?.primaryEmailAddress?.emailAddress,
+          userId,
+          userEmail: email ?? undefined,
         }),
       });
       let data: any = null;
       let error: any = null;
-      try { data = await fuRes.json(); } catch { /* empty */ }
+      try {
+        data = await fuRes.json();
+      } catch {
+        /* empty */
+      }
       if (!fuRes.ok) {
-        error = { message: data?.error || fuRes.statusText, context: { status: fuRes.status, response: data } };
+        error = {
+          message: data?.error || fuRes.statusText,
+          context: { status: fuRes.status, response: data },
+        };
       }
 
       if (error) {
-        console.error('Follow-up edge function error:', error);
-        const status = (error as any)?.context?.status || (error as any)?.status;
-        const serverMsg = (error as any)?.context?.error || (error as any)?.context?.response?.error || (error as any)?.message;
+        console.error("Follow-up edge function error:", error);
+        const status =
+          (error as any)?.context?.status || (error as any)?.status;
+        const serverMsg =
+          (error as any)?.context?.error ||
+          (error as any)?.context?.response?.error ||
+          (error as any)?.message;
 
         if (status === 402) {
-          toast.error('AI credits exhausted. Please add credits to continue.');
+          toast.error("AI credits exhausted. Please add credits to continue.");
           return;
         }
         if (status === 429) {
-          toast.error('Rate limit exceeded. Please try again in a moment.');
+          toast.error("Rate limit exceeded. Please try again in a moment.");
           return;
         }
-        if (status === 403 || (serverMsg && String(serverMsg).toLowerCase().includes('daily limit'))) {
+        if (
+          status === 403 ||
+          (serverMsg && String(serverMsg).toLowerCase().includes("daily limit"))
+        ) {
           setShowPaywallModal(true);
-          toast.error('Daily limit reached. Upgrade for unlimited openers!');
+          toast.error("Daily limit reached. Upgrade for unlimited openers!");
           return;
         }
 
-        throw new Error(serverMsg || 'Failed to generate follow-ups');
+        throw new Error(serverMsg || "Failed to generate follow-ups");
       }
       const newFollowUps = data.results.map((text: string, index: number) => ({
         id: `followup-${Date.now()}-${index}`,
@@ -519,14 +775,18 @@ const Generator = () => {
       }));
 
       setFollowUps([...followUps, ...newFollowUps]);
-      trackEvent('generated_followup', { 
+      trackEvent("generated_followup", {
         count: newFollowUps.length,
-        openerId 
+        openerId,
       });
-      toast.success('Follow-ups generated!');
+      toast.success("Follow-ups generated!");
     } catch (error) {
-      console.error('Error generating follow-ups:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to generate follow-ups');
+      console.error("Error generating follow-ups:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Failed to generate follow-ups",
+      );
     } finally {
       setGeneratingFollowUpFor(null);
     }
@@ -555,20 +815,16 @@ const Generator = () => {
               <>
                 <div className="flex items-center gap-3 flex-wrap">
                   <h1 className="text-xl font-heading font-semibold text-foreground">
-                    Hey {user?.firstName || 'there'}! 👋
+                    Hey {firstName || "there"}! 👋
                   </h1>
-                  {!usageLoading && (
+                  {!usageLoading && plan === "free" && (
                     <>
-                      <span className="hidden sm:inline text-muted-foreground">•</span>
-                      {plan === 'free' ? (
-                        <Badge variant="secondary" className="text-sm">
-                          {usage.openers_generated} / 5 openers used today
-                        </Badge>
-                      ) : (
-                        <Badge variant="default" className="text-sm">
-                          Unlimited openers
-                        </Badge>
-                      )}
+                      <span className="hidden sm:inline text-muted-foreground">
+                        •
+                      </span>
+                      <Badge variant="secondary" className="text-sm">
+                        {usage.openers_generated} / 5 openers used today
+                      </Badge>
                     </>
                   )}
                 </div>
@@ -604,9 +860,15 @@ const Generator = () => {
               </p>
             </div>
 
-            <UserProfileInput value={userProfileText} onChange={setUserProfileText} />
+            <UserProfileInput
+              value={userProfileText}
+              onChange={setUserProfileText}
+            />
             <ProfileInput value={profileText} onChange={setProfileText} />
-            <TonePicker selectedTones={selectedTones} onChange={setSelectedTones} />
+            <TonePicker
+              selectedTones={selectedTones}
+              onChange={setSelectedTones}
+            />
 
             <div className="relative">
               {/* Spark burst background animation */}
@@ -615,10 +877,14 @@ const Generator = () => {
                 animate={sparkControls}
                 initial={{ scale: 0.9, opacity: 0 }}
               />
-              
+
               <Button
                 onClick={() => generateOpeners()}
-                disabled={isGenerating || usageLoading || (guestMode && guestRemaining <= 0)}
+                disabled={
+                  isGenerating ||
+                  usageLoading ||
+                  (guestMode && guestRemaining <= 0)
+                }
                 size="lg"
                 className="w-full shadow-md transition-all"
               >
@@ -627,7 +893,11 @@ const Generator = () => {
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
-                      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+                      transition={{
+                        type: "spring",
+                        stiffness: 500,
+                        damping: 30,
+                      }}
                     >
                       <Check className="w-5 h-5 mr-2" />
                     </motion.div>
@@ -636,7 +906,7 @@ const Generator = () => {
                 ) : (
                   <>
                     <Sparkles className="w-5 h-5 mr-2" />
-                    {isGenerating ? 'Generating...' : 'Generate Openers'}
+                    {isGenerating ? "Generating..." : "Generate Openers"}
                   </>
                 )}
               </Button>
@@ -646,12 +916,14 @@ const Generator = () => {
                 <div className="mt-3 text-center">
                   {guestRemaining > 0 ? (
                     <p className="text-sm text-muted-foreground">
-                      Guest mode: {guestRemaining} / {guestLimit} runs left today
+                      Guest mode: {guestRemaining} / {guestLimit} runs left
+                      today
                     </p>
                   ) : (
                     <div className="space-y-2">
                       <p className="text-sm text-muted-foreground">
-                        You've used today's guest limit. Create a free account to keep generating.
+                        You've used today's guest limit. Create a free account
+                        to keep generating.
                       </p>
                       <div className="flex justify-center gap-2">
                         <Button
@@ -664,7 +936,13 @@ const Generator = () => {
                         <Button
                           variant="secondary"
                           size="sm"
-                          onClick={() => saveAndNavigate("/sign-in", "login")}
+                          onClick={() => {
+                            console.error("[Generator] guest limit login clicked", {
+                              pathname: window.location.pathname,
+                              stack: new Error().stack,
+                            });
+                            saveAndNavigate("/sign-in", "login");
+                          }}
                         >
                           Log in
                         </Button>
@@ -695,7 +973,7 @@ const Generator = () => {
                   Pick your favorite and make it your own
                 </p>
               </div>
-              
+
               <OpenerList
                 openers={generatedOpeners}
                 matchName={matchName}
@@ -720,8 +998,14 @@ const Generator = () => {
         </motion.div>
       </div>
 
-      <PaywallModal open={showPaywallModal} onOpenChange={setShowPaywallModal} />
-      <UpgradeSuccessModal open={showSuccessModal} onOpenChange={setShowSuccessModal} />
+      <PaywallModal
+        open={showPaywallModal}
+        onOpenChange={setShowPaywallModal}
+      />
+      <UpgradeSuccessModal
+        open={showSuccessModal}
+        onOpenChange={setShowSuccessModal}
+      />
 
       {/* GUEST_DEBUG: Dev-only diagnostics panel */}
       {import.meta.env.DEV && (
@@ -730,7 +1014,12 @@ const Generator = () => {
           lastErrorCode={debugLastError}
           lastGuestLimits={debugLastGuestLimits}
           onResetCache={() => {
-            ["betteropnr_guest_server_remaining", "betteropnr_guest_server_reset_utc", "betteropnr_guest_runs_used", "betteropnr_guest_runs_date"].forEach(k => localStorage.removeItem(k));
+            [
+              "betteropnr_guest_server_remaining",
+              "betteropnr_guest_server_reset_utc",
+              "betteropnr_guest_runs_used",
+              "betteropnr_guest_runs_date",
+            ].forEach((k) => localStorage.removeItem(k));
             setGuestRemaining(3);
             setDebugLastGuestLimits(null);
           }}
@@ -743,6 +1032,5 @@ const Generator = () => {
     </div>
   );
 };
-
 
 export default Generator;

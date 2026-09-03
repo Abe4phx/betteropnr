@@ -11,11 +11,13 @@ const AuthCallback = () => {
     const hash = window.location.hash;
 
     if (isSignedIn) {
-      const supabaseToken = await getToken({ template: "supabase" }).catch(() => null);
-      const sessionToken  = await getToken().catch(() => null);
+      const supabaseToken = await getToken({ template: "supabase" }).catch(
+        () => null,
+      );
+      const sessionToken = await getToken().catch(() => null);
       const params = new URLSearchParams(search.slice(1));
       if (supabaseToken) params.set("__sbt", supabaseToken);
-      if (sessionToken)  params.set("__st",  sessionToken!);
+      if (sessionToken) params.set("__st", sessionToken!);
       const qs = params.toString() ? `?${params.toString()}` : "";
       return `betteropnr://auth-callback${qs}${hash}`;
     }
@@ -25,13 +27,30 @@ const AuthCallback = () => {
 
   useEffect(() => {
     if (!isLoaded || autoFired.current) return;
+
+    if (!isSignedIn) {
+      console.log("AuthCallback: Clerk loaded but user not signed in yet");
+      return;
+    }
+
     autoFired.current = true;
-    buildDeepLink().then((url) => { window.location.href = url; });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+
+    buildDeepLink().then((url) => {
+      console.log(
+        "AuthCallback deep link:",
+        url.includes("__sbt"),
+        url.includes("__st"),
+      );
+
+      window.location.href = url;
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isLoaded, isSignedIn]);
 
   const handleReturn = () => {
-    buildDeepLink().then((url) => { window.location.href = url; });
+    buildDeepLink().then((url) => {
+      window.location.href = url;
+    });
   };
 
   return (

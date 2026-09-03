@@ -88,6 +88,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (isLoaded && !user) {
+      console.trace('[Dashboard] useEffect → navigate /sign-in (isLoaded:', isLoaded, 'user:', user, ')');
       navigate('/sign-in');
     }
   }, [isLoaded, user, navigate]);

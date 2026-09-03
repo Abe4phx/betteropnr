@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from '@clerk/clerk-react';
+import { useNativeAwareAuth } from '@/hooks/useNativeAwareAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -12,7 +12,7 @@ interface ImageData {
 }
 
 export const useImageTextExtraction = () => {
-  const { getToken } = useAuth();
+  const { getAuthToken } = useNativeAwareAuth();
   const [isExtracting, setIsExtracting] = useState(false);
   const [imageData, setImageData] = useState<ImageData[]>([]);
 
@@ -74,7 +74,7 @@ export const useImageTextExtraction = () => {
 
     try {
       const base64Image = await convertToBase64(file);
-      const token = await getToken();
+      const token = await getAuthToken();
 
       if (!token) {
         throw new Error('Not authenticated');
@@ -147,7 +147,7 @@ export const useImageTextExtraction = () => {
         }
 
         const base64Image = await convertToBase64(file);
-        const token = await getToken();
+        const token = await getAuthToken();
 
         if (!token) {
           toast({
@@ -163,6 +163,17 @@ export const useImageTextExtraction = () => {
           headers: { Authorization: `Bearer ${token}` },
         });
 
+        console.log('----------------------------------');
+        console.log('image index:', i);
+        console.log('error exists:', Boolean(error));
+        console.log('error object:', error);
+        console.log('HTTP status:', (error as { context?: { status?: number }; status?: number } | null)?.context?.status ?? (error as { context?: { status?: number }; status?: number } | null)?.status);
+        console.log('data object:', data);
+        console.log('typeof data:', typeof data);
+        console.log('data?.text:', data?.text);
+        console.log('typeof data?.text:', typeof data?.text);
+        console.log('----------------------------------');
+
         if (error) {
           console.error(`Error extracting text from image ${i + 1}:`, error);
           toast({
@@ -177,6 +188,9 @@ export const useImageTextExtraction = () => {
           newImageData.push({ preview: base64Image, text: data.text });
         }
       }
+
+      console.log('newImageData.length:', newImageData.length);
+      console.log('newImageData:', newImageData);
 
       if (newImageData.length === 0) {
         throw new Error('No text could be extracted from any image');

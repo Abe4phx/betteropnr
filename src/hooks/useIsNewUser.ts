@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useUser, useAuth } from '@clerk/clerk-react';
 import { useClerkSyncContext } from '@/contexts/ClerkSyncContext';
 import { supabase } from '@/integrations/supabase/client';
+import { useNativeAwareAuth } from '@/hooks/useNativeAwareAuth';
 
 export const useIsNewUser = (isSyncedOverride?: boolean) => {
-  const { user, isLoaded } = useUser();
-  const { getToken } = useAuth();
+  const { userId, isLoaded, getAuthToken } = useNativeAwareAuth();
   const { isSynced: contextSynced } = useClerkSyncContext();
   
   // Use override if provided, otherwise use context
@@ -17,13 +16,13 @@ export const useIsNewUser = (isSyncedOverride?: boolean) => {
   useEffect(() => {
     const checkIfNewUser = async () => {
       // Wait for user to be loaded AND user to be synced to database
-      if (!isLoaded || !user || !isSynced) {
+      if (!isLoaded || !userId || !isSynced) {
         return; // Don't set isChecking to false yet - still waiting
       }
 
       try {
         // Get Clerk session token for auth
-        const token = await getToken();
+        const token = await getAuthToken();
         
         if (!token) {
           console.error('No auth token available for checkNewUser');
@@ -36,7 +35,7 @@ export const useIsNewUser = (isSyncedOverride?: boolean) => {
         const { data, error } = await supabase.functions.invoke('user-profile', {
           body: {
             action: 'checkNewUser',
-            userId: user.id,
+            userId,
           },
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -56,7 +55,7 @@ export const useIsNewUser = (isSyncedOverride?: boolean) => {
     };
 
     checkIfNewUser();
-  }, [user, isLoaded, isSynced, getToken]);
+  }, [userId, isLoaded, isSynced, getAuthToken]);
 
   return { isNewUser, isChecking };
 };

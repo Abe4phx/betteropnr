@@ -27,6 +27,7 @@ export function GuestPromptModal({
   const handleSignIn = () => {
     exitGuest();
     onOpenChange(false);
+    console.trace('[GuestPromptModal] handleSignIn → navigate /sign-in');
     navigate("/sign-in");
   };
 

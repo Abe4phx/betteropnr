@@ -15,7 +15,6 @@ import {
   useUser,
   AuthenticateWithRedirectCallback,
 } from "@clerk/clerk-react";
-import { SupabaseProvider } from "@/contexts/SupabaseContext";
 import { AuthModeSync } from "@/components/auth/AuthModeSync";
 import { RequireAuthOrGuest } from "@/components/auth/RequireAuthOrGuest";
 import { HomeOrGenerator } from "@/components/HomeOrGenerator";
@@ -24,7 +23,8 @@ import { BetterOpnrProvider } from "@/contexts/TalkSparkContext";
 import { Navigation } from "@/components/Navigation";
 import { InstallBanner } from "@/components/InstallBanner";
 import { isWebApp, isNativeApp } from "@/lib/platformDetection";
-import { RevenueCatAuthBridge } from "@/components/RevenueCatAuthBridge";
+import { isGuest, exitGuest } from "@/lib/guest";
+import { useNativeAwareAuth } from "@/hooks/useNativeAwareAuth";
 import Generator from "./pages/Generator";
 import Saved from "./pages/Saved";
 import Dashboard from "./pages/Dashboard";
@@ -43,8 +43,38 @@ import AuthCallback from "./pages/AuthCallback";
 import Footer from "@/components/Footer";
 import { AnimatePresence, motion } from "framer-motion";
 import { pageTransition } from "@/lib/motionConfig";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useLayoutEffect, Component, ErrorInfo, ReactNode } from "react";
 import { AIConsentScreen } from "@/components/AIConsentScreen";
+
+class AppErrorBoundary extends Component<
+  { children: ReactNode },
+  { error: Error | null }
+> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    console.error('[AppErrorBoundary] render error caught:', error);
+    return { error };
+  }
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('[AppErrorBoundary] componentDidCatch:', error, info.componentStack);
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding: 24, fontFamily: 'monospace', color: 'red' }}>
+          <strong>[AppErrorBoundary] App crashed after consent.</strong>
+          <pre style={{ whiteSpace: 'pre-wrap', fontSize: 12 }}>
+            {this.state.error.message}
+          </pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const CLERK_PUBLISHABLE_KEY =
   import.meta.env.VITE_CLERK_PUBLISHABLE_KEY ||
@@ -58,13 +88,17 @@ const CLERK_JS_URL =
 const queryClient = new QueryClient();
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isLoaded, isSignedIn } = useUser();
   const location = useLocation();
+  const native = isNativeApp();
+
+  // Web: @clerk/clerk-react remains the source of truth — unchanged from
+  // pre-E2 behavior.
+  const { isLoaded: webIsLoaded, isSignedIn: webIsSignedIn } = useUser();
   const [authTimeout, setAuthTimeout] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      if (!isLoaded) {
+      if (!webIsLoaded) {
         setAuthTimeout(true);
         if (import.meta.env.DEV) {
           console.warn(
@@ -75,15 +109,59 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     }, 10000);
 
     return () => clearTimeout(timer);
-  }, [isLoaded]);
+  }, [webIsLoaded]);
 
-  // Native: honour a session token obtained via the hosted-auth deep link.
-  // Checked after all hooks so hook call order is stable.
-  const hasNativeSession = isNativeApp() && (
-    !!localStorage.getItem("betteropnr_native_supabase_token") ||
-    !!localStorage.getItem("betteropnr_native_session_token")
-  );
-  if (hasNativeSession) return <>{children}</>;
+  // Native: useNativeAwareAuth() (ClerkKit-backed) is the source of truth.
+  // STAGE_E2 CORRECTION 2: no longer reads betteropnr_native_session_token /
+  // betteropnr_native_supabase_token — those legacy deep-link tokens are not
+  // native auth truth.
+  const { isLoaded: nativeIsLoaded, isSignedIn: nativeIsSignedIn } =
+    useNativeAwareAuth();
+
+  // Guest-state mutation must not happen during render — see
+  // HomeOrGenerator.tsx / RequireAuthOrGuest.tsx for the same pattern. This
+  // route never grants guest access (it's a protected route), so unlike
+  // those two components there's no render output that depends on the
+  // corrected guest value — no forced re-render is needed here, only the
+  // background reconciliation.
+  useLayoutEffect(() => {
+    if (!native || !nativeIsLoaded || !nativeIsSignedIn) return;
+    if (isGuest()) {
+      console.log("[ProtectedRoute] stale guest mode cleared — native session confirmed");
+      exitGuest();
+    }
+  }, [native, nativeIsLoaded, nativeIsSignedIn]);
+
+  if (native) {
+    console.log(
+      "[ProtectedRoute:native]",
+      "isLoaded:", nativeIsLoaded,
+      "isSignedIn:", nativeIsSignedIn,
+      "path:", location.pathname,
+    );
+
+    if (!nativeIsLoaded) {
+      return (
+        <div className="min-h-[60vh] flex items-center justify-center bg-gradient-subtle">
+          <div className="text-center space-y-4">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+            <p className="text-muted-foreground font-medium">
+              Loading your account…
+            </p>
+          </div>
+        </div>
+      );
+    }
+
+    if (!nativeIsSignedIn) {
+      console.trace('[ProtectedRoute] native signed-out — redirecting to /sign-in, path:', location.pathname);
+      return (
+        <Navigate to="/sign-in" state={{ from: location.pathname }} replace />
+      );
+    }
+
+    return <>{children}</>;
+  }
 
   if (authTimeout) {
     return (
@@ -111,7 +189,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  if (!isLoaded) {
+  if (!webIsLoaded) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center bg-gradient-subtle">
         <div className="text-center space-y-4">
@@ -124,7 +202,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  if (!isSignedIn) {
+  if (!webIsSignedIn) {
+    console.trace('[ProtectedRoute] redirecting to /sign-in — isLoaded:', webIsLoaded, 'path:', location.pathname);
     return (
       <Navigate to="/sign-in" state={{ from: location.pathname }} replace />
     );
@@ -133,8 +212,23 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   return <>{children}</>;
 };
 
+// Logs every pathname change and traces the call site when it becomes /sign-in.
+// Mounted once inside BrowserRouter so it catches ALL navigation sources,
+// including those in files we cannot instrument (e.g. RequireAuthOrGuest).
+const PathChangeLogger = () => {
+  const location = useLocation();
+  useEffect(() => {
+    console.log('[PathChangeLogger] pathname →', location.pathname);
+    if (location.pathname.startsWith('/sign-in')) {
+      console.trace('[PathChangeLogger] navigation to /sign-in — trace:');
+    }
+  }, [location.pathname]);
+  return null;
+};
+
 const AnimatedRoutes = () => {
   const location = useLocation();
+  console.log("[AnimatedRoutes] pathname:", location.pathname);
 
   return (
     <AnimatePresence mode="wait">
@@ -279,7 +373,11 @@ const ClerkProviderWithRouter = ({
   const routerPush = (to: string) => navigate(to);
   const routerReplace = (to: string) => navigate(to, { replace: true });
 
-  if (isNativeApp()) {
+  const isNative = isNativeApp();
+  console.log('[ClerkProviderWithRouter] mounted, isNative:', isNative);
+
+  if (isNative) {
+    console.log('[ClerkProviderWithRouter] using native path (proxy + standardBrowser=false)');
     return (
       <ClerkProvider
         publishableKey={CLERK_PUBLISHABLE_KEY}
@@ -311,11 +409,19 @@ const ClerkProviderWithRouter = ({
 };
 
 const App = () => {
+  const isAuthCallbackPath = window.location.pathname === "/auth-callback";
   const [hasConsented, setHasConsented] = useState(() => {
-    return localStorage.getItem("betteropnr_ai_consent") === "true";
+    if (isAuthCallbackPath) return true;
+
+    const stored = localStorage.getItem("betteropnr_ai_consent") === "true";
+    console.log('[App] init hasConsented:', stored);
+    return stored;
   });
 
+  console.log('[App] render — hasConsented:', hasConsented, '| CLERK_KEY present:', !!CLERK_PUBLISHABLE_KEY);
+
   if (!CLERK_PUBLISHABLE_KEY) {
+    console.log('[App] branch: missing Clerk key screen');
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-subtle">
         <div className="max-w-2xl space-y-6 text-center">
@@ -377,37 +483,64 @@ const App = () => {
     );
   }
 
-  if (!hasConsented) {
-    return <AIConsentScreen onConsent={() => setHasConsented(true)} />;
+  if (isAuthCallbackPath) {
+    console.log("[App] auth-callback bypass active");
+    return (
+      <AppErrorBoundary>
+        <BrowserRouter>
+          <ClerkProviderWithRouter>
+            <AuthCallback />
+          </ClerkProviderWithRouter>
+        </BrowserRouter>
+      </AppErrorBoundary>
+    );
   }
 
+  if (!hasConsented) {
+    console.log('[App] branch: showing consent screen');
+    return <AIConsentScreen onConsent={() => {
+      console.log('[App] onConsent fired — calling setHasConsented(true)');
+      console.log('[App] post-consent guest state:', isGuest());
+      setHasConsented(true);
+    }} />;
+  }
+
+  console.log('[App] branch: mounting BrowserRouter tree');
+  // STAGE_E2: no longer force guest mode here — that would override a valid
+  // restored ClerkKit session before native auth has resolved. The decision
+  // is deferred to HomeOrGenerator/RequireAuthOrGuest, which wait for
+  // useNativeAwareAuth() to report isLoaded before choosing guest vs auth.
+  if (isNativeApp()) {
+    console.log('[App] native iOS — guest/auth decision deferred until native auth resolves');
+  }
+  console.log('[App] post-consent guest state:', isGuest());
   return (
+    <AppErrorBoundary>
     <BrowserRouter>
+      <PathChangeLogger />
       <ClerkProviderWithRouter>
-        <SupabaseProvider>
-          <ClerkSyncProvider>
-            <QueryClientProvider client={queryClient}>
-              <TooltipProvider>
-                <BetterOpnrProvider>
-                  <Toaster />
-                  <Sonner />
-                  <AuthModeSync />
-                  <RevenueCatAuthBridge />
-                  <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
-                    <Navigation />
-                    {isWebApp() && <InstallBanner />}
-                    <main className="flex-1">
-                      <AnimatedRoutes />
-                    </main>
-                    <Footer />
-                  </div>
-                </BetterOpnrProvider>
-              </TooltipProvider>
-            </QueryClientProvider>
-          </ClerkSyncProvider>
-        </SupabaseProvider>
+        <ClerkSyncProvider>
+          <QueryClientProvider client={queryClient}>
+            <TooltipProvider>
+              <BetterOpnrProvider>
+                <Toaster />
+                <Sonner />
+                <AuthModeSync />
+                <div className="min-h-screen flex flex-col w-full overflow-x-hidden">
+                  <Navigation />
+                  {isWebApp() && <InstallBanner />}
+                  <main className="flex-1">
+                    <AnimatedRoutes />
+                  </main>
+                  <Footer />
+                </div>
+              </BetterOpnrProvider>
+            </TooltipProvider>
+          </QueryClientProvider>
+        </ClerkSyncProvider>
       </ClerkProviderWithRouter>
     </BrowserRouter>
+    </AppErrorBoundary>
   );
 };
 

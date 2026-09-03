@@ -2,12 +2,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Camera, X, Loader2, Upload, GripVertical, Star, LogIn } from "lucide-react";
+import {
+  Camera,
+  X,
+  Loader2,
+  Upload,
+  GripVertical,
+  Star,
+  LogIn,
+} from "lucide-react";
 import { useImageTextExtraction } from "@/hooks/useImageTextExtraction";
-import { useRef, useState, useEffect } from "react";
+import { type MouseEvent, useRef, useState, useEffect } from "react";
 import { toast } from "@/hooks/use-toast";
-import { useAuth } from "@clerk/clerk-react";
+import { useNativeAwareAuth } from "@/hooks/useNativeAwareAuth";
 import { useNavigate } from "react-router-dom";
+import { intentionalNavigateToSignIn } from "@/lib/signInIntent";
 
 interface ProfileInputProps {
   value: string;
@@ -15,42 +24,65 @@ interface ProfileInputProps {
 }
 
 export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn } = useNativeAwareAuth();
   const navigate = useNavigate();
-  const { 
-    isExtracting, 
-    imagePreviews, 
-    extractMultipleTexts, 
-    clearPreviews, 
-    removePreview, 
+  const {
+    isExtracting,
+    imagePreviews,
+    extractMultipleTexts,
+    clearPreviews,
+    removePreview,
     reorderPreviews,
     getCombinedText,
   } = useImageTextExtraction();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isDraggingOver, setIsDraggingOver] = useState(false);
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
-  
+
   // Touch gesture state
   const [touchStartIndex, setTouchStartIndex] = useState<number | null>(null);
-  const [touchCurrentIndex, setTouchCurrentIndex] = useState<number | null>(null);
+  const [touchCurrentIndex, setTouchCurrentIndex] = useState<number | null>(
+    null,
+  );
   const [longPressActive, setLongPressActive] = useState(false);
-  const [touchStartPos, setTouchStartPos] = useState<{ x: number; y: number } | null>(null);
+  const [touchStartPos, setTouchStartPos] = useState<{
+    x: number;
+    y: number;
+  } | null>(null);
   const longPressTimer = useRef<NodeJS.Timeout | null>(null);
 
   // Guard for guest users
   const isGuest = !isSignedIn;
   const [showGuestCallout, setShowGuestCallout] = useState(true);
 
-  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleGuestCalloutSignIn = (e: MouseEvent<HTMLButtonElement>) => {
+    if (!e.isTrusted) return;
+
+    e.preventDefault();
+    e.stopPropagation();
+
+    console.error("[ProfileInput] guest callout sign-in clicked", {
+      pathname: window.location.pathname,
+      stack: new Error().stack,
+    });
+    intentionalNavigateToSignIn(navigate, {
+      source: "profile_guest_callout_sign_in",
+    });
+  };
+
+  const handleFileSelect = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+  ) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
     // Guard: require authentication
     if (isGuest) {
       toast({
-        title: 'Sign in required',
-        description: 'Image upload requires an account. Please sign in to upload screenshots.',
-        variant: 'destructive',
+        title: "Sign in required",
+        description:
+          "Image upload requires an account. Please sign in to upload screenshots.",
+        variant: "destructive",
       });
       return;
     }
@@ -65,13 +97,13 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
 
     // Reset file input
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
   const handleClearAll = () => {
     clearPreviews();
-    onChange('');
+    onChange("");
   };
 
   // Drag and drop for file upload
@@ -95,30 +127,31 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
     // Guard: require authentication
     if (isGuest) {
       toast({
-        title: 'Sign in required',
-        description: 'Image upload requires an account. Please sign in to upload screenshots.',
-        variant: 'destructive',
+        title: "Sign in required",
+        description:
+          "Image upload requires an account. Please sign in to upload screenshots.",
+        variant: "destructive",
       });
       return;
     }
 
     const files = Array.from(e.dataTransfer.files);
-    const imageFiles = files.filter(file => file.type.startsWith('image/'));
+    const imageFiles = files.filter((file) => file.type.startsWith("image/"));
 
     if (imageFiles.length === 0) {
       toast({
-        title: 'No images found',
-        description: 'Please drop image files (JPG, PNG, or WEBP).',
-        variant: 'destructive',
+        title: "No images found",
+        description: "Please drop image files (JPG, PNG, or WEBP).",
+        variant: "destructive",
       });
       return;
     }
 
     if (imageFiles.length > 5) {
       toast({
-        title: 'Too many images',
-        description: 'Please upload a maximum of 5 images at once.',
-        variant: 'destructive',
+        title: "Too many images",
+        description: "Please upload a maximum of 5 images at once.",
+        variant: "destructive",
       });
       return;
     }
@@ -134,16 +167,16 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
   // Drag and drop for reordering
   const handleImageDragStart = (e: React.DragEvent, index: number) => {
     setDraggedIndex(index);
-    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.effectAllowed = "move";
   };
 
   const handleImageDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
     if (draggedIndex === null || draggedIndex === index) return;
-    
+
     reorderPreviews(draggedIndex, index);
     setDraggedIndex(index);
-    
+
     // Update the combined text after reordering
     const newText = getCombinedText();
     onChange(newText);
@@ -159,7 +192,7 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
     setTouchStartPos({ x: touch.clientX, y: touch.clientY });
     setTouchStartIndex(index);
     setTouchCurrentIndex(index);
-    
+
     // Start long-press timer (500ms)
     longPressTimer.current = setTimeout(() => {
       setLongPressActive(true);
@@ -168,8 +201,8 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
         navigator.vibrate(50);
       }
       toast({
-        title: 'Reorder mode',
-        description: 'Drag to reorder, release to confirm',
+        title: "Reorder mode",
+        description: "Drag to reorder, release to confirm",
         duration: 2000,
       });
     }, 500);
@@ -182,7 +215,7 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
         const touch = e.touches[0];
         const deltaX = Math.abs(touch.clientX - touchStartPos.x);
         const deltaY = Math.abs(touch.clientY - touchStartPos.y);
-        
+
         // If moved more than 10px, cancel long-press
         if (deltaX > 10 || deltaY > 10) {
           clearTimeout(longPressTimer.current);
@@ -193,20 +226,22 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
     }
 
     e.preventDefault(); // Prevent scrolling while dragging
-    
+
     const touch = e.touches[0];
     const element = document.elementFromPoint(touch.clientX, touch.clientY);
-    
+
     // Find the image preview element
     if (element) {
-      const imageElement = element.closest('[data-image-index]');
+      const imageElement = element.closest("[data-image-index]");
       if (imageElement) {
-        const newIndex = parseInt(imageElement.getAttribute('data-image-index') || '0');
+        const newIndex = parseInt(
+          imageElement.getAttribute("data-image-index") || "0",
+        );
         if (newIndex !== touchCurrentIndex && touchStartIndex !== null) {
           setTouchCurrentIndex(newIndex);
           reorderPreviews(touchStartIndex, newIndex);
           setTouchStartIndex(newIndex);
-          
+
           // Haptic feedback
           if (navigator.vibrate) {
             navigator.vibrate(20);
@@ -226,10 +261,10 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
       // Update the combined text after reordering
       const newText = getCombinedText();
       onChange(newText);
-      
+
       toast({
-        title: 'Order updated',
-        description: 'Profile sections reordered successfully',
+        title: "Order updated",
+        description: "Profile sections reordered successfully",
         duration: 2000,
       });
     }
@@ -266,10 +301,16 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
         <div className="flex items-center gap-2 sm:gap-3">
           <Star className="w-5 h-5 text-primary fill-primary/20" />
           <div className="flex items-center gap-2 flex-wrap">
-            <Label htmlFor="profile" className="text-base sm:text-lg font-semibold">
+            <Label
+              htmlFor="profile"
+              className="text-base sm:text-lg font-semibold"
+            >
               Tell us about them
             </Label>
-            <Badge variant="outline" className="bg-primary/10 text-primary border-primary/30 text-xs font-bold">
+            <Badge
+              variant="outline"
+              className="bg-primary/10 text-primary border-primary/30 text-xs font-bold"
+            >
               MATCH
             </Badge>
           </div>
@@ -279,7 +320,15 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => navigate('/sign-in')}
+            onClick={() => {
+              console.error("[ProfileInput] upload sign-in clicked", {
+                pathname: window.location.pathname,
+                stack: new Error().stack,
+              });
+              intentionalNavigateToSignIn(navigate, {
+                source: "profile_upload_sign_in",
+              });
+            }}
             className="gap-2 flex-1 sm:flex-none border-primary/50 text-primary hover:bg-primary/10"
           >
             <LogIn className="w-4 h-4" />
@@ -341,16 +390,19 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
               <LogIn className="w-6 h-6 text-muted-foreground" />
             </div>
             <div className="space-y-1.5">
-              <p className="text-sm font-semibold text-foreground">Unlock screenshot analysis</p>
+              <p className="text-sm font-semibold text-foreground">
+                Unlock screenshot analysis
+              </p>
               <p className="text-xs text-muted-foreground max-w-xs">
-                Create a free account to drag & drop match screenshots, or paste their info below.
+                Create a free account to drag & drop match screenshots, or paste
+                their info below.
               </p>
             </div>
             <div className="flex gap-2 flex-wrap justify-center">
               <Button
                 type="button"
                 size="sm"
-                onClick={() => navigate('/sign-in')}
+                onClick={handleGuestCalloutSignIn}
                 className="gap-2"
               >
                 <LogIn className="w-4 h-4" />
@@ -369,21 +421,30 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
           </div>
         </div>
       ) : isGuest && !showGuestCallout ? (
-        <div 
+        <div
           className="border-2 border-dashed border-muted-foreground/20 rounded-2xl p-4 bg-muted/10 cursor-not-allowed opacity-60"
           onClick={() => setShowGuestCallout(true)}
         >
           <div className="flex flex-col items-center justify-center gap-1 text-center">
             <Upload className="w-6 h-6 text-muted-foreground/50" />
             <p className="text-xs text-muted-foreground">
-              <button 
+              <button
                 type="button"
-                onClick={(e) => { e.stopPropagation(); navigate('/sign-in'); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  console.error("[ProfileInput] premium sign-in clicked", {
+                    pathname: window.location.pathname,
+                    stack: new Error().stack,
+                  });
+                  intentionalNavigateToSignIn(navigate, {
+                    source: "profile_premium_sign_in",
+                  });
+                }}
                 className="text-primary hover:underline font-medium"
               >
                 Sign in
-              </button>
-              {' '}to upload screenshots
+              </button>{" "}
+              to upload screenshots
             </p>
           </div>
         </div>
@@ -396,18 +457,31 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
             onDrop={handleDrop}
             className={`
               border-2 border-dashed rounded-2xl p-6 transition-all duration-200
-              ${isDraggingOver 
-                ? 'border-primary bg-primary/5 scale-[1.02]' 
-                : 'border-border bg-muted/30 hover:border-primary/50 hover:bg-muted/50'
+              ${
+                isDraggingOver
+                  ? "border-primary bg-primary/5 scale-[1.02]"
+                  : "border-border bg-muted/30 hover:border-primary/50 hover:bg-muted/50"
               }
-              ${isExtracting ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}
+              ${
+                isExtracting
+                  ? "opacity-50 pointer-events-none"
+                  : "cursor-pointer"
+              }
             `}
             onClick={() => !isExtracting && fileInputRef.current?.click()}
           >
             <div className="flex flex-col items-center justify-center gap-2 text-center">
-              <Upload className={`w-8 h-8 ${isDraggingOver ? 'text-primary animate-bounce' : 'text-muted-foreground'}`} />
+              <Upload
+                className={`w-8 h-8 ${
+                  isDraggingOver
+                    ? "text-primary animate-bounce"
+                    : "text-muted-foreground"
+                }`}
+              />
               <p className="text-sm font-medium">
-                {isDraggingOver ? 'Drop images here' : 'Drag & drop images or click to browse'}
+                {isDraggingOver
+                  ? "Drop images here"
+                  : "Drag & drop images or click to browse"}
               </p>
               <p className="text-xs text-muted-foreground">
                 Upload 2-5 screenshots • JPG, PNG, or WEBP • Max 5MB each
@@ -416,7 +490,8 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
           </div>
 
           <p className="text-xs text-muted-foreground/70 text-center">
-            Screenshots are analyzed only to generate your results and are not shared or saved.
+            Screenshots are analyzed only to generate your results and are not
+            shared or saved.
           </p>
         </>
       )}
@@ -424,7 +499,9 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
       {imagePreviews.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground font-medium">
-            <span className="hidden sm:inline">Drag to reorder profile sections</span>
+            <span className="hidden sm:inline">
+              Drag to reorder profile sections
+            </span>
             <span className="sm:hidden">Long-press and drag to reorder</span>
           </p>
           <div className="flex flex-wrap gap-2">
@@ -443,18 +520,30 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
                 className={`
                   relative inline-block group cursor-move touch-none
                   transition-all duration-200
-                  ${draggedIndex === index || (longPressActive && touchStartIndex === index) 
-                    ? 'opacity-50 scale-95' 
-                    : 'hover:scale-105 active:scale-95'
+                  ${
+                    draggedIndex === index ||
+                    (longPressActive && touchStartIndex === index)
+                      ? "opacity-50 scale-95"
+                      : "hover:scale-105 active:scale-95"
                   }
-                  ${longPressActive && touchCurrentIndex === index ? 'ring-2 ring-primary' : ''}
+                  ${
+                    longPressActive && touchCurrentIndex === index
+                      ? "ring-2 ring-primary"
+                      : ""
+                  }
                 `}
               >
-                <div className={`
+                <div
+                  className={`
                   absolute inset-0 bg-background/80 transition-opacity rounded-lg 
                   flex items-center justify-center pointer-events-none
-                  ${longPressActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}
-                `}>
+                  ${
+                    longPressActive
+                      ? "opacity-100"
+                      : "opacity-0 group-hover:opacity-100"
+                  }
+                `}
+                >
                   <GripVertical className="w-6 h-6 text-foreground" />
                 </div>
                 <img
@@ -462,9 +551,10 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
                   alt={`Preview ${index + 1}`}
                   className={`
                     h-24 w-24 object-cover rounded-lg border-2 transition-colors
-                    ${longPressActive && touchCurrentIndex === index
-                      ? 'border-primary'
-                      : 'border-border group-hover:border-primary'
+                    ${
+                      longPressActive && touchCurrentIndex === index
+                        ? "border-primary"
+                        : "border-border group-hover:border-primary"
                     }
                   `}
                 />
@@ -503,11 +593,10 @@ export const ProfileInput = ({ value, onChange }: ProfileInputProps) => {
       />
       <div className="flex items-center justify-between">
         <p className="text-sm text-muted-foreground">
-          Upload 2-5 screenshots for profiles with multiple sections (like Hinge). Text will be extracted and combined.
+          Upload 2-5 screenshots for profiles with multiple sections (like
+          Hinge). Text will be extracted and combined.
         </p>
-        <p className="text-sm text-muted-foreground">
-          {value.length}/3000
-        </p>
+        <p className="text-sm text-muted-foreground">{value.length}/3000</p>
       </div>
     </div>
   );
