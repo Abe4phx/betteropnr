@@ -23,16 +23,6 @@ serve(async (req: Request) => {
 
   console.log("[proxy] →", req.method, forwardPath);
   console.log("[proxy] target:", target);
-  console.log(
-    "[proxy] cookie header:",
-    req.headers.get("cookie") ?? "(none)",
-  );
-  console.log(
-    "[proxy] authorization header:",
-    req.headers.get("authorization")
-      ? `present (${req.headers.get("authorization")!.slice(0, 40)}...)`
-      : "(none)",
-  );
   if (req.method !== "GET" && req.method !== "HEAD") {
     console.log("[proxy] has body:", req.body !== null);
   }
@@ -50,17 +40,6 @@ serve(async (req: Request) => {
     body: req.method !== "GET" && req.method !== "HEAD" ? req.body : undefined,
   });
 
-  console.log(
-    "[proxy] response authorization:",
-    upstream.headers.get("authorization")
-      ? `present (${upstream.headers.get("authorization")?.slice(0, 40)}...)`
-      : "(none)",
-  );
-  const setCookie = upstream.headers.get("set-cookie");
-  console.log(
-    "[proxy] response set-cookie:",
-    setCookie ? setCookie.substring(0, 300) : "(none)",
-  );
   const hasCookie = upstream.headers.has("set-cookie");
   console.log("[proxy] ← status:", upstream.status, "| set-cookie:", hasCookie);
 

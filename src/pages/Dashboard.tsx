@@ -1,7 +1,7 @@
-import { useUser, useAuth } from '@clerk/clerk-react';
 import { useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { useClerkSyncContext } from '@/contexts/ClerkSyncContext';
+import { useNativeAwareAuth } from '@/hooks/useNativeAwareAuth';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Sparkles, Heart, Zap } from 'lucide-react';
@@ -16,8 +16,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 
 const Dashboard = () => {
-  const { user, isLoaded } = useUser();
-  const { getToken } = useAuth();
+  const { userId, firstName, username, email, isLoaded, isSignedIn, getAuthToken } = useNativeAwareAuth();
   const { isSynced } = useClerkSyncContext();
   const { plan, loading: planLoading } = useUserPlan();
   const { profileText } = useUserProfile();
@@ -29,14 +28,14 @@ const Dashboard = () => {
 
   // Show welcome flow for new users who haven't seen it
   useEffect(() => {
-    if (isLoaded && user && !isChecking && isNewUser) {
+    if (isLoaded && isSignedIn && !isChecking && isNewUser) {
       setShowWelcome(true);
     }
-  }, [isLoaded, user, isNewUser, isChecking]);
+  }, [isLoaded, isSignedIn, isNewUser, isChecking]);
 
   // Show profile completion prompt if user hasn't set up profile
   useEffect(() => {
-    if (isLoaded && user && !isChecking && !planLoading && !showWelcome) {
+    if (isLoaded && isSignedIn && !isChecking && !planLoading && !showWelcome) {
       // Show prompt if profile is empty and user has completed welcome
       if (!profileText && !isNewUser) {
         const hasSeenProfilePrompt = localStorage.getItem('betteropnr_profile_prompt_dismissed');
@@ -45,17 +44,17 @@ const Dashboard = () => {
         }
       }
     }
-  }, [isLoaded, user, isChecking, planLoading, showWelcome, profileText, isNewUser]);
+  }, [isLoaded, isSignedIn, isChecking, planLoading, showWelcome, profileText, isNewUser]);
 
   const handleWelcomeComplete = async () => {
-    if (!user) return;
-    
+    if (!userId) return;
+
     setShowWelcome(false);
-    
+
     // Mark welcome as completed via edge function with auth
     try {
-      const token = await getToken();
-      
+      const token = await getAuthToken();
+
       if (!token) {
         console.error('No auth token available for markWelcomeSeen');
         return;
@@ -64,9 +63,9 @@ const Dashboard = () => {
       const { data, error } = await supabase.functions.invoke('user-profile', {
         body: {
           action: 'markWelcomeSeen',
-          userId: user.id,
-          email: user.primaryEmailAddress?.emailAddress || '',
-          username: user.username || user.firstName || 'User',
+          userId,
+          email: email || '',
+          username: username || firstName || 'User',
         },
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -87,13 +86,13 @@ const Dashboard = () => {
   };
 
   useEffect(() => {
-    if (isLoaded && !user) {
-      console.trace('[Dashboard] useEffect → navigate /sign-in (isLoaded:', isLoaded, 'user:', user, ')');
+    if (isLoaded && !isSignedIn) {
+      console.trace('[Dashboard] useEffect → navigate /sign-in (isLoaded:', isLoaded, 'isSignedIn:', isSignedIn, ')');
       navigate('/sign-in');
     }
-  }, [isLoaded, user, navigate]);
+  }, [isLoaded, isSignedIn, navigate]);
 
-  if (!isLoaded || !user || isChecking || planLoading) {
+  if (!isLoaded || !isSignedIn || isChecking || planLoading) {
     return (
       <div className="min-h-screen bg-muted">
         <div className="bg-gradient-subtle border-b">
@@ -115,8 +114,8 @@ const Dashboard = () => {
     <>
       {/* Welcome Flow for new users */}
       {showWelcome && (
-        <WelcomeFlow 
-          userName={user.firstName || user.username || 'Friend'}
+        <WelcomeFlow
+          userName={firstName || username || 'Friend'}
           onComplete={handleWelcomeComplete}
         />
       )}
@@ -132,7 +131,7 @@ const Dashboard = () => {
           <div className="container mx-auto px-3 sm:px-4 py-4 sm:py-5">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3">
               <h2 className="text-xl sm:text-2xl font-heading font-semibold text-foreground">
-                Hey {user.firstName || user.username || 'Friend'}! 👋
+                Hey {firstName || username || 'Friend'}! 👋
               </h2>
               <Button onClick={() => navigate('/generator')} size="sm" className="rounded-2xl shadow-sm">
                 <Sparkles className="w-4 h-4 mr-2" />

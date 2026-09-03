@@ -92,9 +92,7 @@ const SignIn = () => {
         const sbt = params.get("__sbt");
         const st = params.get("__st");
         if (sbt) localStorage.setItem("betteropnr_native_supabase_token", sbt);
-        console.log("[NATIVE TOKEN SAVED]", sbt?.substring(0, 30));
         if (st) localStorage.setItem("betteropnr_native_session_token", st);
-        console.log("[SESSION TOKEN SAVED]", st?.substring(0, 30));
 
         // Pass remaining Clerk params (e.g. __clerk_handshake) to sso-callback if present
         params.delete("__sbt");
@@ -105,12 +103,6 @@ const SignIn = () => {
             replace: true,
           });
         } else {
-          console.log(
-            "[LOCALSTORAGE CHECK]",
-            localStorage
-              .getItem("betteropnr_native_supabase_token")
-              ?.substring(0, 30),
-          );
           navigate("/generator", { replace: true });
         }
         return;

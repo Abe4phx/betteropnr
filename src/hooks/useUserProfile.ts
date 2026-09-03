@@ -3,124 +3,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuthedFunctionInvoke } from '@/hooks/useAuthedFunctionInvoke';
 import { useNativeAwareAuth } from '@/hooks/useNativeAwareAuth';
 
-const runNativeUserProfileFetchDiagnostic = async (userId: string, token: string) => {
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-  const anonKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY;
-  const url = `${supabaseUrl}/functions/v1/user-profile`;
-  console.log(
-    '[SUPABASE FUNCTION URL]',
-    `${supabaseUrl}/functions/v1/user-profile`
-  );
-
-  const runSimpleFetchTest = async (
-    label: string,
-    testUrl: string,
-    method: 'GET' | 'POST',
-    headers: Record<string, string>,
-    body?: Record<string, string>,
-  ) => {
-    try {
-      const response = await fetch(testUrl, {
-        method,
-        headers,
-        body: body ? JSON.stringify(body) : undefined,
-      });
-      const text = await response.text();
-
-      console.log('[user-profile simple fetch diagnostic]', {
-        label,
-        url: testUrl,
-        status: response.status,
-        ok: response.ok,
-        text: text.slice(0, 300),
-      });
-    } catch (error) {
-      const fetchError = error instanceof Error ? error : new Error(String(error));
-      console.error('[user-profile simple fetch catch diagnostic]', {
-        label,
-        url: testUrl,
-        name: fetchError.name,
-        message: fetchError.message,
-      });
-    }
-  };
-
-  console.log('[user-profile direct fetch diagnostic]', {
-    supabaseUrl,
-    functionName: 'user-profile',
-    hasAuthorization: Boolean(token),
-    tokenPreview: token.slice(0, 25),
-    usesNativeTokenPath: true,
-  });
-
-  await runSimpleFetchTest('rest-root-anon', `${supabaseUrl}/rest/v1/`, 'GET', {
-    apikey: anonKey,
-    Authorization: `Bearer ${anonKey}`,
-  });
-
-  await runSimpleFetchTest('user-profile-get-anon', url, 'GET', {
-    apikey: anonKey,
-  });
-
-  await runSimpleFetchTest('user-profile-post-anon-no-auth', url, 'POST', {
-    'Content-Type': 'application/json',
-    apikey: anonKey,
-  }, { action: 'get', userId });
-
-  await runSimpleFetchTest('user-profile-post-anon-auth', url, 'POST', {
-    'Content-Type': 'application/json',
-    apikey: anonKey,
-    Authorization: `Bearer ${anonKey}`,
-  }, { action: 'get', userId });
-
-  await runSimpleFetchTest('function-reachability-user-profile', url, 'POST', {
-    'Content-Type': 'application/json',
-    apikey: anonKey,
-  }, { action: 'get', userId });
-
-  await runSimpleFetchTest('function-reachability-generate-opener', `${supabaseUrl}/functions/v1/generate-opener`, 'POST', {
-    'Content-Type': 'application/json',
-    apikey: anonKey,
-  }, { action: 'diagnostic', userId });
-
-  await runSimpleFetchTest('function-reachability-generate', `${supabaseUrl}/functions/v1/generate`, 'POST', {
-    'Content-Type': 'application/json',
-    apikey: anonKey,
-  }, { action: 'diagnostic', userId });
-
-  await runSimpleFetchTest('function-reachability-affiliates', `${supabaseUrl}/functions/v1/affiliates`, 'GET', {
-    apikey: anonKey,
-  });
-
-  try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        apikey: anonKey,
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({ action: 'get', userId }),
-    });
-    const text = await response.text();
-
-    console.log('[user-profile direct fetch response diagnostic]', {
-      status: response.status,
-      ok: response.ok,
-      text,
-    });
-  } catch (error) {
-    const fetchError = error instanceof Error ? error : new Error(String(error));
-    console.error('[user-profile direct fetch catch diagnostic]', {
-      name: fetchError.name,
-      message: fetchError.message,
-    });
-  }
-};
-
 export const useUserProfile = () => {
-  const { userId, isLoaded, isNativeAuthenticated, nativeToken } = useNativeAwareAuth();
-  const { invoke, getAuthToken } = useAuthedFunctionInvoke();
+  const { userId, isLoaded } = useNativeAwareAuth();
+  const { invoke } = useAuthedFunctionInvoke();
   const [profileText, setProfileText] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -149,20 +34,6 @@ export const useUserProfile = () => {
 
       try {
         console.log('Loading user profile via edge function for:', userId);
-        if (isNativeAuthenticated) {
-          const token = nativeToken || await getAuthToken();
-          if (token) {
-            await runNativeUserProfileFetchDiagnostic(userId, token);
-          } else {
-            console.error('[user-profile direct fetch diagnostic]', {
-              supabaseUrl: import.meta.env.VITE_SUPABASE_URL,
-              functionName: 'user-profile',
-              hasAuthorization: false,
-              tokenPreview: null,
-              usesNativeTokenPath: true,
-            });
-          }
-        }
 
         const { data, error } = await invoke<{ profileText?: string; success?: boolean }>('user-profile', {
           body: {
@@ -191,7 +62,7 @@ export const useUserProfile = () => {
     };
 
     loadProfile();
-  }, [userId, isLoaded, invoke, getAuthToken, isNativeAuthenticated, nativeToken]);
+  }, [userId, isLoaded, invoke]);
 
   // Fallback: if loading takes too long, stop anyway
   useEffect(() => {

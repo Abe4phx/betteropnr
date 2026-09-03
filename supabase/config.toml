@@ -34,3 +34,6 @@ verify_jwt = false
 
 [functions.affiliates]
 verify_jwt = false
+
+[functions.clerk-proxy]
+verify_jwt = false

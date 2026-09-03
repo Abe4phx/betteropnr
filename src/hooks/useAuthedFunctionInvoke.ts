@@ -34,7 +34,6 @@ export const useAuthedFunctionInvoke = () => {
           supabaseUrl: import.meta.env.VITE_SUPABASE_URL,
           functionName,
           hasAuthorization: Boolean(token),
-          tokenPreview: token ? token.slice(0, 25) : null,
           usesNativeTokenPath: isNativeAuthenticated,
         });
       }
