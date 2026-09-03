@@ -68,5 +68,8 @@
 <key>NSPhotoLibraryAddUsageDescription</key>
 <string>Save images when you choose to export or share.</string>
 
+<key>ClerkPublishableKey</key>
+<string>pk_live_Y2xlcmsuYmV0dGVyb3Buci5jb20k</string>
+
 </dict>
 </plist>

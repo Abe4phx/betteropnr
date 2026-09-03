@@ -1,5 +1,6 @@
 import UIKit
 import Capacitor
+import ClerkKit
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -8,7 +9,42 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        configureClerk()
         return true
+    }
+
+    /// Initializes the native ClerkKit client. Must run once at launch, before anything
+    /// reads `Clerk.shared`. The publishable key is not a secret (it is already embedded
+    /// in the web bundle's VITE_CLERK_PUBLISHABLE_KEY); it is sourced here from the
+    /// `ClerkPublishableKey` entry in Info.plist rather than hardcoded in source.
+    private func configureClerk() {
+        #if DEBUG
+        print("[Clerk] Initialization started")
+        #endif
+
+        guard let publishableKey = Bundle.main.object(forInfoDictionaryKey: "ClerkPublishableKey") as? String,
+              !publishableKey.isEmpty else {
+            #if DEBUG
+            print("[Clerk] Initialization failed: missing ClerkPublishableKey in Info.plist")
+            #endif
+            return
+        }
+
+        #if DEBUG
+        let options = Clerk.Options(
+            loggerHandler: { entry in
+                print("[Clerk] \(entry.formattedMessage)")
+            }
+        )
+        let clerk = Clerk.configure(publishableKey: publishableKey, options: options)
+
+        let didConfigure = clerk.publishableKey == publishableKey
+        let sessionRestored = clerk.session != nil
+        print("[Clerk] Initialization \(didConfigure ? "completed" : "failed")")
+        print("[Clerk] Existing native session restored: \(sessionRestored)")
+        #else
+        Clerk.configure(publishableKey: publishableKey)
+        #endif
     }
 
     func applicationWillResignActive(_ application: UIApplication) {

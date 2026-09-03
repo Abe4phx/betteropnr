@@ -14,9 +14,12 @@
 		504EC30F1FED79650016851F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 504EC30E1FED79650016851F /* Assets.xcassets */; };
 		504EC3121FED79650016851F /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 504EC3101FED79650016851F /* LaunchScreen.storyboard */; };
 		50B271D11FEDC1A000F3C39B /* public in Resources */ = {isa = PBXBuildFile; fileRef = 50B271D01FEDC1A000F3C39B /* public */; };
+		9EEEA64ADBF9D4950619F130 /* ClerkKit in Frameworks */ = {isa = PBXBuildFile; productRef = 0B1690B2D02C016AB5ED57B3 /* ClerkKit */; };
+		FC0BEC13427B4756B6CCEE56 /* ClerkKitUI in Frameworks */ = {isa = PBXBuildFile; productRef = 1A0D5AB369C240A191D15DE1 /* ClerkKitUI */; };
 		A084ECDBA7D38E1E42DFC39D /* Pods_App.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = AF277DCFFFF123FFC6DF26C7 /* Pods_App.framework */; };
 		BBBCCCDDDEEE00011112222B /* StoreKitPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBCCCDDDEEE00011112222A /* StoreKitPlugin.swift */; };
 		BBBCCCDDDEEE00011112222D /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBBCCCDDDEEE00011112222C /* ViewController.swift */; };
+		58BDCF863EA5CDAEA4AD6048 /* ClerkNativeAuthPlugin.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B8F6BBBCCE42357A8A8F1E2 /* ClerkNativeAuthPlugin.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -33,6 +36,7 @@
 		AF51FD2D460BCFE21FA515B2 /* Pods-App.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.release.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.release.xcconfig"; sourceTree = "<group>"; };
 		BBBCCCDDDEEE00011112222A /* StoreKitPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StoreKitPlugin.swift; sourceTree = "<group>"; };
 		BBBCCCDDDEEE00011112222C /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
+		5B8F6BBBCCE42357A8A8F1E2 /* ClerkNativeAuthPlugin.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClerkNativeAuthPlugin.swift; sourceTree = "<group>"; };
 		FC68EB0AF532CFC21C3344DD /* Pods-App.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-App.debug.xcconfig"; path = "Pods/Target Support Files/Pods-App/Pods-App.debug.xcconfig"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -42,6 +46,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				A084ECDBA7D38E1E42DFC39D /* Pods_App.framework in Frameworks */,
+				9EEEA64ADBF9D4950619F130 /* ClerkKit in Frameworks */,
+				FC0BEC13427B4756B6CCEE56 /* ClerkKitUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -80,6 +86,7 @@
 				50379B222058CBB4000EE86E /* capacitor.config.json */,
 				504EC3071FED79650016851F /* AppDelegate.swift */,
 				BBBCCCDDDEEE00011112222A /* StoreKitPlugin.swift */,
+				5B8F6BBBCCE42357A8A8F1E2 /* ClerkNativeAuthPlugin.swift */,
 				BBBCCCDDDEEE00011112222C /* ViewController.swift */,
 				504EC30B1FED79650016851F /* Main.storyboard */,
 				504EC30E1FED79650016851F /* Assets.xcassets */,
@@ -118,6 +125,10 @@
 			dependencies = (
 			);
 			name = App;
+			packageProductDependencies = (
+				0B1690B2D02C016AB5ED57B3 /* ClerkKit */,
+				1A0D5AB369C240A191D15DE1 /* ClerkKitUI */,
+			);
 			productName = App;
 			productReference = 504EC3041FED79650016851F /* App.app */;
 			productType = "com.apple.product-type.application";
@@ -148,6 +159,7 @@
 			);
 			mainGroup = 504EC2FB1FED79650016851F;
 			packageReferences = (
+				F699F37EDB9B6E5B1C825E70 /* XCRemoteSwiftPackageReference "clerk-ios" */,
 			);
 			productRefGroup = 504EC3051FED79650016851F /* Products */;
 			projectDirPath = "";
@@ -217,6 +229,7 @@
 			files = (
 				504EC3081FED79650016851F /* AppDelegate.swift in Sources */,
 				BBBCCCDDDEEE00011112222B /* StoreKitPlugin.swift in Sources */,
+				58BDCF863EA5CDAEA4AD6048 /* ClerkNativeAuthPlugin.swift in Sources */,
 				BBBCCCDDDEEE00011112222D /* ViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -356,10 +369,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 15;
 				DEVELOPMENT_TEAM = Z5YR7STZ25;
 				INFOPLIST_FILE = App/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.0.1;
 				OTHER_SWIFT_FLAGS = "$(inherited) \"-D\" \"COCOAPODS\" \"-DDEBUG\"";
@@ -377,10 +390,10 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 15;
 				DEVELOPMENT_TEAM = Z5YR7STZ25;
 				INFOPLIST_FILE = App/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				MARKETING_VERSION = 1.0.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.abe.BetterOpnr;
@@ -413,6 +426,30 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		F699F37EDB9B6E5B1C825E70 /* XCRemoteSwiftPackageReference "clerk-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/clerk/clerk-ios";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.2.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		0B1690B2D02C016AB5ED57B3 /* ClerkKit */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F699F37EDB9B6E5B1C825E70 /* XCRemoteSwiftPackageReference "clerk-ios" */;
+			productName = ClerkKit;
+		};
+		1A0D5AB369C240A191D15DE1 /* ClerkKitUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = F699F37EDB9B6E5B1C825E70 /* XCRemoteSwiftPackageReference "clerk-ios" */;
+			productName = ClerkKitUI;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 504EC2FC1FED79650016851F /* Project object */;
 }
