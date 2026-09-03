@@ -15,6 +15,7 @@ import {
   purchaseMonthly,
   purchaseYearly,
   restorePurchases,
+  getSubscriptionStatus,
   extractSignedTransaction,
   getProducts,
   type StoreKitProduct,
@@ -141,6 +142,42 @@ const Billing = () => {
       }
     } catch (e: any) {
       const msg: string = e?.message ?? 'Restore failed.';
+      setIapError(msg);
+      toast.error(msg);
+    } finally {
+      setIapLoading(false);
+    }
+  };
+
+  // "Refresh Status" must never trigger AppStore.sync() (which can prompt
+  // for Apple ID credentials) — that's what "Restore Purchases" is for.
+  // getSubscriptionStatus() only reads current entitlements, silently.
+  const handleRefreshStatus = async () => {
+    setIapLoading(true);
+    setIapError(null);
+    try {
+      const status = await getSubscriptionStatus();
+      const signedTransactionInfo = extractSignedTransaction(status);
+      if (status.isSubscribed && signedTransactionInfo) {
+        markNativeSubscribed();
+        const syncOk = await syncAppleSubscription(signedTransactionInfo);
+        if (syncOk) {
+          toast.success('Subscription status updated!');
+        } else {
+          toast(
+            'Subscription found — finishing account activation. Please try again in a moment if this persists.',
+          );
+        }
+      } else if (status.isSubscribed) {
+        // Active entitlement found but no signed transaction was returned
+        // — fail safely rather than silently claiming success.
+        console.error('[Billing] Refresh status result missing signedTransactionInfo');
+        toast.error('Could not verify your subscription. Please try again.');
+      } else {
+        toast('No active subscription found.');
+      }
+    } catch (e: unknown) {
+      const msg: string = e instanceof Error ? e.message : 'Status check failed.';
       setIapError(msg);
       toast.error(msg);
     } finally {
@@ -290,7 +327,7 @@ const Billing = () => {
             {isIOSNative && plan !== 'free' && (
               <div className="pt-4 border-t space-y-3">
                 <Button
-                  onClick={handleRestore}
+                  onClick={handleRefreshStatus}
                   disabled={iapLoading}
                   variant="outline"
                   className="w-full sm:w-auto"
