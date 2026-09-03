@@ -74,7 +74,6 @@ const Billing = () => {
 
   useEffect(() => {
     if (isLoaded && !user) {
-      console.trace('[Billing] useEffect → navigate /sign-in (isLoaded:', isLoaded, 'user:', user, ')');
       navigate('/sign-in');
     }
   }, [user, isLoaded, navigate]);
