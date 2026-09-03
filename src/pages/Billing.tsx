@@ -10,46 +10,59 @@ import { toast } from 'sonner';
 import { UpgradeSuccessModal } from '@/components/UpgradeSuccessModal';
 import { isNativeApp, getPlatform } from '@/lib/platformDetection';
 import { useAuthedFunctionInvoke } from '@/hooks/useAuthedFunctionInvoke';
+import { useClerkSyncContext } from '@/contexts/ClerkSyncContext';
 import {
-  getCustomerInfo,
-  isProActive,
   purchaseMonthly,
   purchaseYearly,
   restorePurchases,
-} from '@/lib/revenuecat';
+  extractSignedTransaction,
+  getProducts,
+  type StoreKitProduct,
+} from '@/lib/storekit';
 
 const Billing = () => {
   const navigate = useNavigate();
   const { user, isLoaded } = useUser();
   const { invoke } = useAuthedFunctionInvoke();
+  const { markNativeSubscribed, notifyPlanSynced } = useClerkSyncContext();
   const { plan, loading } = useUserPlan();
   const [portalLoading, setPortalLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
-  // iOS native = RevenueCat IAP
   const isIOSNative = isNativeApp() && getPlatform() === 'ios';
 
-  // RevenueCat state (iOS native only)
-  const [rcLoading, setRcLoading] = useState(false);
-  const [rcPro, setRcPro] = useState(false);
-  const [rcError, setRcError] = useState<string | null>(null);
+  // StoreKit state (iOS native only)
+  const [iapLoading, setIapLoading] = useState(false);
+  const [iapError, setIapError] = useState<string | null>(null);
+  const [products, setProducts] = useState<StoreKitProduct[]>([]);
 
-  // Refresh RevenueCat status
-  const refreshRC = async () => {
-    setRcError(null);
+  // STOREKIT_BACKEND_SYNC: sends the verified signed transaction to the
+  // authenticated sync-apple-subscription function, which independently
+  // re-verifies it server-side before updating the backend plan. Returns
+  // whether the backend sync succeeded — never assume success from a local
+  // StoreKit result alone. Mirrors PaywallModal's known-working helper.
+  const syncAppleSubscription = async (signedTransactionInfo: string): Promise<boolean> => {
     try {
-      const info = await getCustomerInfo();
-      setRcPro(isProActive(info));
-    } catch (e: any) {
-      console.error('RevenueCat refresh error:', e);
+      const { data, error } = await invoke<{ verified: boolean; error?: string }>(
+        'sync-apple-subscription',
+        { body: { signedTransactionInfo } },
+      );
+      if (error || !data?.verified) {
+        console.error('[Billing] Apple subscription sync failed:', error ?? data?.error);
+        return false;
+      }
+      notifyPlanSynced();
+      return true;
+    } catch (err) {
+      console.error('[Billing] Apple subscription sync threw:', err);
+      return false;
     }
   };
 
   useEffect(() => {
-    if (isIOSNative && user?.id) {
-      refreshRC();
-    }
-  }, [isIOSNative, user?.id]);
+    if (!isIOSNative) return;
+    getProducts().then(setProducts).catch(console.error);
+  }, [isIOSNative]);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
@@ -61,41 +74,78 @@ const Billing = () => {
 
   useEffect(() => {
     if (isLoaded && !user) {
+      console.trace('[Billing] useEffect → navigate /sign-in (isLoaded:', isLoaded, 'user:', user, ')');
       navigate('/sign-in');
     }
   }, [user, isLoaded, navigate]);
 
-  const handleRCPurchase = async (type: 'monthly' | 'yearly') => {
-    setRcLoading(true);
-    setRcError(null);
+  const handlePurchase = async (type: 'monthly' | 'yearly') => {
+    setIapLoading(true);
+    setIapError(null);
     try {
-      const info = type === 'monthly' ? await purchaseMonthly() : await purchaseYearly();
-      setRcPro(isProActive(info));
-      if (isProActive(info)) {
-        toast.success('Welcome to Pro! 🎉');
+      const result = type === 'monthly' ? await purchaseMonthly() : await purchaseYearly();
+      const signedTransactionInfo = extractSignedTransaction(result);
+      if (result && signedTransactionInfo) {
+        // StoreKit itself already verified this transaction — unlock the
+        // UI immediately regardless of backend sync timing.
+        markNativeSubscribed();
+        const syncOk = await syncAppleSubscription(signedTransactionInfo);
+        if (syncOk) {
+          toast.success('Welcome to Pro! 🎉');
+        } else {
+          // Do not tell the user the purchase failed — it succeeded on
+          // Apple's side. Restore Purchases remains available as a retry path.
+          toast(
+            'Purchase successful — finishing account activation. If this doesn’t update shortly, try Restore Purchases.',
+          );
+        }
+      } else if (result) {
+        // Purchase resolved but no signed transaction was returned —
+        // should not normally happen, but never claim success silently.
+        console.error('[Billing] Purchase result missing signedTransactionInfo');
+        toast.error('Could not verify your purchase. Please try again.');
       }
     } catch (e: any) {
-      const msg = e?.message ?? 'Purchase failed.';
-      setRcError(msg);
-      toast.error(msg);
+      const msg: string = e?.message ?? 'Purchase failed.';
+      if (msg !== 'USER_CANCELLED' && msg !== 'PENDING') {
+        setIapError(msg);
+        toast.error(msg);
+      }
     } finally {
-      setRcLoading(false);
+      setIapLoading(false);
     }
   };
 
-  const handleRCRestore = async () => {
-    setRcLoading(true);
-    setRcError(null);
+  const handleRestore = async () => {
+    setIapLoading(true);
+    setIapError(null);
     try {
-      const info = await restorePurchases();
-      setRcPro(isProActive(info));
-      toast.success(isProActive(info) ? 'Pro restored! 🎉' : 'No active subscription found.');
+      const status = await restorePurchases();
+      const signedTransactionInfo = extractSignedTransaction(status);
+      if (status.isSubscribed && signedTransactionInfo) {
+        markNativeSubscribed();
+        const syncOk = await syncAppleSubscription(signedTransactionInfo);
+        if (syncOk) {
+          toast.success('Pro restored! 🎉');
+        } else {
+          toast(
+            'Subscription found — finishing account activation. Please try again in a moment if this persists.',
+          );
+        }
+      } else if (status.isSubscribed) {
+        // Active entitlement found but no signed transaction was returned
+        // — fail safely rather than silently claiming success.
+        console.error('[Billing] Restore result missing signedTransactionInfo');
+        toast.error('Could not verify your subscription. Please try again.');
+      } else {
+        toast('No active subscription found.');
+      }
     } catch (e: any) {
-      const msg = e?.message ?? 'Restore failed.';
-      setRcError(msg);
+      const msg: string = e?.message ?? 'Restore failed.';
+      setIapError(msg);
       toast.error(msg);
     } finally {
-      setRcLoading(false);
+      setIapLoading(false);
     }
   };
 
@@ -147,10 +197,11 @@ const Billing = () => {
     },
   };
 
-  // On iOS native, use RevenueCat status to determine effective plan
-  const effectivePlan = isIOSNative && rcPro ? 'pro' : plan;
-  const currentPlanConfig = planConfig[effectivePlan as keyof typeof planConfig] || planConfig.free;
+  const currentPlanConfig = planConfig[plan as keyof typeof planConfig] || planConfig.free;
   const Icon = currentPlanConfig.icon;
+
+  const monthlyProduct = products.find(p => p.productId === 'betteropnr.premium.monthly');
+  const yearlyProduct = products.find(p => p.productId === 'betteropnr.premium.yearly');
 
   return (
     <>
@@ -168,11 +219,11 @@ const Billing = () => {
                   Current Plan
                   <Badge className={currentPlanConfig.bgColor}>
                     <Icon className={`w-3 h-3 mr-1 ${currentPlanConfig.color}`} />
-                    {effectivePlan.charAt(0).toUpperCase() + effectivePlan.slice(1)}
+                    {plan.charAt(0).toUpperCase() + plan.slice(1)}
                   </Badge>
                 </CardTitle>
                 <CardDescription>
-                  {effectivePlan === 'free'
+                  {plan === 'free'
                     ? 'Upgrade to unlock unlimited features'
                     : 'Thank you for being a premium member!'}
                 </CardDescription>
@@ -192,64 +243,61 @@ const Billing = () => {
               </ul>
             </div>
 
-            {/* iOS Native: RevenueCat IAP buttons */}
-            {isIOSNative && effectivePlan === 'free' && (
+            {/* iOS Native: StoreKit IAP */}
+            {isIOSNative && plan === 'free' && (
               <div className="pt-4 border-t space-y-3">
-                {rcError && (
-                  <p className="text-sm text-destructive">{rcError}</p>
-                )}
+                {iapError && <p className="text-sm text-destructive">{iapError}</p>}
                 <div className="flex flex-col sm:flex-row gap-2">
                   <Button
-                    onClick={() => handleRCPurchase('monthly')}
-                    disabled={rcLoading}
+                    onClick={() => handlePurchase('monthly')}
+                    disabled={iapLoading}
                     className="flex-1"
                   >
                     <Zap className="w-4 h-4 mr-2" />
-                    {rcLoading ? 'Processing...' : 'Go Pro Monthly'}
+                    {iapLoading
+                      ? 'Processing…'
+                      : monthlyProduct
+                        ? `Go Pro Monthly · ${monthlyProduct.localizedPrice}`
+                        : 'Go Pro Monthly'}
                   </Button>
                   <Button
-                    onClick={() => handleRCPurchase('yearly')}
-                    disabled={rcLoading}
+                    onClick={() => handlePurchase('yearly')}
+                    disabled={iapLoading}
                     className="flex-1"
                   >
                     <Zap className="w-4 h-4 mr-2" />
-                    {rcLoading ? 'Processing...' : 'Go Pro Yearly'}
+                    {iapLoading
+                      ? 'Processing…'
+                      : yearlyProduct
+                        ? `Go Pro Yearly · ${yearlyProduct.localizedPrice}`
+                        : 'Go Pro Yearly'}
                   </Button>
                 </div>
-                <div className="flex flex-col sm:flex-row gap-2">
-                  <Button
-                    onClick={handleRCRestore}
-                    disabled={rcLoading}
-                    variant="outline"
-                    className="flex-1"
-                  >
-                    {rcLoading ? 'Processing...' : 'Restore Purchases'}
-                  </Button>
-                  <Button
-                    onClick={() => refreshRC()}
-                    variant="ghost"
-                    className="flex-1"
-                  >
-                    <RefreshCw className="w-4 h-4 mr-2" />
-                    Refresh Status
-                  </Button>
-                </div>
+                <Button
+                  onClick={handleRestore}
+                  disabled={iapLoading}
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                >
+                  {iapLoading ? 'Processing…' : 'Restore Purchases'}
+                </Button>
                 <p className="text-xs text-muted-foreground">
-                  Purchases are handled through the App Store. Manage your subscription in iOS Settings.
+                  Purchases are processed through the App Store. Manage your subscription in iOS Settings → Apple ID → Subscriptions.
                 </p>
               </div>
             )}
 
-            {/* iOS Native: Pro active */}
-            {isIOSNative && effectivePlan !== 'free' && (
+            {/* iOS Native: active subscription */}
+            {isIOSNative && plan !== 'free' && (
               <div className="pt-4 border-t space-y-3">
                 <Button
-                  onClick={() => refreshRC()}
+                  onClick={handleRestore}
+                  disabled={iapLoading}
                   variant="outline"
                   className="w-full sm:w-auto"
                 >
                   <RefreshCw className="w-4 h-4 mr-2" />
-                  Refresh Status
+                  {iapLoading ? 'Processing…' : 'Refresh Status'}
                 </Button>
                 <p className="text-sm text-muted-foreground">
                   Manage your subscription in iOS Settings → Apple ID → Subscriptions
@@ -258,7 +306,7 @@ const Billing = () => {
             )}
 
             {/* Web: Stripe manage subscription */}
-            {!isIOSNative && effectivePlan !== 'free' && (
+            {!isIOSNative && plan !== 'free' && (
               <div className="pt-4 border-t">
                 <Button
                   onClick={handleManageSubscription}
@@ -276,7 +324,7 @@ const Billing = () => {
             )}
 
             {/* Web: Upgrade CTA */}
-            {!isIOSNative && effectivePlan === 'free' && (
+            {!isIOSNative && plan === 'free' && (
               <div className="pt-4 border-t">
                 <Button
                   onClick={() => navigate('/')}
@@ -299,7 +347,7 @@ const Billing = () => {
             <CardDescription>Your current usage and limits</CardDescription>
           </CardHeader>
           <CardContent>
-            {effectivePlan === 'free' ? (
+            {plan === 'free' ? (
               <div className="space-y-4">
                 <div className="flex justify-between items-center">
                   <span className="text-sm">Daily Openers</span>
