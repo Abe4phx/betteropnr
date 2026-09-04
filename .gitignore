@@ -10,7 +10,12 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+dev-dist
 *.local
+
+# Local tooling state
+deno.lock
+supabase/.temp/
 
 # Editor directories and files
 .vscode/*
