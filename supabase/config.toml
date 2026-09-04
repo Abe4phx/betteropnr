@@ -1,4 +1,4 @@
-project_id = "vvhrzznaowjxpgbgyyim"
+project_id = "vshitqqftdekgtjanyaa"
 
 # All edge functions verify Clerk JWTs themselves using the _shared/clerkAuth.ts helper
 
@@ -36,4 +36,7 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.clerk-proxy]
+verify_jwt = false
+
+[functions.sync-apple-subscription]
 verify_jwt = false
